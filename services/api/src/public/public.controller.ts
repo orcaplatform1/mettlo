@@ -169,8 +169,8 @@ export class PublicController {
       return { type: 'member', username: u.username, name: u.name.split(' ')[0], avatarUrl: u.avatarUrl, memberSince: u.createdAt, streak: u.streak, achievements: u.achievements, isPrivate: false };
     }
 
-    // ADMIN / MODERATOR / SUPPORT / SUPER_ADMIN: rol bilgisi dahil hiçbir ayrıntı açılmaz
-    return { type: 'staff', username: u.username, avatarUrl: u.avatarUrl };
+    // ADMIN / MODERATOR / SUPPORT / SUPER_ADMIN: gerçek rol açılmaz; sadece kurucu/ekip ayrımı
+    return { type: 'staff', username: u.username, avatarUrl: u.avatarUrl, staffRole: u.role === 'SUPER_ADMIN' ? 'founder' : 'team' };
   }
 
   /** Tekil abonelik planı detayı — checkout sayfası için */

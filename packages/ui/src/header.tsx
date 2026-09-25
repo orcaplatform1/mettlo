@@ -61,10 +61,6 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
       </div>
       <button type="button" className="nav-backdrop" data-open={open} aria-hidden tabIndex={-1} onClick={() => setOpen(false)} />
       <div className="mobile-nav" data-open={open}>
-        <form className="search" style={{ display: 'flex', width: '100%', marginBottom: 8 }} action="/explore" role="search">
-          <input name="q" type="search" placeholder="Koç, program, ürün ara..." aria-label="Ara" maxLength={80} />
-          <button type="submit" aria-label="Ara"><Search size={18} aria-hidden /></button>
-        </form>
         {NAV.map((n) => <Link key={n.href} href={n.href}>{n.label}</Link>)}
         {user && <Link href={panelHref ?? '/app'}>Panelim</Link>}
         {user && <Link href={`/profile/${user.username}`}>@{user.username}</Link>}

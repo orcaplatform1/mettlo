@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Query, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { decryptField } from '@mettlo/auth';
 import { can } from '@mettlo/types';
@@ -345,22 +345,195 @@ export class AdminController {
   // ---------- Denetim kayıtları (yalnızca SUPER_ADMIN) ----------
   @RequirePermission('audit:read')
   @Get('audit-logs')
-  async auditLogs(@CurrentUser() _me: AuthUser, @Query('action') action?: string, @Query('subject') subject?: string, @Query('role') role?: string, @Query('page') page = '1') {
-    const take = 50;
+  async auditLogs(@CurrentUser() _me: AuthUser, @Query('action') action?: string, @Query('subject') subject?: string, @Query('role') role?: string, @Query('page') page = '1', @Query('dateFilter') dateFilter = 'today') {
+    const take = 200;
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
     const roleFilter = role && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT', 'CREATOR', 'MEMBER'].includes(role) ? role : undefined;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let dateFrom: Date | undefined;
+    let dateTo: Date | undefined;
+    if (dateFilter === 'today') { dateFrom = todayStart; }
+    else if (dateFilter === 'yesterday') { dateFrom = new Date(todayStart.getTime() - 86400000); dateTo = todayStart; }
+    else if (dateFilter === 'week') { dateFrom = new Date(todayStart.getTime() - 7 * 86400000); }
+    else if (dateFilter === 'month') { dateFrom = new Date(todayStart.getTime() - 30 * 86400000); }
+    // dateFilter === 'all' → no date filter
     const where: any = {
       ...(action ? { action: { startsWith: action } } : {}),
       ...(subject ? { subjectUserId: subject } : {}),
       ...(roleFilter ? { actorRole: roleFilter } : {}),
+      ...(dateFrom || dateTo ? {
+        createdAt: {
+          ...(dateFrom ? { gte: dateFrom } : {}),
+          ...(dateTo ? { lt: dateTo } : {}),
+        },
+      } : {}),
     };
     const [rows, total] = await Promise.all([
       this.prisma.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
       this.prisma.auditLog.count({ where }),
     ]);
     const ids = [...new Set(rows.flatMap((r) => [r.actorId, r.subjectUserId]).filter((x): x is string => !!x))];
-    const users = ids.length ? await this.prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, username: true } }) : [];
-    const name = new Map(users.map((u) => [u.id, u.username]));
-    return { total, items: rows.map((r) => ({ ...r, actorUsername: r.actorId ? name.get(r.actorId) ?? null : null, subjectUsername: r.subjectUserId ? name.get(r.subjectUserId) ?? null : null })) };
+    const users = ids.length ? await this.prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, username: true, role: true } }) : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    return { total, items: rows.map((r) => {
+      const actor = r.actorId ? userMap.get(r.actorId) : null;
+      const subject2 = r.subjectUserId ? userMap.get(r.subjectUserId) : null;
+      return {
+        ...r,
+        actorUsername: actor?.username ?? null,
+        actorRole: r.actorRole,
+        subjectUsername: subject2?.username ?? null,
+        turkishDescription: buildTurkishDescription(r.action, actor?.username, subject2?.username, r.metadata as Record<string, any> | null),
+      };
+    }) };
   }
+
+  // ---------- Finans / Ödemeler ----------
+  @RequirePermission('finance:read')
+  @Get('finance')
+  async financeOverview() {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart.getTime() - 7 * 86400000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const [todayPayments, weekPayments, monthPayments, pending, byCreator, recentPayments] = await Promise.all([
+      this.prisma.payment.aggregate({ _sum: { amount: true }, _count: true, where: { status: 'SUCCEEDED', createdAt: { gte: todayStart } } }),
+      this.prisma.payment.aggregate({ _sum: { amount: true }, _count: true, where: { status: 'SUCCEEDED', createdAt: { gte: weekStart } } }),
+      this.prisma.payment.aggregate({ _sum: { amount: true }, _count: true, where: { status: 'SUCCEEDED', createdAt: { gte: monthStart } } }),
+      this.prisma.payment.findMany({ where: { status: 'PENDING' }, orderBy: { createdAt: 'desc' }, take: 50, include: { user: { select: { username: true } } } }),
+      this.prisma.creatorEarning.groupBy({ by: ['creatorId'], _sum: { gross: true, creatorShare: true, platformShare: true }, orderBy: { _sum: { gross: 'desc' } }, take: 20 }),
+      this.prisma.payment.findMany({ orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, status: true, kind: true, amount: true, currency: true, createdAt: true, user: { select: { username: true } }, creatorId: true } }),
+    ]);
+    const creatorIds = byCreator.map((x) => x.creatorId);
+    const creators = creatorIds.length ? await this.prisma.user.findMany({ where: { id: { in: creatorIds } }, select: { id: true, username: true } }) : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.username]));
+    return {
+      stats: {
+        today: { total: Number(todayPayments._sum.amount ?? 0), count: todayPayments._count },
+        week: { total: Number(weekPayments._sum.amount ?? 0), count: weekPayments._count },
+        month: { total: Number(monthPayments._sum.amount ?? 0), count: monthPayments._count },
+      },
+      pending: pending.map((p) => ({ id: p.id, username: p.user.username, amount: Number(p.amount), kind: p.kind, createdAt: p.createdAt })),
+      creatorEarnings: byCreator.map((e) => ({
+        creatorId: e.creatorId, username: creatorMap.get(e.creatorId) ?? '?',
+        gross: Number(e._sum.gross ?? 0), creatorShare: Number(e._sum.creatorShare ?? 0), platformShare: Number(e._sum.platformShare ?? 0),
+      })),
+      recent: recentPayments.map((p) => ({ id: p.id, status: p.status, kind: p.kind, amount: Number(p.amount), currency: p.currency, username: p.user.username, createdAt: p.createdAt })),
+    };
+  }
+
+  @RequirePermission('finance:read')
+  @Get('finance/payments')
+  async listPayments(@Query('status') status?: string, @Query('page') page = '1') {
+    const take = 100;
+    const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
+    const validStatus = ['PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'CHARGEBACK'];
+    const where: any = status && validStatus.includes(status) ? { status } : {};
+    const [items, total] = await Promise.all([
+      this.prisma.payment.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take, select: { id: true, status: true, kind: true, amount: true, currency: true, createdAt: true, user: { select: { username: true } }, creatorId: true, providerRef: true } }),
+      this.prisma.payment.count({ where }),
+    ]);
+    const creatorIds = [...new Set(items.map((i) => i.creatorId).filter((x): x is string => !!x))];
+    const coaches = creatorIds.length ? await this.prisma.user.findMany({ where: { id: { in: creatorIds } }, select: { id: true, username: true } }) : [];
+    const coachMap = new Map(coaches.map((c) => [c.id, c.username]));
+    return { total, items: items.map((p) => ({ ...p, amount: Number(p.amount), coachUsername: p.creatorId ? coachMap.get(p.creatorId) ?? null : null })) };
+  }
+
+  // ---------- Değerlendirme moderasyonu ----------
+  @RequirePermission('content:moderate')
+  @Get('reviews')
+  async listReviews(@Query('status') status = 'PUBLISHED', @Query('page') page = '1') {
+    const take = 50;
+    const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
+    const validStatus = ['PUBLISHED', 'HIDDEN', 'REPORTED', 'REMOVED'];
+    const where: any = validStatus.includes(status) ? { status } : {};
+    const [items, total] = await Promise.all([
+      this.prisma.review.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take, include: { author: { select: { username: true, avatarUrl: true } }, reports: { select: { id: true } } } }),
+      this.prisma.review.count({ where }),
+    ]);
+    // target bilgisi (coach username) al
+    const coachIds = items.filter((r) => r.targetType === 'CREATOR').map((r) => r.targetId);
+    const coaches = coachIds.length ? await this.prisma.user.findMany({ where: { id: { in: coachIds } }, select: { id: true, username: true } }) : [];
+    const coachMap = new Map(coaches.map((c) => [c.id, c.username]));
+    return { total, items: items.map((r) => ({ id: r.id, authorUsername: r.author.username, authorAvatar: r.author.avatarUrl, targetType: r.targetType, targetId: r.targetId, targetUsername: r.targetType === 'CREATOR' ? coachMap.get(r.targetId) ?? null : null, rating: r.rating, body: r.body, tags: r.tags, status: r.status, reportCount: r.reports.length, createdAt: r.createdAt })) };
+  }
+
+  @RequirePermission('content:moderate')
+  @Patch('reviews/:id')
+  async updateReview(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(z.object({ status: z.enum(['PUBLISHED', 'HIDDEN', 'REMOVED']), editBody: z.string().max(2000).optional() }))) body: { status: string; editBody?: string }, @Req() req: AuthedRequest) {
+    const review = await this.prisma.review.findUnique({ where: { id }, select: { id: true, targetId: true, authorId: true } });
+    if (!review) throw new NotFoundException('Değerlendirme bulunamadı');
+    await this.prisma.review.update({ where: { id }, data: { status: body.status as any, ...(body.editBody !== undefined ? { body: body.editBody } : {}) } });
+    await this.audit.record({ actorId: me.id, actorRole: me.role, action: `review.${body.status.toLowerCase()}`, targetType: 'review', targetId: id, subjectUserId: review.authorId, metadata: { reviewId: id, newStatus: body.status }, ...this.meta(req) });
+    return { ok: true };
+  }
+
+  // ---------- Rol yönetimi (SUPER_ADMIN only) ----------
+  @RequirePermission('roles:manage')
+  @Get('staff')
+  async listStaff() {
+    const staff = await this.prisma.user.findMany({ where: { role: { in: ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'] } }, select: { id: true, username: true, name: true, email: true, role: true, createdAt: true }, orderBy: { role: 'asc' } });
+    return staff.map((s) => ({ ...s, email: maskEmail(s.email) }));
+  }
+
+  @RequirePermission('roles:manage')
+  @Patch('users/:id/role')
+  async setUserRole(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(z.object({ role: z.enum(['MEMBER', 'ADMIN', 'MODERATOR', 'SUPPORT', 'SUPER_ADMIN']) }))) body: { role: string }, @Req() req: AuthedRequest) {
+    const target = await this.prisma.user.findUnique({ where: { id }, select: { id: true, username: true, role: true } });
+    if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
+    if (target.role === 'SUPER_ADMIN' && me.role !== 'SUPER_ADMIN') throw new ForbiddenException('Kurucu rolü yalnızca kurucu tarafından değiştirilebilir');
+    const prev = target.role;
+    await this.prisma.user.update({ where: { id }, data: { role: body.role as any } });
+    await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'admin.grant', targetType: 'user', targetId: id, subjectUserId: id, metadata: { prevRole: prev, newRole: body.role }, ...this.meta(req) });
+    return { ok: true };
+  }
+
+  // ---------- Profil düzenleme (staff kendi profilini düzenler) ----------
+  @RequirePermission('users:edit')
+  @Patch('staff/profile')
+  async editStaffProfile(@CurrentUser() me: AuthUser, @Body(new ZodPipe(z.object({ name: z.string().min(2).max(60).optional(), bio: z.string().max(500).optional() }))) body: { name?: string; bio?: string }) {
+    await this.prisma.user.update({ where: { id: me.id }, data: { ...(body.name ? { name: body.name } : {}), ...(body.bio !== undefined ? { bio: body.bio } : {}) } });
+    return { ok: true };
+  }
+}
+
+function buildTurkishDescription(action: string, actorUsername: string | null | undefined, subjectUsername: string | null | undefined, meta: Record<string, any> | null): string {
+  const actor = actorUsername ? `@${actorUsername}` : 'Sistem';
+  const subj = subjectUsername ? `@${subjectUsername}` : 'bilinmeyen';
+  const role = meta?.['role'] ? ` (${meta['role']})` : '';
+  const reason = meta?.['reason'] ? ` — neden: ${meta['reason']}` : '';
+  const action2action: Record<string, (a: string, s: string) => string> = {
+    'user.delete': (a, s) => `${a} tarafından ${s} kullanıcısı silindi${reason}`,
+    'user.profile_view': (a, s) => `${a} personeli ${s} kullanıcısının profilini görüntüledi`,
+    'user.note_add': (a, s) => `${a} ${s} kullanıcısına not ekledi`,
+    'user.note_delete': (a, s) => `${a} ${s} kullanıcısındaki bir notu sildi`,
+    'sanction.warn': (a, s) => `${a} ${s} kullanıcısını uyardı${reason}`,
+    'sanction.suspend_1h': (a, s) => `${a} ${s} kullanıcısını 1 saat askıya aldı${reason}`,
+    'sanction.suspend_24h': (a, s) => `${a} ${s} kullanıcısını 24 saat askıya aldı${reason}`,
+    'sanction.suspend_7d': (a, s) => `${a} ${s} kullanıcısını 7 gün askıya aldı${reason}`,
+    'sanction.unsuspend': (a, s) => `${a} ${s} kullanıcısının askısını kaldırdı`,
+    'sanction.ban': (a, s) => `${a} ${s} kullanıcısını kalıcı olarak yasakladı${reason}`,
+    'sanction.unban': (a, s) => `${a} ${s} kullanıcısının yasağını kaldırdı`,
+    'creator.status_approved': (a, s) => `${a} ${s} koçunun başvurusunu onayladı`,
+    'creator.status_rejected': (a, s) => `${a} ${s} koçunun başvurusunu reddetti${reason}`,
+    'creator.status_suspended': (a, s) => `${a} ${s} koçunu askıya aldı`,
+    'creator.profile_edit': (a, s) => `${a} ${s} koçunun profilini düzenledi`,
+    'admin.grant': (a, s) => `${a} ${s} kullanıcısına${role} rolü verdi`,
+    'admin.revoke': (a, s) => `${a} ${s} kullanıcısından${role} rolünü geri aldı`,
+    'entitlement.grant': (a, s) => `${a} ${s} kullanıcısına erişim yetkisi verdi`,
+    'entitlement.revoke': (a, s) => `${a} ${s} kullanıcısının erişim yetkisini kaldırdı`,
+    'ticket.close': (a, s) => `${a} ${s} kullanıcısının destek talebini kapattı`,
+    'ticket.reply': (a, s) => `${a} ${s} kullanıcısının destek talebini yanıtladı`,
+    'content.delete': (a, s) => `${a} ${s} koçuna ait içeriği sildi${reason}`,
+    'content.hide': (a, s) => `${a} ${s} koçuna ait içeriği gizledi`,
+    'login': (a) => `${a} sisteme giriş yaptı`,
+    'login.failed': (a) => `${a} için başarısız giriş denemesi`,
+    'password.change': (a) => `${a} şifresini değiştirdi`,
+    'report.resolve': (a, s) => `${a} ${s} kullanıcısına ait şikayeti çözümledi`,
+  };
+  const fn = action2action[action];
+  if (fn) return fn(actor, subj);
+  // Tanınmayan işlem: parçalara ayır ve Türkçeleştir
+  return `${actor} → ${action.replace(/\./g, ' / ')} ${subj !== 'bilinmeyen' ? `(hedef: ${subj})` : ''}`.trim();
 }

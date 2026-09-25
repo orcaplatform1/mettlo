@@ -47,10 +47,10 @@ export default async function ProfilePage({ params }: Props) {
   if (p.type === 'staff') {
     return (
       <>
-        <div className="container section-sm" style={{ textAlign: 'center' }}>
+        <div className="container section-sm" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           <Avatar name={p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
           <h1 className="h3" style={{ marginTop: 16 }}>@{p.username}</h1>
-          <span className="badge badge-premium" style={{ marginTop: 10 }}><ShieldCheck size={12} aria-hidden /> Mettlo Ekibi</span>
+          <span className="badge badge-premium" style={{ marginTop: 10 }}><ShieldCheck size={12} aria-hidden /> {p.staffRole === 'founder' ? 'Kurucu' : 'Mettlo Ekibi'}</span>
         </div>
         <SuperAdminPanel username={p.username} data={admin} />
       </>
@@ -60,7 +60,7 @@ export default async function ProfilePage({ params }: Props) {
   if (p.type === 'member') {
     return (
       <>
-        <div className="container section-sm" style={{ maxWidth: 720, textAlign: 'center' }}>
+        <div className="container section-sm" style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           <Avatar name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
           <h1 className="h3" style={{ marginTop: 16 }}>{p.isPrivate ? `@${p.username}` : p.name}</h1>
           {!p.isPrivate && <p className="text-tertiary">@{p.username}</p>}

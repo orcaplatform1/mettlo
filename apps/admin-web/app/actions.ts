@@ -93,3 +93,18 @@ export async function rejectCreatorAction(userId: string, _p: FormState, fd: For
   try { await authed(`/admin/creators/${userId}/status`, { method: 'PATCH', body: { status: 'REJECTED', reason: str(fd, 'reason') || undefined } }); } catch (e) { return fail(e); }
   revalidatePath('/admin/creators'); return { ok: 'Başvuru reddedildi.' };
 }
+
+export async function updateReviewAction(reviewId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const status = str(fd, 'status');
+  const editBody = str(fd, 'editBody') || undefined;
+  try { await authed(`/admin/reviews/${reviewId}`, { method: 'PATCH', body: { status, ...(editBody !== undefined ? { editBody } : {}) } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/reviews'); return { ok: 'Değerlendirme güncellendi.' };
+}
+
+export async function setUserRoleAction(_p: FormState, fd: FormData): Promise<FormState> {
+  const userId = str(fd, 'userId');
+  const role = str(fd, 'role');
+  if (!userId) return { error: 'Kullanıcı ID gerekli.' };
+  try { await authed(`/admin/users/${userId}/role`, { method: 'PATCH', body: { role } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/roles'); return { ok: `Rol "${role}" olarak güncellendi.` };
+}

@@ -157,3 +157,15 @@ export async function saveMeasurementAction(_p: FormState, fd: FormData): Promis
   try { await authed('/me/health/measurements', { method: 'POST', body }); } catch (e) { return fail(e); }
   revalidatePath('/app/health'); return { ok: 'Ölçü kaydedildi' };
 }
+
+// ---------- Profil düzenleme ----------
+export async function updateProfileAction(_p: FormState, fd: FormData): Promise<FormState> {
+  const name = str(fd, 'name') || undefined;
+  const bio = str(fd, 'bio');
+  try { await authed('/me/profile', { method: 'PATCH', body: { ...(name ? { name } : {}), bio } }); } catch (e) { return fail(e); }
+  revalidatePath('/app/settings'); revalidatePath('/app/profile'); return { ok: 'Profil güncellendi.' };
+}
+
+export async function deleteAvatarAction(): Promise<void> {
+  await authed('/me/avatar', { method: 'DELETE' }); revalidatePath('/app/settings');
+}

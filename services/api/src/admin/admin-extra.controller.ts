@@ -76,6 +76,23 @@ export class AdminExtraController {
     return { usersByRole: Object.fromEntries(roles.map((r) => [r.role, r._count._all])), pendingCreators, activeCreators, openTickets, answeredTickets, newUsers7, openReports, activeSubscriptions: activeSubs, publishedProducts: products };
   }
 
+  @RequirePermission('analytics:aggregate')
+  @Get('branch-stats')
+  async branchStats() {
+    // Branş bazında aktif abonelik dağılımı
+    const branches = await this.prisma.branch.findMany({ where: { isActive: true }, select: { slug: true, name: true, id: true } });
+    const counts = await Promise.all(branches.map(async (b) => {
+      const creators = await this.prisma.creatorProfile.findMany({ where: { branches: { some: { branchId: b.id } } }, select: { userId: true } });
+      const creatorIds = creators.map((c) => c.userId);
+      const n = await this.prisma.entitlement.count({
+        where: { status: 'ACTIVE', creatorId: { in: creatorIds } },
+      });
+      return { slug: b.slug, name: b.name, subscribers: n };
+    }));
+    counts.sort((a, z) => z.subscribers - a.subscribers);
+    return counts;
+  }
+
   // ---------- Mettlo Mağaza ----------
   @RequirePermission('store:manage')
   @Get('products')

@@ -2,7 +2,7 @@ import { PanelShell, type PanelLink } from '@mettlo/ui';
 import { can, ADMIN_ROLES } from '@mettlo/types';
 import { requireSession } from '@mettlo/web-core';
 
-const ROLE_LABEL: Record<string, string> = { SUPER_ADMIN: 'Süper Admin', ADMIN: 'Admin', MODERATOR: 'Moderatör', SUPPORT: 'Destek' };
+const ROLE_LABEL: Record<string, string> = { SUPER_ADMIN: 'Kurucu', ADMIN: 'Admin', MODERATOR: 'Moderatör', SUPPORT: 'Destek' };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession('/admin', [...ADMIN_ROLES]);
@@ -14,6 +14,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(can(r, 'careers:manage') ? [{ href: '/admin/careers', label: 'Kariyer Başvuruları' }] : []),
     ...(can(r, 'users:read_masked') ? [{ href: '/admin/users', label: 'Kullanıcılar' }, { href: '/admin/creators', label: 'Koçlar' }] : []),
     ...(can(r, 'reports:manage') ? [{ href: '/admin/reports', label: 'Şikâyetler' }] : []),
+    ...(can(r, 'content:moderate') ? [{ href: '/admin/reviews', label: 'Değerlendirmeler' }] : []),
+    ...(can(r, 'finance:read') ? [{ href: '/admin/payments', label: 'Ödemeler & Finans' }] : []),
+    ...(can(r, 'roles:manage') ? [{ href: '/admin/roles', label: 'Rol Yönetimi' }] : []),
     ...(can(r, 'store:manage') ? [{ href: '/admin/store', label: 'Mağaza' }] : []),
     ...(can(r, 'creators:manage') ? [{ href: '/admin/branches', label: 'Branşlar' }] : []),
     ...(can(r, 'system:settings') ? [{ href: '/admin/sub-categories', label: 'Alt Kategoriler' }] : []),

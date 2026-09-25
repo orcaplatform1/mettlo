@@ -1,15 +1,31 @@
 import { Download, HeartPulse, Trash2 } from 'lucide-react';
-import { authed, requireSession } from '@mettlo/web-core';
+import { authed, apiTry, requireSession } from '@mettlo/web-core';
 import { cancelDeletionAction, requestDeletionAction, toggleHealthShareAction } from '@/app/actions/panel';
 import { PrivacyForm } from './privacy-form';
+import { AvatarUpload } from './avatar-upload';
+import { ProfileForm } from './profile-form';
 
 export default async function SettingsPage() {
   const s = await requireSession('/app/settings');
-  const [privacy, sharing] = await Promise.all([authed<any>('/me/privacy'), authed<any[]>('/me/health-sharing')]);
+  const [privacy, sharing, meData] = await Promise.all([apiTry<any>('/me/privacy'), apiTry<any[]>('/me/health-sharing'), apiTry<any>('/auth/me')]);
   const pendingDeletion = s.status === 'PENDING_DELETION';
   return (
     <div className="stack" style={{ ['--stack' as string]: '28px', maxWidth: 760 }}>
       <h1 className="h2">Ayarlar</h1>
+
+      {/* Profil fotoğrafı */}
+      <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
+        <h2 className="h4">Profil Fotoğrafı</h2>
+        <p className="body-sm text-secondary">Profil adresin: <b>mettlo.tr/profile/{s.username}</b></p>
+        <AvatarUpload username={s.username} name={s.name} currentAvatar={meData?.avatarUrl ?? null} />
+      </section>
+
+      {/* Profil bilgileri */}
+      <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
+        <h2 className="h4">Profil Bilgileri</h2>
+        <ProfileForm name={s.name} bio={meData?.creator?.bio ?? null} />
+      </section>
+
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
         <h2 className="h4">Profil gizliliği</h2>
         <p className="body-sm text-secondary">Profil adresin: <b>mettlo.tr/profile/{s.username}</b>. Varsayılan olarak profilin gizlidir; yalnızca kullanıcı adın ve fotoğrafın görünür.</p>
@@ -18,7 +34,7 @@ export default async function SettingsPage() {
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
         <h2 className="h4 row" style={{ gap: 8 }}><HeartPulse size={20} className="text-primary-c" aria-hidden /> Sağlık verisi paylaşımı</h2>
         <p className="body-sm text-secondary">Sağlık verilerini (adım, uyku, nabız, kilo, ölçüler) yalnızca izin verdiğin koçla paylaşırsın. İzni istediğin an geri alabilirsin. Verilerin hiçbir zaman reklam amacıyla kullanılmaz.</p>
-        {sharing.length === 0 ? <p className="body-sm text-muted">Paylaşım için önce bir koça abone olmalısın.</p> : sharing.map((c) => (
+        {(sharing ?? []).length === 0 ? <p className="body-sm text-muted">Paylaşım için önce bir koça abone olmalısın.</p> : (sharing ?? []).map((c) => (
           <div key={c.username} className="row between" style={{ padding: '10px 0', borderTop: '1px solid var(--border-soft)' }}>
             <div><b>{c.displayName}</b> <span className="text-tertiary">@{c.username}</span><br /><span className="caption text-tertiary">{c.sharing ? 'Verilerini bu koçla paylaşıyorsun' : 'Paylaşılmıyor'}</span></div>
             <form action={toggleHealthShareAction.bind(null, c.username, !c.sharing)}><button className={`btn btn-sm ${c.sharing ? 'btn-secondary' : 'btn-primary'}`} type="submit">{c.sharing ? 'Paylaşımı Durdur' : 'Paylaşmaya İzin Ver'}</button></form>

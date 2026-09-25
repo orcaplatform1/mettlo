@@ -1,4 +1,9 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Put, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Put, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { existsSync, mkdirSync, unlinkSync } from 'fs';
+import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { AuditService } from '../common/audit.service';
 import { CurrentUser } from '../common/decorators';
@@ -116,6 +121,63 @@ export class MeController {
     const n = await this.prisma.follow.count({ where: { creatorId: coach.id } });
     await this.prisma.creatorProfile.update({ where: { userId: coach.id }, data: { followersCount: n } });
     return { following: false, followers: n };
+  }
+
+  // ---------- Profil düzenleme ----------
+  @Patch('profile')
+  async updateProfile(@CurrentUser() me: AuthUser, @Body(new ZodPipe(z.object({ name: z.string().min(2).max(60).optional(), bio: z.string().max(500).optional(), headline: z.string().max(120).optional() }))) body: { name?: string; bio?: string; headline?: string }) {
+    await this.prisma.$transaction(async (tx) => {
+      if (body.name) await tx.user.update({ where: { id: me.id }, data: { name: body.name } });
+      if ((body.bio !== undefined || body.headline !== undefined) && me.role === 'CREATOR') {
+        await tx.creatorProfile.update({ where: { userId: me.id }, data: { ...(body.bio !== undefined ? { bio: body.bio } : {}), ...(body.headline !== undefined ? { headline: body.headline } : {}) } });
+      }
+    });
+    return { ok: true };
+  }
+
+  // ---------- Avatar yükleme ----------
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: (_req, _file, cb) => {
+        const dir = join('/var/www/mettlo.tr/uploads/avatars');
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (_req, file, cb) => {
+        const ext = extname(file.originalname).toLowerCase() || '.jpg';
+        cb(null, `${randomBytes(12).toString('hex')}${ext}`);
+      },
+    }),
+    fileFilter: (_req, file, cb) => {
+      const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+      const ext = extname(file.originalname).toLowerCase();
+      cb(null, allowed.includes(ext));
+    },
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  }))
+  async uploadAvatar(@CurrentUser() me: AuthUser, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('Geçerli bir resim dosyası yükleyin (jpg, png, webp, gif — maks 5 MB).');
+    const u = await this.prisma.user.findUnique({ where: { id: me.id }, select: { avatarUrl: true } });
+    // Eski dosyayı sil
+    if (u?.avatarUrl?.startsWith('/uploads/avatars/')) {
+      const old = join('/var/www/mettlo.tr', u.avatarUrl);
+      try { unlinkSync(old); } catch { /* dosya yoksa geç */ }
+    }
+    const avatarUrl = `/uploads/avatars/${file.filename}`;
+    await this.prisma.user.update({ where: { id: me.id }, data: { avatarUrl } });
+    return { avatarUrl };
+  }
+
+  @Delete('avatar')
+  async deleteAvatar(@CurrentUser() me: AuthUser) {
+    const u = await this.prisma.user.findUnique({ where: { id: me.id }, select: { avatarUrl: true } });
+    if (u?.avatarUrl?.startsWith('/uploads/avatars/')) {
+      const old = join('/var/www/mettlo.tr', u.avatarUrl);
+      try { unlinkSync(old); } catch { /* dosya yoksa geç */ }
+    }
+    await this.prisma.user.update({ where: { id: me.id }, data: { avatarUrl: null } });
+    return { ok: true };
   }
 }
 
