@@ -58,7 +58,7 @@ export class AccountController {
       this.prisma.sleepRecord.findMany({ where: { userId: me.id } }),
       this.prisma.healthShareConsent.findMany({ where: { userId: me.id } }),
     ]);
-    const { passwordHash, twoFactorSecretEnc, personalInfo, ...user } = u;
+    const { passwordHash, twoFactorSecretEnc, personalInfo, googleId: _g, appleId: _a, ...user } = u;
     await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'account.data_export', ip: clientIp(req), userAgent: userAgent(req) });
     await this.prisma.accountDeletionRequest.updateMany({ where: { userId: me.id, status: { in: ['PENDING', 'BLOCKED_BY_EXIT'] } }, data: { dataExportedAt: new Date() } });
     return {

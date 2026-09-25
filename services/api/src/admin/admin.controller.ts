@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Query, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { decryptField } from '@mettlo/auth';
 import { can } from '@mettlo/types';
@@ -329,8 +329,10 @@ export class AdminController {
       actorId: me.id, actorRole: me.role, action: 'coach_inbox.conversation.view', targetType: 'conversation', targetId: conversationId, subjectUserId: userId,
       metadata: { participants: conv.participants.map((p) => p.userId) }, ...this.meta(req),
     });
+    const beforeDate = before ? new Date(before) : undefined;
+    if (beforeDate && isNaN(beforeDate.getTime())) throw new BadRequestException('Geçersiz tarih parametresi');
     const messages = await this.prisma.message.findMany({
-      where: { conversationId, ...(before ? { createdAt: { lt: new Date(before) } } : {}) },
+      where: { conversationId, ...(beforeDate ? { createdAt: { lt: beforeDate } } : {}) },
       orderBy: { createdAt: 'desc' }, take: 100,
       select: { id: true, body: true, mediaIds: true, createdAt: true, deletedAt: true, senderId: true },
     });
@@ -340,21 +342,17 @@ export class AdminController {
     };
   }
 
-  // ---------- Denetim kayıtları ----------
-  /**
-   * Denetim kayıtları: SUPER_ADMIN tüm kayıtları görür; ADMIN yalnızca moderatör ve destek ekibinin kayıtlarını görür
-   * (admin ve süper admin işlemleri süper admine özeldir). Diğer roller göremez.
-   */
+  // ---------- Denetim kayıtları (yalnızca SUPER_ADMIN) ----------
   @RequirePermission('audit:read')
   @Get('audit-logs')
-  async auditLogs(@CurrentUser() me: AuthUser, @Query('action') action?: string, @Query('subject') subject?: string, @Query('role') role?: string, @Query('page') page = '1') {
+  async auditLogs(@CurrentUser() _me: AuthUser, @Query('action') action?: string, @Query('subject') subject?: string, @Query('role') role?: string, @Query('page') page = '1') {
     const take = 50;
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
-    const all = can(me.role, 'audit:read');
     const roleFilter = role && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT', 'CREATOR', 'MEMBER'].includes(role) ? role : undefined;
     const where: any = {
-      ...(action ? { action: { startsWith: action } } : {}), ...(subject ? { subjectUserId: subject } : {}),
-      ...(all ? (roleFilter ? { actorRole: roleFilter } : {}) : { actorRole: roleFilter && ['MODERATOR', 'SUPPORT'].includes(roleFilter) ? roleFilter : { in: ['MODERATOR', 'SUPPORT'] } }),
+      ...(action ? { action: { startsWith: action } } : {}),
+      ...(subject ? { subjectUserId: subject } : {}),
+      ...(roleFilter ? { actorRole: roleFilter } : {}),
     };
     const [rows, total] = await Promise.all([
       this.prisma.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
@@ -363,6 +361,6 @@ export class AdminController {
     const ids = [...new Set(rows.flatMap((r) => [r.actorId, r.subjectUserId]).filter((x): x is string => !!x))];
     const users = ids.length ? await this.prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, username: true } }) : [];
     const name = new Map(users.map((u) => [u.id, u.username]));
-    return { total, scope: all ? 'all' : 'staff', items: rows.map((r) => ({ ...r, actorUsername: r.actorId ? name.get(r.actorId) ?? null : null, subjectUsername: r.subjectUserId ? name.get(r.subjectUserId) ?? null : null })) };
+    return { total, items: rows.map((r) => ({ ...r, actorUsername: r.actorId ? name.get(r.actorId) ?? null : null, subjectUsername: r.subjectUserId ? name.get(r.subjectUserId) ?? null : null })) };
   }
 }

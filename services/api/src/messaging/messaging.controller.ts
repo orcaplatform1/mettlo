@@ -80,8 +80,10 @@ export class MessagingController {
   @Get('conversations/:id')
   async get(@CurrentUser() u: AuthUser, @Param('id') id: string, @Query('before') before?: string) {
     await this.assertParticipant(id, u.id);
+    const beforeDate = before ? new Date(before) : undefined;
+    if (beforeDate && isNaN(beforeDate.getTime())) throw new BadRequestException('Geçersiz tarih parametresi');
     const messages = await this.prisma.message.findMany({
-      where: { conversationId: id, ...(before ? { createdAt: { lt: new Date(before) } } : {}) },
+      where: { conversationId: id, ...(beforeDate ? { createdAt: { lt: beforeDate } } : {}) },
       orderBy: { createdAt: 'desc' }, take: 50,
       select: { id: true, body: true, createdAt: true, deletedAt: true, sender: PEOPLE },
     });
