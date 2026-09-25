@@ -1,16 +1,19 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { Activity, Award, CalendarClock, ClipboardList, Film, GraduationCap, Library, Lock, Radio, ShieldCheck, Star, Timer, Trophy, Users, Video } from 'lucide-react';
+import { Activity, Award, CalendarClock, Camera, ClipboardList, Film, GraduationCap, Library, Lock, Radio, ShieldCheck, Star, Timer, Trophy, Users, Video } from 'lucide-react';
 import { Avatar, EmptyState, OnlineStatus, TenureBadge, VerifiedBadge } from '@mettlo/ui';
 import { formatTRY } from '@mettlo/utils';
 import { absoluteUrl, apiTry, breadcrumbLd, getAccessToken, getSession, jsonLd } from '@mettlo/web-core';
 import { ProgramCard, Rating } from '@/app/components/cards';
 import { CoachInboxButton, SuperAdminPanel } from '@/app/components/superadmin-panel';
+import { MessageButton } from '@/app/components/message-button';
 import { StaffPanel } from '@/app/components/staff-panel';
 import { getAdminProfile } from '@/app/lib/admin';
 import { ReviewForm } from '@/app/components/review-form';
 import { BookButton } from '@/app/components/book-button';
+import { ReportButton } from '@/app/components/report-button';
+import { BlockButton } from '@/app/components/block-button';
 import { fmtHours, formatTenure } from '@/app/lib/format';
 
 type Props = { params: Promise<{ username: string }> };
@@ -22,9 +25,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await load(username);
   const canonical = `/profile/${username.toLowerCase()}`;
   if (!p || p.type === 'redirect') return { title: 'Profil bulunamadı', robots: { index: false } };
-  if (p.type !== 'coach') {
-    // Üye ve ekip profilleri arama motoruna KAPALI (gizlilik / KVKK)
+  if (p.type === 'member') {
+    // Üye profilleri arama motoruna KAPALI (gizlilik / KVKK)
     return { title: `@${p.username}`, robots: { index: false, follow: false }, alternates: { canonical } };
+  }
+  if (p.type === 'staff') {
+    const isFounder = p.staffRole === 'founder';
+    const name = p.name ?? p.username;
+    const title = isFounder ? `${name} — Mettlo Kurucusu` : `${name} — Mettlo Ekibi`;
+    const description = isFounder ? `${name}, Türkiye'nin fitness ve online koçluk platformu Mettlo'nun kurucusudur. Mettlo'da alanında uzman koçları keşfet.` : `${name}, Mettlo platformu ekip üyesidir.`;
+    return {
+      title, description, alternates: { canonical },
+      robots: isFounder ? { index: true, follow: true } : { index: false, follow: false },
+      openGraph: { type: 'profile', title, description, url: absoluteUrl(canonical), images: [{ url: p.avatarUrl || '/og-image.png', width: 1200, height: 630 }] },
+      twitter: { card: 'summary_large_image', title, description },
+    };
   }
   const title = p.seoTitle || `${p.displayName}${p.headline ? ` — ${p.headline}` : ' — Online Koç'}`;
   const description = p.seoDescription || (p.bio ? p.bio.slice(0, 155) : `${p.displayName} ile Mettlo'da programlara, canlı derslere ve 1:1 koçluğa katıl.`);
@@ -43,15 +58,112 @@ export default async function ProfilePage({ params }: Props) {
 
   // Yalnızca SUPER_ADMIN oturumunda dolu; diğer herkes için null
   const admin = await getAdminProfile(p.username);
+  const session = await getSession();
+  const isOwn = session?.username === p.username;
+  const isStaff = !!session?.role && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(session.role);
+
+  // Engel durumu: oturum varsa ve kendi profili değilse kontrol et
+  const token = session ? await getAccessToken() : undefined;
+  const blockStatus = (!isOwn && token) ? await apiTry<any>(`/blocks/status/${encodeURIComponent(p.username)}`, { token }) : null;
+  if (blockStatus?.blocked || blockStatus?.blockedByThem) notFound();
 
   if (p.type === 'staff') {
+    const isFounder = p.staffRole === 'founder';
+    const STAFF_LABEL: Record<string, string> = { founder: 'Kurucu', admin: 'Yönetici', moderator: 'Topluluk Kontrolörü', support: 'Müşteri İlişkileri' };
+    const STAFF_COLOR: Record<string, string> = { founder: '#ef4444', admin: '#22c55e', moderator: '#f97316', support: '#a855f7' };
+    const roleLabel = STAFF_LABEL[p.staffRole] ?? 'Mettlo Ekibi';
+    const roleColor = STAFF_COLOR[p.staffRole] ?? '#6b7280';
+    const roleTagline: Record<string, string> = { founder: "Mettlo'nun kurucusu ve ürün mimarı", admin: 'Mettlo yönetici ekibi', moderator: 'Topluluk moderasyon ve yönetimi', support: 'Müşteri ilişkileri ve destek ekibi' };
     return (
       <>
-        <div className="container section-sm" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <Avatar name={p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
-          <h1 className="h3" style={{ marginTop: 16 }}>@{p.username}</h1>
-          <span className="badge badge-premium" style={{ marginTop: 10 }}><ShieldCheck size={12} aria-hidden /> {p.staffRole === 'founder' ? 'Kurucu' : 'Mettlo Ekibi'}</span>
+        {/* ---- KAPAK ---- */}
+        <div style={{ position: 'relative', height: 260, background: 'var(--gradient-sunrise-dark)', overflow: 'hidden' }}>
+          <picture style={{ position: 'absolute', inset: 0 }}>
+            <source media="(max-width: 639px)" srcSet="/staff-cover-mobile.webp" type="image/webp" />
+            <img src="/staff-cover-desktop.webp" alt="" role="presentation" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} loading="eager" fetchPriority="high" />
+          </picture>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, background: 'linear-gradient(to top, var(--color-bg), transparent)' }} />
         </div>
+
+        {/* ---- PROFIL HEAD ---- */}
+        <div className="container" style={{ position: 'relative', paddingTop: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: 20, marginTop: -60 }}>
+            <div style={{ flexShrink: 0, borderRadius: '50%', padding: 4, background: 'var(--color-bg)', boxShadow: '0 0 0 2px var(--border-hover), 0 8px 32px rgba(0,0,0,.5)' }}>
+              <Avatar name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
+            </div>
+            <div style={{ flex: 1, minWidth: 200, paddingBottom: 8 }}>
+              <div className="row row-wrap" style={{ gap: 8, alignItems: 'center' }}>
+                <h1 className="h2">{p.name ?? p.username}</h1>
+                <span className="badge" style={{ flexShrink: 0, color: roleColor, borderColor: `${roleColor}44`, background: `${roleColor}12` }}><ShieldCheck size={12} aria-hidden /> {roleLabel}</span>
+              </div>
+              <p className="text-tertiary">@{p.username}</p>
+              <p className="body-sm text-secondary" style={{ marginTop: 6 }}>{roleTagline[p.staffRole] ?? 'Mettlo ekip üyesi'}</p>
+            </div>
+            {isOwn && (
+              <Link href="/app/settings" className="btn btn-secondary btn-pill" style={{ height: 44, paddingInline: 24, flexShrink: 0, marginBottom: 8 }}>Profili Düzenle</Link>
+            )}
+            {!isOwn && session && (
+              <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} style={{ marginBottom: 8 }} />
+            )}
+          </div>
+        </div>
+
+        {/* ---- İÇERİK ---- */}
+        <div className="container" style={{ paddingBlock: '32px 64px', maxWidth: 860 }}>
+          {isFounder && (
+            <>
+              <section className="card" style={{ marginBottom: 24 }}>
+                <h2 className="h4" style={{ marginBottom: 12 }}>Mettlo Hakkında</h2>
+                <p className="text-secondary" style={{ lineHeight: 1.7 }}>
+                  Mettlo, Türkiye'nin fitness ve online koçluk platformudur. Koçlar; program, içerik, topluluk ve canlı ders gibi tüm araçları tek çatı altında bulur — üyeler ise güvenilir koçlara kolayca erişir ve hedeflerine ulaşır.
+                </p>
+                <p className="text-secondary" style={{ lineHeight: 1.7, marginTop: 10 }}>
+                  Platform, koç ile üye arasındaki ilişkiyi dijital ortama taşımak ve sürdürülebilir bir fitness deneyimi sunmak amacıyla tasarlandı. Abonelik modeli sayesinde koçlar düzenli gelir elde ederken, üyeler içeriklere, programlara ve birebir koçluğa kesintisiz erişim sağlar.
+                </p>
+              </section>
+
+              <div className="grid grid-3" style={{ gap: 16, marginBottom: 24 }}>
+                <div className="card" style={{ textAlign: 'center' }}>
+                  <Activity size={28} style={{ color: 'var(--color-primary)', margin: '0 auto 8px' }} />
+                  <p className="h4">Fitness & Koçluk</p>
+                  <p className="caption text-tertiary" style={{ marginTop: 4 }}>10+ branş, yüzlerce alt kategori</p>
+                </div>
+                <div className="card" style={{ textAlign: 'center' }}>
+                  <Users size={28} style={{ color: 'var(--color-primary)', margin: '0 auto 8px' }} />
+                  <p className="h4">Koç & Üye</p>
+                  <p className="caption text-tertiary" style={{ marginTop: 4 }}>Güvenilir koçlar, gerçek sonuçlar</p>
+                </div>
+                <div className="card" style={{ textAlign: 'center' }}>
+                  <Radio size={28} style={{ color: 'var(--color-primary)', margin: '0 auto 8px' }} />
+                  <p className="h4">Canlı Dersler</p>
+                  <p className="caption text-tertiary" style={{ marginTop: 4 }}>Gerçek zamanlı etkileşim</p>
+                </div>
+              </div>
+
+              <div className="cta-band">
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <h2 className="h3">Koçunu bul, hedefine ulaş</h2>
+                  <p className="text-secondary" style={{ marginTop: 8 }}>Alanında uzman koçlar seni bekliyor.</p>
+                </div>
+                <div className="row" style={{ position: 'relative', zIndex: 1, justifyContent: 'flex-end' }}>
+                  <Link href="/coaches" className="btn btn-primary btn-pill" style={{ height: 48, paddingInline: 28 }}>Koçları Keşfet</Link>
+                </div>
+              </div>
+            </>
+          )}
+
+          {!isFounder && (
+            <div className="card" style={{ textAlign: 'center', padding: '40px 24px' }}>
+              <ShieldCheck size={36} style={{ color: roleColor, margin: '0 auto 12px' }} aria-hidden />
+              <p className="h4">{roleLabel}</p>
+              <p className="body-sm text-secondary" style={{ marginTop: 8 }}>{roleTagline[p.staffRole] ?? 'Bu hesap Mettlo platformu ekibine aittir.'}</p>
+              <div style={{ marginTop: 20 }}>
+                <Link href="/coaches" className="btn btn-primary btn-pill btn-sm">Koçları Keşfet</Link>
+              </div>
+            </div>
+          )}
+        </div>
+
         <SuperAdminPanel username={p.username} data={admin} />
       </>
     );
@@ -73,6 +185,14 @@ export default async function ProfilePage({ params }: Props) {
               {p.streak && <span className="badge badge-gold">Seri: {p.streak.current} gün</span>}
             </div>
           )}
+          {isOwn && <Link href="/app/settings" className="btn btn-secondary btn-sm btn-pill" style={{ marginTop: 20 }}>Profili Düzenle</Link>}
+          {!isOwn && session && <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} style={{ marginTop: 20 }} />}
+          {!isOwn && session && (
+            <div className="row row-wrap" style={{ gap: 8, marginTop: 8, justifyContent: 'center' }}>
+              <ReportButton targetType="user" targetId={p.username} />
+              <BlockButton username={p.username} isBlocked={blockStatus?.blocked ?? false} />
+            </div>
+          )}
         </div>
         <SuperAdminPanel username={p.username} data={admin} />
         <StaffPanel username={p.username} />
@@ -82,8 +202,6 @@ export default async function ProfilePage({ params }: Props) {
 
   // ---------- KOÇ ----------
   const st = p.stats;
-  const session = await getSession();
-  const token = session ? await getAccessToken() : undefined;
   // Değerlendirme/yorum/yıldız/mesaj YALNIZCA abonelere özel: uygunluk API'den gelir
   const elig = token ? await apiTry<any>(`/reviews/creators/${p.username}/eligibility`, { token }) : null;
   const overview = token ? await apiTry<any>('/me/overview', { token }) : null;
@@ -119,7 +237,16 @@ export default async function ProfilePage({ params }: Props) {
   return (
     <>
       <div className="profile-hero">
-        <div className="profile-cover">{p.coverUrl && /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.coverUrl} alt="" />}</div>
+        <div className="profile-cover" style={{ position: 'relative' }}>
+          {p.coverUrl
+            ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.coverUrl} alt="" />
+            : <div style={{ width: '100%', height: '100%', background: 'var(--gradient-sunrise-dark)' }} />}
+          {isOwn && (
+            <Link href="/creator/profile" className="btn btn-secondary btn-sm row" style={{ position: 'absolute', bottom: 12, right: 16, gap: 6, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,.45)', border: '1px solid rgba(255,255,255,.15)', zIndex: 2 }}>
+              <Camera size={14} aria-hidden /> Kapağı Düzenle
+            </Link>
+          )}
+        </div>
         <div className="container">
           <div className="profile-head">
             <Avatar name={p.displayName} src={p.avatarUrl} size={112} className="avatar-lg" verified={!!p.verified} />
@@ -134,9 +261,20 @@ export default async function ProfilePage({ params }: Props) {
                 <span className="badge"><Award size={12} aria-hidden /> Mettlo&apos;da {formatTenure(st.monthsOnMettlo)}</span>
               </div>
             </div>
-            <div className="row row-wrap" style={{ paddingBottom: 8 }}>
+            <div className="row row-wrap" style={{ paddingBottom: 8, gap: 10 }}>
               <CoachInboxButton username={p.username} data={admin} />
-              <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a>
+              {!isOwn && session && <MessageButton username={p.username} subscribeHref={subscribeHref(p.plans[0]?.id)} />}
+              {!isOwn && session && (
+                <>
+                  <ReportButton targetType="user" targetId={p.username} />
+                  <BlockButton username={p.username} isBlocked={blockStatus?.blocked ?? false} />
+                </>
+              )}
+              {isOwn
+                ? <Link href="/creator/profile" className="btn btn-secondary btn-pill" style={{ height: 52, paddingInline: 28 }}>Profili Düzenle</Link>
+                : isStaff
+                  ? null
+                  : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a>}
             </div>
           </div>
         </div>
@@ -164,7 +302,7 @@ export default async function ProfilePage({ params }: Props) {
         )}
         {p.expertise?.length > 0 && <div className="row row-wrap" style={{ marginTop: 16 }}>{p.expertise.map((e: string) => <span key={e} className="chip" style={{ cursor: 'default' }}>{e}</span>)}</div>}
 
-        <section id="plans" aria-labelledby="plans-h" style={{ marginTop: 48, scrollMarginTop: 96 }}>
+        {!isStaff && <section id="plans" aria-labelledby="plans-h" style={{ marginTop: 48, scrollMarginTop: 96 }}>
           <h2 id="plans-h" className="h4">Abonelik Planları</h2>
           <p className="body-sm text-secondary" style={{ marginTop: 6 }}>Abone olduğunda koçun tüm içeriklerine, programlarına, topluluğuna ve canlı derslerine erişirsin.</p>
           {p.plans.length ? (
@@ -179,7 +317,7 @@ export default async function ProfilePage({ params }: Props) {
               ))}
             </div>
           ) : <div style={{ marginTop: 16 }}><EmptyState title="Abonelik planları yakında">Bu koç planlarını hazırlıyor.</EmptyState></div>}
-        </section>
+        </section>}
 
         {p.programs.length > 0 && (
           <section aria-labelledby="progs" style={{ marginTop: 48 }}>
@@ -254,19 +392,21 @@ export default async function ProfilePage({ params }: Props) {
           )}
         </section>
 
-        <div className="cta-band" style={{ marginTop: 56 }}>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 className="h3">{p.displayName} ile hedeflerine ulaş</h2>
-            <p className="text-secondary" style={{ marginTop: 8 }}>Abone ol; tüm programlara, içeriklere ve canlı derslere eriş, koçunla mesajlaş.</p>
+        {!isStaff && (
+          <div className="cta-band" style={{ marginTop: 56 }}>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h2 className="h3">{p.displayName} ile hedeflerine ulaş</h2>
+              <p className="text-secondary" style={{ marginTop: 8 }}>Abone ol; tüm programlara, içeriklere ve canlı derslere eriş, koçunla mesajlaş.</p>
+            </div>
+            <div className="row" style={{ position: 'relative', zIndex: 1, justifyContent: 'flex-end' }}><a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a></div>
           </div>
-          <div className="row" style={{ position: 'relative', zIndex: 1, justifyContent: 'flex-end' }}><a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a></div>
-        </div>
+        )}
       </div>
 
       <SuperAdminPanel username={p.username} data={admin} />
       <StaffPanel username={p.username} />
 
-      <div className="sticky-cta"><span className="row" style={{ gap: 8, minWidth: 0 }}><b style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.displayName}</b>{p.verified && <VerifiedBadge size={18} />}</span><a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill btn-sm">Abone Ol</a></div>
+      <div className="sticky-cta"><span className="row" style={{ gap: 8, minWidth: 0 }}><b style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.displayName}</b>{p.verified && <VerifiedBadge size={18} />}</span>{isOwn ? <Link href="/creator/profile" className="btn btn-secondary btn-pill btn-sm">Düzenle</Link> : isStaff ? null : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill btn-sm">Abone Ol</a>}</div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </>
   );

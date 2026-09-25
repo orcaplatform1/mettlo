@@ -169,8 +169,10 @@ export class PublicController {
       return { type: 'member', username: u.username, name: u.name.split(' ')[0], avatarUrl: u.avatarUrl, memberSince: u.createdAt, streak: u.streak, achievements: u.achievements, isPrivate: false };
     }
 
-    // ADMIN / MODERATOR / SUPPORT / SUPER_ADMIN: gerçek rol açılmaz; sadece kurucu/ekip ayrımı
-    return { type: 'staff', username: u.username, avatarUrl: u.avatarUrl, staffRole: u.role === 'SUPER_ADMIN' ? 'founder' : 'team' };
+    // ADMIN / MODERATOR / SUPPORT / SUPER_ADMIN: gerçek rol açılmaz; sadece işlev unvanı döner
+    const firstName = u.name?.split(' ')[0] ?? u.username;
+    const staffRole = u.role === 'SUPER_ADMIN' ? 'founder' : u.role === 'ADMIN' ? 'admin' : u.role === 'MODERATOR' ? 'moderator' : 'support';
+    return { type: 'staff', username: u.username, name: firstName, avatarUrl: u.avatarUrl, staffRole };
   }
 
   /** Halka açık ekip listesi — rol/e-posta dönmez */

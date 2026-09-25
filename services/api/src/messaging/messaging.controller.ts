@@ -10,6 +10,7 @@ const startSchema = z.object({ toUsername: z.string().trim().toLowerCase().min(3
 const sendSchema = z.object({ body: z.string().trim().min(1).max(4000) });
 
 const PEOPLE = { select: { id: true, username: true, name: true, avatarUrl: true, role: true } } as const;
+const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'] as const;
 
 @Controller('messages')
 export class MessagingController {
@@ -28,6 +29,83 @@ export class MessagingController {
       select: { id: true },
     });
     return !!e;
+  }
+
+  private async sharedCoach(memberAId: string, memberBId: string): Promise<boolean> {
+    const now = new Date();
+    const aBase = { status: { in: ['ACTIVE', 'GRACE'] as any }, startsAt: { lte: now }, OR: [{ endsAt: null }, { endsAt: { gt: now } }], creatorId: { not: null } };
+    const [subsA, subsB] = await Promise.all([
+      this.prisma.entitlement.findMany({ where: { userId: memberAId, ...aBase }, select: { creatorId: true } }),
+      this.prisma.entitlement.findMany({ where: { userId: memberBId, ...aBase }, select: { creatorId: true } }),
+    ]);
+    const setA = new Set(subsA.map((s) => s.creatorId));
+    return subsB.some((s) => setA.has(s.creatorId));
+  }
+
+  /** Tam izin matrisi: kimin kime mesaj atabileceğini kontrol eder */
+  private async canStart(
+    senderId: string, senderRole: string,
+    recipientId: string, recipientRole: string,
+  ): Promise<{ allowed: true } | { allowed: false; reason: string }> {
+    const ROLE_RESTRICTED = 'Bu kişiye mesaj atamazsın. Sizi şu ekip üyeleri mesajlayabilir: Müşteri İlişkileri, Topluluk Kontrolörü';
+
+    // SUPER_ADMIN herkese mesaj atabilir
+    if (senderRole === 'SUPER_ADMIN') return { allowed: true };
+
+    // Engel kontrolü: iki yönlü
+    const blockExists = await this.prisma.block.findFirst({
+      where: { OR: [{ blockerId: senderId, blockedId: recipientId }, { blockerId: recipientId, blockedId: senderId }] },
+      select: { id: true },
+    });
+    if (blockExists) return { allowed: false, reason: 'Bu kullanıcı bulunamamaktadır' };
+
+    // SUPPORT ve MODERATOR herkese mesaj atabilir
+    if (senderRole === 'SUPPORT' || senderRole === 'MODERATOR') return { allowed: true };
+
+    // ADMIN yalnızca diğer staff rollerine mesaj atabilir
+    if (senderRole === 'ADMIN') {
+      if (STAFF_ROLES.includes(recipientRole as any)) return { allowed: true };
+      return { allowed: false, reason: ROLE_RESTRICTED };
+    }
+
+    // Alıcı SUPER_ADMIN ise herkes mesaj atabilir
+    if (recipientRole === 'SUPER_ADMIN') return { allowed: true };
+
+    // Alıcı ADMIN ise üye/koç mesaj atamaz
+    if (recipientRole === 'ADMIN') return { allowed: false, reason: ROLE_RESTRICTED };
+
+    // Alıcı SUPPORT veya MODERATOR ise üye/koç ilk mesajı başlatamaz (sadece cevap verebilir)
+    if (recipientRole === 'SUPPORT' || recipientRole === 'MODERATOR') return { allowed: false, reason: ROLE_RESTRICTED };
+
+    // Artık her iki taraf da CREATOR veya MEMBER
+    const senderIsCoach = senderRole === 'CREATOR';
+    const recipientIsCoach = recipientRole === 'CREATOR';
+
+    if (senderIsCoach && recipientIsCoach) {
+      // Koç → Koç: yalnızca gönderen alıcı koça aboneyse
+      const ok = await this.hasActiveAccess(senderId, recipientId);
+      if (!ok) return { allowed: false, reason: 'subscription_required' };
+      return { allowed: true };
+    }
+
+    if (senderIsCoach && !recipientIsCoach) {
+      // Koç → Üye: yalnızca üye bu koçun abonesi ise
+      const ok = await this.hasActiveAccess(recipientId, senderId);
+      if (!ok) return { allowed: false, reason: 'subscription_required' };
+      return { allowed: true };
+    }
+
+    if (!senderIsCoach && recipientIsCoach) {
+      // Üye → Koç: yalnızca gönderen koçun abonesi ise
+      const ok = await this.hasActiveAccess(senderId, recipientId);
+      if (!ok) return { allowed: false, reason: 'subscription_required' };
+      return { allowed: true };
+    }
+
+    // Üye → Üye: aynı koçun aboneleri ise
+    const shared = await this.sharedCoach(senderId, recipientId);
+    if (!shared) return { allowed: false, reason: 'subscription_required' };
+    return { allowed: true };
   }
 
   @Get('conversations')
@@ -52,35 +130,31 @@ export class MessagingController {
     });
   }
 
-  /** Üye ↔ koç: yalnızca aktif abonelik/erişim varsa konuşma başlatılabilir. SUPER_ADMIN herkese mesaj atabilir. */
+  @Get('can-message/:username')
+  async canMessageCheck(@CurrentUser() u: AuthUser, @Param('username') username: string) {
+    const other = await this.prisma.user.findUnique({ where: { username: username.toLowerCase() }, select: { id: true, role: true, status: true } });
+    if (!other || other.status !== 'ACTIVE' || other.id === u.id) return { allowed: false, reason: 'not_found' };
+    const result = await this.canStart(u.id, u.role, other.id, other.role);
+    return result;
+  }
+
   @Post('conversations')
   async start(@CurrentUser() u: AuthUser, @Body(new ZodPipe(startSchema)) b: z.infer<typeof startSchema>) {
     const other = await this.prisma.user.findUnique({ where: { username: b.toUsername }, select: { id: true, role: true, status: true } });
     if (!other || other.status !== 'ACTIVE' || other.id === u.id) throw new NotFoundException('Kullanıcı bulunamadı');
 
-    const isStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(u.role);
-    const otherIsStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(other.role);
-
-    if (!isStaff && !otherIsStaff) {
-      // Üye ↔ koç kısıtlaması
-      const meIsCoach = u.role === 'CREATOR';
-      const otherIsCoach = other.role === 'CREATOR';
-      if (meIsCoach === otherIsCoach) throw new ForbiddenException('Mesajlaşma yalnızca üye ile koç arasında yapılabilir');
-      const memberId = meIsCoach ? other.id : u.id;
-      const coachId = meIsCoach ? u.id : other.id;
-      if (!(await this.hasActiveAccess(memberId, coachId))) throw new ForbiddenException('Mesajlaşmak için koçun aktif üyeliği gerekli');
-    }
+    const check = await this.canStart(u.id, u.role, other.id, other.role);
+    if (!check.allowed) throw new ForbiddenException(check.reason);
 
     const existing = await this.prisma.conversation.findFirst({
       where: { kind: 'DIRECT', AND: [{ participants: { some: { userId: u.id } } }, { participants: { some: { userId: other.id } } }] },
       select: { id: true },
     });
     if (existing) return existing;
-    const c = await this.prisma.conversation.create({
+    return this.prisma.conversation.create({
       data: { kind: 'DIRECT', participants: { create: [{ userId: u.id }, { userId: other.id }] } },
       select: { id: true },
     });
-    return c;
   }
 
   @Get('conversations/:id')
@@ -100,20 +174,12 @@ export class MessagingController {
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post('conversations/:id/messages')
   async send(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(sendSchema)) b: z.infer<typeof sendSchema>) {
-    await this.assertParticipant(id, u.id);
-    const others = await this.prisma.conversationParticipant.findMany({ where: { conversationId: id, userId: { not: u.id } }, include: { user: { select: { id: true, role: true, status: true } } } });
-    // SUPER_ADMIN/staff abonelik kontrolünden muaf
-    const meIsStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(u.role);
-    const meIsCoach = u.role === 'CREATOR';
+    const p = await this.assertParticipant(id, u.id);
+    const others = await this.prisma.conversationParticipant.findMany({ where: { conversationId: id, userId: { not: u.id } }, include: { user: { select: { id: true, status: true } } } });
     for (const o of others) {
       if (o.user.status !== 'ACTIVE') throw new BadRequestException('Karşı taraf mesaj alamıyor');
-      if (meIsStaff) continue;
-      const otherIsStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(o.user.role);
-      if (otherIsStaff) continue;
-      const memberId = meIsCoach ? o.user.id : u.id;
-      const coachId = meIsCoach ? u.id : o.user.id;
-      if (!(await this.hasActiveAccess(memberId, coachId))) throw new ForbiddenException('Aktif üyelik olmadığı için mesaj gönderilemez');
     }
+    void p;
     const now = new Date();
     const [m] = await this.prisma.$transaction([
       this.prisma.message.create({ data: { conversationId: id, senderId: u.id, body: b.body }, select: { id: true, createdAt: true } }),

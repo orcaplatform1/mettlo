@@ -118,6 +118,10 @@ model User {
   techniqueProgressMarked  MemberTechniqueProgress[] @relation("TechniqueProgressCoach")
   weightCategories         MemberWeightCategory[]    @relation("WeightCategoryMember")
   boxingSessions           BoxingSessionLog[]        @relation("BoxingSessionMember")
+  practiceLogs             PracticeLog[]             @relation("PracticeLogUser")
+  reports                  Report[]                  @relation("UserReports")
+  blocksGiven              Block[]                   @relation("BlockerBlocks")
+  blocksReceived           Block[]                   @relation("BlockedByBlocks")
 
   @@index([role, status])
   @@index([createdAt])

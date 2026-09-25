@@ -91,6 +91,7 @@ model PlatformAnalytics {
 model Report {
   id         String       @id @default(cuid())
   reporterId String
+  reporter   User         @relation("UserReports", fields: [reporterId], references: [id])
   targetType String
   targetId   String
   reason     String
@@ -102,7 +103,23 @@ model Report {
 
   @@index([status, createdAt])
   @@index([targetType, targetId])
+  @@index([reporterId])
   @@map("reports")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blocker   User     @relation("BlockerBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("BlockedByBlocks", fields: [blockedId], references: [id], onDelete: Cascade)
+  reason    String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocks")
 }
 
 model ModerationAction {

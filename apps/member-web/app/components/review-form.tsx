@@ -8,7 +8,7 @@ export function ReviewForm({ username }: { username: string }) {
   const [state, action, pending] = useActionState<ReviewState, FormData>(submitReviewAction.bind(null, username), {});
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
-  if (state.ok) return <Alert kind="success">Değerlendirmen yayınlandı, teşekkürler!</Alert>;
+  if (state.ok) return <Alert kind="success">{(state as any).pending ? 'Değerlendirmen incelemeye alındı, onaylanınca yayınlanacak. Teşekkürler!' : 'Değerlendirmen yayınlandı, teşekkürler!'}</Alert>;
   return (
     <form onSubmit={noResetSubmit(action)} className="stack" style={{ ['--stack' as string]: '14px' }} noValidate>
       {state.error && <Alert kind="error">{state.error}</Alert>}

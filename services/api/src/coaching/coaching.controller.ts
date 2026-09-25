@@ -35,7 +35,7 @@ export class CoachingController {
   async clients(@CurrentUser() me: AuthUser) {
     const now = new Date();
     const ents = await this.prisma.entitlement.findMany({
-      where: { creatorId: me.id, status: { in: ['ACTIVE', 'GRACE'] }, OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
+      where: { creatorId: me.id, status: { in: ['ACTIVE', 'GRACE'] }, OR: [{ endsAt: null }, { endsAt: { gt: now } }], user: { role: { not: 'SUPER_ADMIN' } } },
       distinct: ['userId'],
       select: { user: { select: { id: true, username: true, name: true, avatarUrl: true } }, source: true, endsAt: true },
       take: 500,
@@ -74,6 +74,10 @@ export class CoachingController {
       // Koçun sağlık verisine her erişimi denetim kaydına yazılır
       await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'health.coach_view', targetType: 'user', targetId: memberId, subjectUserId: memberId, ip: clientIp(req), userAgent: userAgent(req) });
     }
-    return { member, goal: rel.client?.goal ?? null, active: rel.active, workoutLogs, programs: enrollments, challenges, bookings, checkins, notes, healthSharing: !!consent, health };
+    const [practiceLogs, nutritionLogs] = await Promise.all([
+      this.prisma.practiceLog.findMany({ where: { userId: memberId }, orderBy: { date: 'desc' }, take: 50 }),
+      this.prisma.nutritionLog.findMany({ where: { userId: memberId }, orderBy: { date: 'desc' }, take: 30 }),
+    ]);
+    return { member, goal: rel.client?.goal ?? null, active: rel.active, workoutLogs, programs: enrollments, challenges, bookings, checkins, notes, healthSharing: !!consent, health, practiceLogs, nutritionLogs };
   }
 }

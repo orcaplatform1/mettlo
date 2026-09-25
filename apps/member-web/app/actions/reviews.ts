@@ -16,7 +16,9 @@ export async function submitReviewAction(username: string, _prev: ReviewState, f
     return { fieldErrors: fe };
   }
   try {
-    await apiFetch(`/reviews/creators/${encodeURIComponent(username)}`, { method: 'POST', token, body: parsed.data });
+    const res = await apiFetch<any>(`/reviews/creators/${encodeURIComponent(username)}`, { method: 'POST', token, body: parsed.data });
+    revalidatePath(`/profile/${username}`);
+    return { ok: true, ...(res?.pending ? { pending: true } : {}) };
   } catch (e) {
     if (e instanceof ApiError) {
       if (e.status === 403) return { error: 'Değerlendirme ve yorum yalnızca koçun abonelerine özeldir.' };
@@ -25,6 +27,4 @@ export async function submitReviewAction(username: string, _prev: ReviewState, f
     }
     return { error: 'Değerlendirme şu an gönderilemedi.' };
   }
-  revalidatePath(`/profile/${username}`);
-  return { ok: true };
 }

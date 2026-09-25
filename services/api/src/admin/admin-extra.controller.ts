@@ -274,8 +274,18 @@ export class AdminExtraController {
   // ---------- Şikâyetler ----------
   @RequirePermission('reports:manage')
   @Get('reports')
-  reports(@Query('status') status?: string) {
-    return this.prisma.report.findMany({ where: status ? { status: status as any } : { status: { in: ['OPEN', 'REVIEWING'] } }, orderBy: { createdAt: 'desc' }, take: 200 });
+  reports(@Query('status') status?: string, @Query('type') type?: string, @Query('page') page = '1') {
+    const take = 50;
+    const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
+    const validStatus = ['OPEN', 'REVIEWING', 'ACTIONED', 'DISMISSED'];
+    const where: any = {
+      ...(status && validStatus.includes(status) ? { status } : { status: { in: ['OPEN', 'REVIEWING'] } }),
+      ...(type ? { targetType: type } : {}),
+    };
+    return this.prisma.report.findMany({
+      where, orderBy: { createdAt: 'desc' }, skip, take,
+      include: { reporter: { select: { username: true, name: true, role: true } } },
+    });
   }
 
   @RequirePermission('reports:manage')

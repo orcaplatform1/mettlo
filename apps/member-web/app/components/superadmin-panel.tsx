@@ -155,6 +155,13 @@ export function SuperAdminPanel({ username, data }: { username: string; data: an
             <div style={{ height: 12 }} />
             <Rows rows={data.sessions} cols={[['IP', (r) => fmt(r.ip)], ['Tarayıcı', (r) => <span className="caption">{r.userAgent}</span>], ['Son kullanım', (r) => fmt(r.lastUsedAt)], ['İptal', (r) => fmt(r.revokedAt)]]} />
           </Block>
+          <Block title="Engellenen Kullanıcılar" count={data.blocks?.length}>
+            <Rows rows={data.blocks ?? []} cols={[
+              ['Engellenen', (r) => <Link className="text-coral" href={`/profile/${r.blocked?.username}`}>@{r.blocked?.username}</Link>],
+              ['Neden', (r) => fmt(r.reason)],
+              ['Tarih', (r) => fmt(r.createdAt)],
+            ]} />
+          </Block>
           <Block title="Sosyal etkinlik">
             <dl className="kv"><dt>Paylaşım / yorum / mesaj</dt><dd>{data.social?.posts} / {data.social?.comments} / {data.social?.messagesSent}</dd><dt>Takip edilen / takipçi</dt><dd>{data.social?.following} / {data.social?.followers}</dd><dt>Toplam XP</dt><dd>{data.social?.xp}</dd></dl>
           </Block>

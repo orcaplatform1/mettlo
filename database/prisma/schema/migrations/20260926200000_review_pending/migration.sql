@@ -1,0 +1,2 @@
+-- Add PENDING status to ReviewStatus enum
+ALTER TYPE "ReviewStatus" ADD VALUE IF NOT EXISTS 'PENDING' BEFORE 'PUBLISHED';

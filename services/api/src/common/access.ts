@@ -1,8 +1,9 @@
 import type { PrismaService } from './prisma.service';
 
 /** Kullanıcının koça aktif erişimi (abonelik / davet / hediye) var mı? Ücretli içeriğe erişimi SADECE sistem açar (bölüm 23). */
-export async function hasCoachAccess(prisma: PrismaService, userId: string, creatorId: string): Promise<boolean> {
+export async function hasCoachAccess(prisma: PrismaService, userId: string, creatorId: string, userRole?: string): Promise<boolean> {
   if (userId === creatorId) return true;
+  if (userRole === 'SUPER_ADMIN') return true;
   const now = new Date();
   const e = await prisma.entitlement.findFirst({
     where: { userId, creatorId, status: { in: ['ACTIVE', 'GRACE'] }, startsAt: { lte: now }, OR: [{ endsAt: null }, { endsAt: { gt: now } }] },

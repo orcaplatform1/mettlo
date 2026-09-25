@@ -63,7 +63,7 @@ export class MemberController {
   // =========================== PROGRAM ===========================
   private async programAccess(me: AuthUser, p: { access: string; creatorId: string; id: string }): Promise<boolean> {
     if (p.access === 'FREE') return true;
-    if (await hasCoachAccess(this.prisma, me.id, p.creatorId)) return true;
+    if (await hasCoachAccess(this.prisma, me.id, p.creatorId, me.role)) return true;
     // Programa özel satın alma (ödeme sistemi devreye girince entitlement targetType=program)
     const now = new Date();
     return !!(await this.prisma.entitlement.findFirst({ where: { userId: me.id, targetType: 'program', targetId: p.id, status: 'ACTIVE', OR: [{ endsAt: null }, { endsAt: { gt: now } }] }, select: { id: true } }));
@@ -101,7 +101,7 @@ export class MemberController {
     if (!w) throw new NotFoundException('Antrenman bulunamadı');
     // Erişim: koça aktif abonelik VEYA erişimi olduğu bir programın içindeki antrenman
     const progs = await this.prisma.programWorkout.findMany({ where: { workoutId: id, day: { week: { program: { status: 'PUBLISHED' } } } }, select: { day: { select: { week: { select: { program: { select: { id: true, access: true, creatorId: true } } } } } } } });
-    let allowed = await hasCoachAccess(this.prisma, me.id, w.creatorId);
+    let allowed = await hasCoachAccess(this.prisma, me.id, w.creatorId, me.role);
     let enrolledProgramIds: string[] = [];
     for (const pw of progs) { const pr = pw.day.week.program; if (await this.programAccess(me, pr)) { allowed = true; enrolledProgramIds.push(pr.id); } }
     if (!allowed) throw new ForbiddenException('Bu antrenmana erişimin yok');
@@ -160,7 +160,7 @@ export class MemberController {
     const c = await this.challengeBySlug(slug);
     if (c.endsAt && c.endsAt < new Date()) throw new BadRequestException('Bu challenge sona erdi');
     // Koç challenge'ları abonelere özeldir; Mettlo/marka challenge'ları (creatorId yok) herkese açıktır
-    if (c.creatorId && !(await hasCoachAccess(this.prisma, me.id, c.creatorId))) throw new ForbiddenException('Challenge\'a katılmak için koça abone olmalısın');
+    if (c.creatorId && !(await hasCoachAccess(this.prisma, me.id, c.creatorId, me.role))) throw new ForbiddenException('Challenge\'a katılmak için koça abone olmalısın');
     const p = await this.prisma.challengeParticipant.upsert({ where: { challengeId_userId: { challengeId: c.id, userId: me.id } }, update: {}, create: { challengeId: c.id, userId: me.id } });
     return { participantId: p.id, tasks: c.tasks.map((t) => ({ id: t.id, type: t.type, title: t.title, target: t.target, unit: t.unit, dayNo: t.dayNo })) };
   }
@@ -202,7 +202,7 @@ export class MemberController {
   private async communityFor(me: AuthUser, slug: string) {
     const c = await this.prisma.community.findFirst({ where: { slug, isPrivate: false } });
     if (!c) throw new NotFoundException('Topluluk bulunamadı');
-    if (c.subscribersOnly && !(await hasCoachAccess(this.prisma, me.id, c.ownerId))) throw new ForbiddenException('Bu topluluk yalnızca koçun abonelerine özeldir');
+    if (c.subscribersOnly && !(await hasCoachAccess(this.prisma, me.id, c.ownerId, me.role))) throw new ForbiddenException('Bu topluluk yalnızca koçun abonelerine özeldir');
     return c;
   }
 
@@ -265,7 +265,7 @@ export class MemberController {
     const c = await this.prisma.classSession.findFirst({ where: { id, isCancelled: false }, select: { id: true, creatorId: true, startsAt: true, includedInMembership: true, price: true, waitlistEnabled: true, title: true } });
     if (!c || c.startsAt < new Date()) throw new NotFoundException('Ders bulunamadı veya başladı');
     if (c.creatorId === me.id) throw new ForbiddenException('Kendi dersine rezervasyon yapamazsın');
-    if (!(await hasCoachAccess(this.prisma, me.id, c.creatorId))) throw new ForbiddenException('Rezervasyon için koça abone olmalısın');
+    if (!(await hasCoachAccess(this.prisma, me.id, c.creatorId, me.role))) throw new ForbiddenException('Rezervasyon için koça abone olmalısın');
     if (!c.includedInMembership && c.price && Number(c.price) > 0) throw new ForbiddenException('Bu ders ayrıca ücretlidir; ödeme sistemi aktif olduğunda satın alınabilir');
     const existing = await this.prisma.booking.findUnique({ where: { sessionId_memberId: { sessionId: id, memberId: me.id } } });
     if (existing && existing.status === 'CONFIRMED') throw new BadRequestException('Bu derse zaten rezervasyonun var');

@@ -2,8 +2,8 @@ import { authed, requireSession } from '@mettlo/web-core';
 import { can } from '@mettlo/types';
 import { ReviewActions } from './review-actions';
 
-const STATUS_TR: Record<string, string> = { PUBLISHED: 'Yayında', HIDDEN: 'Gizli', REPORTED: 'Şikayet Var', REMOVED: 'Kaldırıldı' };
-const STATUS_CLASS: Record<string, string> = { PUBLISHED: 'badge-ok', HIDDEN: '', REPORTED: 'badge-live', REMOVED: 'badge-danger' };
+const STATUS_TR: Record<string, string> = { PENDING: 'Beklemede', PUBLISHED: 'Yayında', HIDDEN: 'Gizli', REPORTED: 'Şikayet Var', REMOVED: 'Kaldırıldı' };
+const STATUS_CLASS: Record<string, string> = { PENDING: 'badge-premium', PUBLISHED: 'badge-ok', HIDDEN: '', REPORTED: 'badge-live', REMOVED: 'badge-danger' };
 const TARGET_TR: Record<string, string> = { CREATOR: 'Koç', PROGRAM: 'Program', CLASS_SESSION: 'Canlı Ders', PRODUCT: 'Ürün' };
 
 export default async function ReviewsPage({ searchParams }: { searchParams: Promise<{ status?: string; page?: string }> }) {
@@ -13,7 +13,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
   const qs = new URLSearchParams({ status, page });
   const data = await authed<any>(`/admin/reviews?${qs}`);
 
-  const statuses = ['PUBLISHED', 'REPORTED', 'HIDDEN', 'REMOVED'];
+  const statuses = ['PENDING', 'PUBLISHED', 'REPORTED', 'HIDDEN', 'REMOVED'];
   const link = (st: string, pg = '1') => `/admin/reviews?status=${st}&page=${pg}`;
   const p = Number(page);
   const totalPages = Math.ceil(data.total / 50);

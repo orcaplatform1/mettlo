@@ -300,6 +300,7 @@ enum ReviewTarget {
 }
 
 enum ReviewStatus {
+  PENDING
   PUBLISHED
   HIDDEN
   REPORTED

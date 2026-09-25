@@ -82,7 +82,7 @@ export class AdminController {
     const pi = u.personalInfo;
     const [
       subscriptions, entitlements, payments, orders, invoices, workoutLogs, enrollments, challenges, bookings, livePart,
-      coachingAsMember, coachingAsCoach, checkins, reviews, conversations, counts, creditBalances, healthConsents, deletion,
+      coachingAsMember, coachingAsCoach, checkins, reviews, conversations, counts, creditBalances, healthConsents, deletion, blocksGiven,
     ] = await Promise.all([
       this.prisma.subscription.findMany({ where: { OR: [{ memberId: id }, { creatorId: id }] }, orderBy: { createdAt: 'desc' }, take: 100, include: { plan: { select: { name: true, priceWeb: true, interval: true } } } }),
       this.prisma.entitlement.findMany({ where: { userId: id }, orderBy: { createdAt: 'desc' }, take: 100 }),
@@ -110,6 +110,7 @@ export class AdminController {
       this.prisma.liveCreditBalance.findMany({ where: { userId: id } }),
       this.prisma.healthShareConsent.findMany({ where: { userId: id }, orderBy: { grantedAt: 'desc' }, include: { creator: { select: { username: true, name: true } } } }),
       this.prisma.accountDeletionRequest.findFirst({ where: { userId: id }, orderBy: { requestedAt: 'desc' } }),
+      this.prisma.block.findMany({ where: { blockerId: id }, orderBy: { createdAt: 'desc' }, select: { id: true, reason: true, createdAt: true, blocked: { select: { username: true, name: true } } } }),
     ]);
     const decrypt = (v?: string | null) => (v ? decryptField(v, env.FIELD_ENCRYPTION_KEY) : null);
     const [posts, comments, messagesSent, following, followers, xp] = counts;
@@ -142,6 +143,7 @@ export class AdminController {
       // Sağlık verisi varsayılan yanıtta yok: ayrı, ayrıca denetlenen uç
       healthData: { available: true, path: `/admin/users/${u.id}/health`, note: 'Özel nitelikli kişisel veri; her görüntüleme ayrıca denetim kaydına yazılır.' },
       coachInbox: u.role === 'CREATOR' ? { available: true, label: 'Koç Mesaj Kutusu', path: `/admin/creators/${u.id}/inbox` } : { available: false },
+      blocks: blocksGiven,
     };
   }
 
@@ -446,7 +448,7 @@ export class AdminController {
   async listReviews(@Query('status') status = 'PUBLISHED', @Query('page') page = '1') {
     const take = 50;
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
-    const validStatus = ['PUBLISHED', 'HIDDEN', 'REPORTED', 'REMOVED'];
+    const validStatus = ['PENDING', 'PUBLISHED', 'HIDDEN', 'REPORTED', 'REMOVED'];
     const where: any = validStatus.includes(status) ? { status } : {};
     const [items, total] = await Promise.all([
       this.prisma.review.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take, include: { author: { select: { username: true, avatarUrl: true } }, reports: { select: { id: true } } } }),
@@ -461,7 +463,7 @@ export class AdminController {
 
   @RequirePermission('content:moderate')
   @Patch('reviews/:id')
-  async updateReview(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(z.object({ status: z.enum(['PUBLISHED', 'HIDDEN', 'REMOVED']), editBody: z.string().max(2000).optional() }))) body: { status: string; editBody?: string }, @Req() req: AuthedRequest) {
+  async updateReview(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(z.object({ status: z.enum(['PENDING', 'PUBLISHED', 'HIDDEN', 'REMOVED']), editBody: z.string().max(2000).optional() }))) body: { status: string; editBody?: string }, @Req() req: AuthedRequest) {
     const review = await this.prisma.review.findUnique({ where: { id }, select: { id: true, targetId: true, authorId: true } });
     if (!review) throw new NotFoundException('Değerlendirme bulunamadı');
     await this.prisma.review.update({ where: { id }, data: { status: body.status as any, ...(body.editBody !== undefined ? { body: body.editBody } : {}) } });
