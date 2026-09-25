@@ -1,0 +1,165 @@
+// ============ CANLI (LiveKit in-platform + Zoom external-link) ============
+
+model LiveSession {
+  id                String     @id @default(cuid())
+  creatorId         String
+  creator           User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  /// /live/{slug}
+  slug              String     @unique
+  title             String
+  description       String?
+  type              LiveType
+  mode              LiveMode
+  format            LiveFormat
+  status            LiveStatus @default(SCHEDULED)
+  scheduledAt       DateTime
+  startedAt         DateTime?
+  endedAt           DateTime?
+  durationMin       Int        @default(60)
+  /// Etkileşimli sınıf kapasitesi (öneri 20-30)
+  capacity          Int?
+  livekitRoom       String?
+  /// external-link modunda koçun kendi Zoom toplantısı
+  externalProvider  String?
+  externalMeetingId String?
+  creditsRequired   Int        @default(0)
+  classSessionId    String?    @unique
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  participants          LiveParticipant[]
+  messages              LiveMessage[]
+  replays               LiveReplay[]
+  externalRegistrations LiveExternalRegistration[]
+  usage                 LiveUsage?
+
+  @@index([creatorId, scheduledAt])
+  @@index([status, scheduledAt])
+  @@map("live_sessions")
+}
+
+model LiveParticipant {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Katılımdan hemen önce onaylanan KVKK rızası (kvkk_consents)
+  consentId String?
+  joinedAt  DateTime?
+  leftAt    DateTime?
+  minutes   Int         @default(0)
+
+  @@unique([sessionId, userId])
+  @@map("live_participants")
+}
+
+model LiveMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  body      String
+  hidden    Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("live_messages")
+}
+
+model LiveReplay {
+  id               String      @id @default(cuid())
+  sessionId        String
+  session          LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  videoId          String?
+  /// external-link modunda koç kaydı elle yükler
+  uploadedManually Boolean     @default(false)
+  expiresAt        DateTime?
+  createdAt        DateTime    @default(now())
+
+  @@map("live_replays")
+}
+
+model LiveExternalRegistration {
+  id                   String      @id @default(cuid())
+  sessionId            String
+  session              LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId               String
+  /// Zoom'un üyeye özel benzersiz katılım linki; sadece o üyeye gösterilir
+  joinUrlEnc           String
+  providerRegistrantId String?
+  createdAt            DateTime    @default(now())
+
+  @@unique([sessionId, userId])
+  @@map("live_external_registrations")
+}
+
+model LiveUsage {
+  id                 String      @id @default(cuid())
+  sessionId          String      @unique
+  session            LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantMinutes Int         @default(0)
+  estimatedGb        Decimal     @default(0) @db.Decimal(10, 3)
+  estimatedCostUsd   Decimal     @default(0) @db.Decimal(10, 4)
+  createdAt          DateTime    @default(now())
+
+  @@map("live_usage")
+}
+
+/// Koç başına aylık in-platform canlı limiti: 5 oturum/hafta x 1 saat, 16 saat/ay tavan (bölüm 39)
+model LiveLimit {
+  id                   String   @id @default(cuid())
+  creatorId            String   @unique
+  maxSessionsPerWeek   Int      @default(5)
+  maxMinutesPerSession Int      @default(60)
+  maxMinutesPerMonth   Int      @default(960)
+  updatedAt            DateTime @updatedAt
+
+  @@map("live_limits")
+}
+
+/// Canlı kredi paketleri: KOÇA BAĞLI DEĞİL (herhangi bir koçun etkileşimli sınıfında kullanılır). 9,50 TL/kredi; 4'lü 33 TL; 8'li 59 TL. Gelir altyapı ücretidir: koça ödeme yapılmaz (%100 Mettlo).
+model LiveCreditPack {
+  id          String   @id @default(cuid())
+  creatorId   String?
+  name        String
+  credits     Int
+  priceWeb    Decimal  @db.Decimal(12, 2)
+  priceMobile Decimal? @db.Decimal(12, 2)
+  validDays   Int      @default(90)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  balances LiveCreditBalance[]
+
+  @@map("live_credit_packs")
+}
+
+model LiveCreditBalance {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Boş = herhangi bir koçta geçerli (yeni krediler). Eski kayıtlarda dolu olabilir.
+  creatorId String?
+  packId    String?
+  pack      LiveCreditPack? @relation(fields: [packId], references: [id], onDelete: SetNull)
+  credits   Int
+  remaining Int
+  expiresAt DateTime
+  createdAt DateTime        @default(now())
+
+  @@index([userId, creatorId])
+  @@map("live_credit_balances")
+}
+
+/// Premium Live üyelik katmanı: normal üyelik + ayda 4 kredi (min. +99 TL)
+model PremiumLiveTier {
+  id             String   @id @default(cuid())
+  creatorId      String   @unique
+  isEnabled      Boolean  @default(false)
+  addOnPrice     Decimal  @db.Decimal(12, 2)
+  monthlyCredits Int      @default(4)
+  createdAt      DateTime @default(now())
+
+  @@map("premium_live_tiers")
+}

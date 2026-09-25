@@ -1,0 +1,8 @@
+{
+  "name": "@mettlo/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/tokens.ts",
+  "types": "./src/tokens.ts",
+  "exports": { ".": "./src/tokens.ts", "./styles.css": "./src/styles.css" }
+}

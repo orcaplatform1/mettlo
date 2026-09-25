@@ -1,0 +1,3084 @@
+METTLO — FULL PLATFORM ARCHITECTURE
+REVISION 6 (2026-09-25) — SINGLE UNIFIED SPEC, DECISIONS LOCKED
+============================================================
+
+REVISION 6 SUMMARY (decisions made this round)
+------------------------------------------------------------
+- RELEASE: all modules ship together in ONE single release (no phased rollout).
+- ADMIN ROLES: FINANCE role NOT created. All finance (payments, refunds, invoices, creator
+  earnings, commissions, chargebacks) is SUPER_ADMIN only. Full role matrix: section 63.
+- ACCOUNT DELETION: members and creators can request deletion of their own account from
+  inside the app/web; retention rules defined (section 57).
+- SANCTIONS: members or creators who behave unethically can be temporarily suspended or
+  permanently banned (section 57).
+- COACH DATA ACCESS: each coach sees ALL data a member generates in that coach's own area
+  (their programs, sessions, challenges, coaching, bookings, live attendance). Health data
+  (Apple Health / Health Connect, weight, measurements, progress) is visible to EVERY coach the
+  member is subscribed to, based on the member's explicit consent (sections 14, 40).
+- CREATORS: creators are NOT companies and are engaged under Mettlo like in-house service
+  providers. The platform collects NO IBAN, TCKN or tax number and has NO payout module.
+  An internal creator earnings ledger is kept for reporting only (sections 21, 26).
+  iyzico is used as a standard single merchant (Mettlo), no marketplace / split payment.
+- AGE: 18+ only. Under-18 users may join ONLY when registered by a parent / legal guardian
+  (section 58).
+- LEGAL TEXTS: drafting deferred to the end of the build, list kept in section 62.
+- CHECKOUT / CAYMA: access opens at the moment of payment, so digital purchases carry no
+  right of withdrawal; checkout shows this and requires acknowledgement (section 60).
+- CREATOR EXIT: a leaving creator must indemnify the payments they received in full; if not,
+  legal action will be taken. Every active subscriber of a leaving creator gets ONE free
+  subscription to a creator of their choice (section 59).
+- HOSTING: servers in Turkiye (Turhost). Personal and sensitive data stays in Turkiye
+  (section 61).
+- IYS: Mettlo registers with IYS (Ileti Yonetim Sistemi) for commercial SMS / e-mail (section 61).
+- PROVIDERS: lowest-cost option chosen for each provider (section 61).
+- LIVE CREDITS: 1/3 of credit revenue goes to the coach, 2/3 to Mettlo. Premium Live tier
+  defined. Live cap wording resolved (section 39).
+- COMMERCE: products are sold ONLY by Mettlo. Creators do not sell, recommend for
+  commission or run affiliate links. Creator store / creator commerce / affiliate removed
+  (sections 18-20, 33).
+- COMMISSION: flat 20% everywhere (the only exception is live credits, 1/3 to coach).
+- DOCUMENT FIXES: wrong section references and stale "pending / not decided" labels corrected.
+
+
+REVISION 5 SUMMARY (decisions made this round)
+------------------------------------------------------------
+- Channel pricing: web and mobile (store) priced SEPARATELY, mobile somewhat higher; if this
+  conflicts with the web-purchase / companion-app approach below, the companion-app approach wins
+  (section 22)
+- iOS strategy: subscriptions are bought on WEB and simply recognized/unlocked in the iOS app
+  (companion-app style), not sold via IAP inside the app (section 22) — COMPLIANCE RISK flagged
+- Android 1:1 real-time session payment: iyzico allowed, same as iOS (section 22)
+- Invoicing: member's invoice shows one flat KDV-inclusive price; the creator's commission split is
+  NOT shown on the member invoice (creator is handled like an internal service provider for
+  invoicing purposes only) (section 26)
+- Commission: flat 20%, no attribution-based discount for creator-sourced customers (sections 21, 23)
+- Creator invite grants: redesigned as a ONE-TIME quota declared by the creator at onboarding
+  ("how many active students do you have now"), each grant 1-25 days, auto-assigned free-subscriber
+  role on signup (section 23)
+- In-platform live cap per creator: 5 sessions/week, 1 hour each, 16 hours/month hard cap (section 39)
+- Live credit pricing decided (proposed by Claude, see section 39)
+- LiveKit + external-link combination confirmed as the live strategy (section 39)
+- KVKK cross-border transfer for live video: deprioritized for now by founder decision; revisit with
+  legal counsel before public launch (section 40)
+- External-link provider: proceed with Zoom, to be verified with real testing before build
+  (sections 13, 41)
+
+REVISION 4 SUMMARY
+------------------------------------------------------------
+- The V1 / V2 / V3 phased structure is REMOVED. Everything below is one unified
+  architecture. Sequencing / rollout order is a separate, later planning exercise,
+  not part of this document.
+- Multi-branch content model (fitness, yoga, pilates, ... ; nutrition/dietitian branch
+  included as a regular branch, pending legal review) — section 8
+- Live streaming has TWO modes: in-platform (LiveKit) and EXTERNAL LINK (coach's own
+  Zoom/other account for large subscriber broadcasts, zero infra cost to Mettlo) —
+  section 13
+- Live recording (external-link mode) is uploaded MANUALLY by the coach — section 13
+- KVKK / consent for joining a live session is captured via a mandatory consent screen
+  the member reads and accepts immediately before the join link is issued; that
+  acceptance is treated as the KVKK consent for that session — sections 13, 40
+- Payment channels, Apple/Google store billing, Turkiye notes, worked example, channel
+  pricing proposal — section 22
+- Entitlement & access control (system-only unlock, creator invite grants) — section 23
+- Booking engine (coach-run classes and sessions) — section 24
+- Reviews & ratings engine — section 25
+- Invoicing (fatura) — Mettlo is the invoicing party (decided) — section 26
+- Creator success program — section 27
+- Live cost model, limits, credits, Cloud vs self-host — section 39
+- REMOVED: gym / salon software integration. Mettlo is a creator platform, not gym
+  management software. Salons/gyms may join later as ordinary creators/brands.
+- Open decisions list — section 41
+
+
+============================================================
+1. PROJECT
+============================================================
+
+PROJECT
+------------------------------------------------------------
+Mettlo
+
+Platform Type:
+Creator Business Platform
+Multi-Branch Movement & Wellness (Fitness, Yoga, Pilates and more) + Coaching +
+Community + Health + Commerce
+
+Initial Market:
+Turkiye
+
+Platforms:
+- iOS
+- Android
+- Desktop Web
+- Mobile Web
+- Tablet Web
+
+Core Principle:
+Mettlo is not just a fitness video app.
+
+Mettlo works as:
+- Creator Marketplace
+- Digital Coaching Platform
+- Multi-Branch Movement / Wellness Platform
+- Community Platform
+- Health & Activity Platform
+- Commerce Platform
+- Creator Business OS
+
+
+============================================================
+2. HIGH LEVEL SYSTEM ARCHITECTURE
+============================================================
+
+                         METTLO PLATFORM
+                               |
+        +----------------------+----------------------+
+        |                      |                      |
+     MEMBER                 CREATOR                 ADMIN
+        |                      |                      |
+        +----------------------+----------------------+
+                               |
+                         METTLO CORE API
+                               |
+    +--------------------------+--------------------------+
+    |            |             |            |             |
+   AUTH       CONTENT       COMMERCE      HEALTH      COMMUNITY
+    |            |             |            |             |
+    +------------+-------------+------------+-------------+
+                               |
+                    APPLICATION SERVICES
+                               |
+    +--------------------------+--------------------------+
+    |             |            |            |             |
+ PAYMENTS      VIDEO         LIVE       NOTIFICATION   ANALYTICS
+    |             |            |            |             |
+    +-------------+------------+------------+-------------+
+                               |
+                     DATA / INFRASTRUCTURE
+                               |
+       +-------------+-------------+-------------+
+       |             |             |             |
+   PostgreSQL      Redis      Object Storage     CDN
+       |             |             |             |
+       +-------------+-------------+-------------+
+                               |
+       +-----------------------+-----------------------+
+       |                       |                       |
+ Payment Provider        Live Provider          External APIs
+ IYS                     Video Provider          Health APIs
+ Email / SMS             Push                    Analytics
+
+
+============================================================
+3. MONOREPO ARCHITECTURE
+============================================================
+
+mettlo/
+|
++-- apps/
+|   |
+|   +-- member-web/
+|   |   +-- public/
+|   |   +-- auth/
+|   |   +-- discover/
+|   |   +-- creators/
+|   |   +-- programs/
+|   |   +-- workouts/
+|   |   +-- challenges/
+|   |   +-- community/
+|   |   +-- live/
+|   |   +-- coaching/
+|   |   +-- health/
+|   |   +-- progress/
+|   |   +-- nutrition/
+|   |   +-- store/
+|   |   +-- checkout/
+|   |   +-- bookings/
+|   |   +-- reviews/
+|   |   +-- invoices/
+|   |   +-- profile/
+|   |   +-- settings/
+|   |   +-- notifications/
+|   |   +-- dashboard/
+|   |
+|   +-- member-mobile/
+|   |   +-- ios/
+|   |   +-- android/
+|   |   +-- screens/
+|   |   +-- navigation/
+|   |   +-- components/
+|   |   +-- hooks/
+|   |   +-- services/
+|   |
+|   +-- creator-web/
+|   |   +-- dashboard/
+|   |   +-- profile/
+|   |   +-- content/
+|   |   +-- workouts/
+|   |   +-- programs/
+|   |   +-- challenges/
+|   |   +-- live/
+|   |   +-- community/
+|   |   +-- coaching/
+|   |   +-- members/
+|   |   +-- campaigns/
+|   |   +-- coupons/
+|   |   +-- analytics/
+|   |   +-- earnings/            (read-only earnings statement, no payout)
+|   |   +-- bookings/
+|   |   +-- availability/
+|   |   +-- reviews/
+|   |   +-- invoices/
+|   |   +-- creator-success/
+|   |
+|   +-- admin-web/
+|       +-- dashboard/
+|       +-- users/
+|       +-- creators/
+|       +-- verification/
+|       +-- content/
+|       +-- programs/
+|       +-- workouts/
+|       +-- challenges/
+|       +-- community/
+|       +-- products/
+|       +-- brands/
+|       +-- orders/
+|       +-- payments/
+|       +-- subscriptions/
+|       +-- commissions/
+|       +-- refunds/
+|       +-- chargebacks/
+|       +-- campaigns/
+|       +-- analytics/
+|       +-- support/
+|       +-- moderation/
+|       +-- kvkk/
+|       +-- audit/
+|       +-- settings/
+|       +-- branches/
+|       +-- bookings/
+|       +-- reviews/
+|       +-- invoices/
+|       +-- entitlements/
+|       +-- store-billing/
+|       +-- creator-success/
+|       +-- sanctions/
+|       +-- account-deletions/
+|       +-- guardians/
+|
++-- services/
+|   |
+|   +-- api/
+|   |   +-- auth/
+|   |   +-- users/
+|   |   +-- creators/
+|   |   +-- discovery/
+|   |   +-- content/
+|   |   +-- video/
+|   |   +-- exercises/
+|   |   +-- workouts/
+|   |   +-- programs/
+|   |   +-- challenges/
+|   |   +-- coaching/
+|   |   +-- community/
+|   |   +-- messaging/
+|   |   +-- live/
+|   |   +-- health/
+|   |   +-- nutrition/
+|   |   +-- sleep/
+|   |   +-- progress/
+|   |   +-- gamification/
+|   |   +-- commerce/
+|   |   +-- products/
+|   |   +-- brands/
+|   |   +-- cart/
+|   |   +-- orders/
+|   |   +-- payments/
+|   |   +-- subscriptions/
+|   |   +-- creator-earnings/
+|   |   +-- commissions/
+|   |   +-- coupons/
+|   |   +-- campaigns/
+|   |   +-- referrals/
+|   |   +-- notifications/
+|   |   +-- analytics/
+|   |   +-- search/
+|   |   +-- moderation/
+|   |   +-- support/
+|   |   +-- kvkk/
+|   |   +-- audit/
+|   |   +-- recommendations/
+|   |   +-- ai/
+|   |   +-- branches/
+|   |   +-- booking/
+|   |   +-- reviews/
+|   |   +-- invoicing/
+|   |   +-- entitlements/
+|   |   +-- store-billing/
+|   |   +-- creator-success/
+|   |   +-- sanctions/
+|   |   +-- account-deletion/
+|   |   +-- guardians/
+|   |   +-- creator-exits/
+|   |   +-- health-sharing/
+|   |   +-- iys/
+|   |
+|   +-- workers/
+|       +-- video-processing/
+|       +-- notifications/
+|       +-- payments/
+|       +-- account-deletion/
+|       +-- analytics/
+|       +-- recommendations/
+|       +-- health-sync/
+|       +-- moderation/
+|       +-- email/
+|       +-- reporting/
+|       +-- booking-reminders/
+|       +-- invoicing/
+|       +-- store-billing-sync/
+|
++-- packages/
+|   |
+|   +-- ui/
+|   +-- design-system/
+|   +-- types/
+|   +-- validation/
+|   +-- config/
+|   +-- database/
+|   +-- auth/
+|   +-- payments/
+|   +-- video/
+|   +-- storage/
+|   +-- notifications/
+|   +-- analytics/
+|   +-- health/
+|   +-- commerce/
+|   +-- search/
+|   +-- recommendation/
+|   +-- ai/
+|   +-- entitlements/
+|   +-- booking/
+|   +-- invoicing/
+|   +-- utils/
+|
++-- infrastructure/
+|   |
+|   +-- docker/
+|   +-- kubernetes/
+|   +-- nginx/
+|   +-- cdn/
+|   +-- storage/
+|   +-- database/
+|   +-- redis/
+|   +-- monitoring/
+|   +-- logging/
+|   +-- backups/
+|   +-- security/
+|   +-- deployment/
+|
++-- database/
+|   |
+|   +-- prisma/
+|   |   +-- schema/
+|   |   +-- migrations/
+|   |   +-- seed/
+|   |
+|   +-- sql/
+|   +-- indexes/
+|   +-- backups/
+|
++-- docs/
+|   |
+|   +-- architecture/
+|   +-- api/
+|   +-- database/
+|   +-- product/
+|   +-- design/
+|   +-- security/
+|   +-- kvkk/
+|   +-- payments/
+|   +-- commerce/
+|   +-- creator/
+|   +-- health/
+|   +-- deployment/
+|
++-- tests/
+|   +-- unit/
+|   +-- integration/
+|   +-- e2e/
+|   +-- performance/
+|   +-- security/
+|
++-- .env
++-- docker-compose.yml
++-- package.json
++-- turbo.json
++-- README.md
+
+
+============================================================
+4. CORE DOMAIN ARCHITECTURE
+============================================================
+
+AUTH
+------------------------------------------------------------
+- Register
+- Login
+- Logout
+- Email verification
+- Password reset
+- Google login
+- Apple login
+- 2FA
+- Session management
+- Device management
+- Role management
+- Permission management
+
+ROLES
+------------------------------------------------------------
+- MEMBER
+- CREATOR
+- ADMIN
+- MODERATOR
+- SUPPORT
+- SUPER_ADMIN
+(No FINANCE role: finance is SUPER_ADMIN only. Permission matrix: section 63.)
+(Guardian / parent is a MEMBER with a guardian link to a minor profile, section 58.)
+
+
+============================================================
+5. USER DOMAIN
+============================================================
+
+USER
+------------------------------------------------------------
+- id
+- username
+- email
+- password
+- name
+- avatar
+- role
+- birthDate (required at signup, section 58)
+- status: active / suspended / banned / pending_deletion / deleted (section 57)
+- guardianId (only for minor profiles, section 58)
+- createdAt
+- updatedAt
+
+MEMBER PROFILE
+------------------------------------------------------------
+- age
+- gender where legally appropriate
+- goals
+- fitness level
+- preferred categories
+- preferred creators
+- activity goals
+- preferences
+- notification settings
+- privacy settings
+
+CREATOR PROFILE
+------------------------------------------------------------
+- username
+- display name
+- avatar
+- cover
+- bio
+- expertise
+- categories
+- verification
+- rating
+- followers
+- subscribers
+- pricing
+- social links
+- public profile
+- creator status
+
+
+============================================================
+6. CREATOR BUSINESS ENGINE
+============================================================
+
+CREATOR
+|
++-- PROFILE
+|
++-- MEMBERSHIP
+|
++-- CONTENT
+|
++-- PROGRAMS
+|
++-- WORKOUTS
+|
++-- CHALLENGES
+|
++-- LIVE
+|
++-- COMMUNITY
+|
++-- 1:1 COACHING
+|
++-- CAMPAIGNS
+|
++-- COUPONS
+|
++-- REFERRALS
+|
++-- ANALYTICS
+|
++-- EARNINGS (read-only statement; no payout module, section 21)
+|
++-- AVAILABILITY & BOOKING
+|
++-- REVIEWS (reply)
+|
++-- CREATOR SUCCESS KIT
+
+
+============================================================
+7. CONTENT ENGINE
+============================================================
+
+CONTENT TYPES
+------------------------------------------------------------
+- Video
+- Photo
+- PDF
+- Exercise
+- Workout / Session
+- Program
+- Recipe
+- Nutrition
+- Live
+- Live Replay
+- Community Post
+- Poll
+- Quiz
+- Announcement
+
+CONTENT ACCESS
+------------------------------------------------------------
+- FREE
+- MEMBERS_ONLY
+- PAID
+- COACHING_ONLY
+- PRIVATE
+
+CONTENT SYSTEM
+------------------------------------------------------------
+Upload
+   |
+Processing
+   |
+Transcoding
+   |
+Storage
+   |
+CDN
+   |
+Access Control
+   |
+Signed Playback
+
+
+============================================================
+8. MULTI-BRANCH PROGRAM & CLASS ENGINE
+============================================================
+
+PRINCIPLE
+------------------------------------------------------------
+Mettlo is not fitness-only. A member can join fitness, yoga, pilates, dance, nutrition
+coaching and other branches on the same account, subscribe to creators from different
+branches, and take their classes. "Fitness" is one branch among several, not the
+platform itself.
+
+BRANCH (admin-managed, extensible without code changes)
+------------------------------------------------------------
+- branch: fitness / strength, yoga, pilates, dance, HIIT & cardio, mobility & stretching,
+  meditation & breathwork, nutrition & healthy eating (dietitians / nutrition coaches),
+  and others added over time
+- allowed content types
+- session template (which block types are enabled: strength / timed-flow / cardio / free)
+- level scale (e.g. beginner / intermediate / advanced, or branch-specific)
+- metric set (steps, calories, duration, heart rate ... which metrics matter for the branch)
+- equipment list (optional)
+- creator requirements (credential / verification level per branch)
+- commerce categories linked to the branch (optional)
+
+RULES
+------------------------------------------------------------
+- Exercise fields such as sets / reps / weight / muscle group are OPTIONAL per branch.
+- Discovery, search filters, recommendations and analytics are branch-aware.
+- A creator can belong to more than one branch.
+- Naming in code and UI: use "Content" / "Class" / "Session" / "Program", not "Workout"
+  as the umbrella term.
+
+NUTRITION / HEALTHY-EATING BRANCH (dietitians and healthy-eating program coaches)
+------------------------------------------------------------
+- Credential verification is mandatory for professional titles (e.g. dietitian).
+- Health and nutrition advice may be regulated: legal / KVKK review is required BEFORE
+  this branch opens to creators and members.
+- Keep clear separation between general healthy-eating content and individual medical
+  advice.
+- [OPEN] exact professional rules to be confirmed with a legal advisor.
+
+EXERCISE (strength / fitness branch and any branch using movement libraries)
+------------------------------------------------------------
+- name
+- category
+- muscle group
+- equipment
+- difficulty
+- instructions
+- video
+- image
+
+SESSION / WORKOUT (flexible blocks, branch-aware)
+------------------------------------------------------------
+- title
+- branch
+- blocks (ordered)
+  * strength block: exercises, sets, reps, weight, rest, tempo
+  * timed / flow block: duration, sequence, focus, breathing / intensity cues
+  * cardio block: duration, intensity, target zones
+  * free-form block: notes, video only
+- level
+- equipment (optional)
+- notes
+- video
+
+PROGRAM
+------------------------------------------------------------
+- title
+- description
+- duration
+- difficulty
+- goal
+- weeks
+- days
+- workouts / sessions
+- nutrition
+- schedule
+
+PROGRAM DURATIONS
+------------------------------------------------------------
+- 7 Days
+- 14 Days
+- 30 Days
+- 60 Days
+- 90 Days
+
+
+============================================================
+9. CHALLENGE ENGINE
+============================================================
+
+CHALLENGE
+------------------------------------------------------------
+- title
+- description
+- creator
+- duration
+- tasks
+- participants
+- leaderboard
+- rewards
+- XP
+- badges
+
+DURATIONS
+------------------------------------------------------------
+- 7 Days
+- 14 Days
+- 30 Days
+
+TASK TYPES
+------------------------------------------------------------
+- Workout
+- Steps
+- Calories
+- Duration
+- Habit
+- Custom Task
+
+
+============================================================
+10. COACHING ENGINE
+============================================================
+
+1:1 COACHING
+------------------------------------------------------------
+- coaching package
+- client
+- creator
+- payment
+- subscription
+- custom program
+- workout
+- check-in
+- progress
+- notes
+- messages
+- schedule
+
+VIP COACHING
+------------------------------------------------------------
+- priority messaging
+- advanced check-in
+- personalized programming
+- progress review
+- additional creator services
+
+CREATOR COACHING WORKSPACE
+------------------------------------------------------------
+
++---------------------------------------------------------+
+| CLIENTS          | PROGRAM             | CLIENT DATA     |
+|------------------|---------------------|-----------------|
+| Client 1         | Week 3              | Progress        |
+| Client 2         | Workout             | Check-in        |
+| Client 3         | Nutrition           | Notes           |
+| Client 4         | Schedule            | Messages        |
++---------------------------------------------------------+
+CLIENT DATA shows everything the member did in THIS coach's area plus the member's shared
+health data (section 14 COACH DATA ACCESS). It never shows another coach's program details.
+
+
+============================================================
+11. MEMBERSHIP ENGINE
+============================================================
+
+CREATOR MEMBERSHIP
+------------------------------------------------------------
+
+Creator controls pricing. Commission is flat (see section 53) with no attribution-based
+discount.
+
+Example:
+- 149 TL
+- 199 TL
+- 249 TL
+- 299 TL
+- 399 TL
+
+Membership:
+- Monthly
+- Annual
+- Renewal
+- Cancel
+- Pause
+- Refund
+- Failed payment
+- Access control
+
+MULTI-CREATOR SUBSCRIPTION
+------------------------------------------------------------
+
+Member can subscribe to multiple creators simultaneously.
+
+
+============================================================
+12. COMMUNITY ENGINE
+============================================================
+
+- Feed
+- Post
+- Comment
+- Like
+- Reaction
+- Follow
+- Community
+- Private community
+- Subscriber community
+- Group
+- Announcement
+- DM
+- Creator messaging
+- Moderation
+- Report
+- Block
+
+
+============================================================
+13. LIVE ENGINE
+============================================================
+
+- Live scheduling
+- Live room
+- Participant management
+- Chat
+- Moderation
+- Attendance
+- Replay
+- Notifications
+
+LIVE TYPES
+------------------------------------------------------------
+- Member Live (subscriber-only)
+- Paid Live
+- Coaching Live
+(No public "Free Live" type: every live session requires an active entitlement.)
+
+LIVE MODES
+------------------------------------------------------------
+Mettlo supports TWO live delivery modes, chosen per session by the creator based on
+audience size and need:
+
+A) IN-PLATFORM (WebRTC / LiveKit)
+   - COACH LIVE: the coach streams to their subscribers. Members watch, chat and react.
+     Member camera and microphone are OFF by default (viewer-only).
+   - INTERACTIVE CLASS: small group (yoga, pilates, group coaching). Member camera is
+     optional (default off), microphone muted by default. The coach can see members and
+     correct posture. Capacity cap per class (recommended 20-30).
+   - 1:1 SESSION: real-time coaching call (see sections 22 and 24).
+   - Runs on Mettlo's own infrastructure; join access, entitlement checks, recording and
+     replay are fully controlled by Mettlo (see section 39 for cost model).
+
+B) EXTERNAL LINK (coach's own Zoom or similar account)
+   - For large subscriber broadcasts where in-platform WebRTC cost would be high (see
+     section 39). Zero live-infrastructure cost to Mettlo; the coach pays for their own
+     Zoom (or equivalent) plan if needed.
+   - Access control: the session requires REGISTRATION on the external platform. Mettlo
+     registers only members with an active entitlement for that creator, using the
+     provider's registration API, and receives back a per-member, unique join link.
+     Mettlo shows that unique link only to the entitled member; it is never posted as a
+     public or shared link.
+   - This is best-effort protection, not a hard guarantee: a registered member could
+     still forward their personal link to someone else. This limitation is disclosed to
+     creators when they choose this mode.
+   - Recording: the coach records the session on their own account and manually uploads
+     the recording file to Mettlo afterward (via the creator dashboard). Mettlo then
+     stores, transcodes and serves the replay under the normal signed-playback and
+     entitlement rules, like any other video content.
+   - The coach is responsible for keeping the recording focused on their own camera /
+     screen where possible, since member video may be captured by the external tool.
+
+ACCESS & CONSENT (applies to both modes)
+------------------------------------------------------------
+- Only members with an active entitlement for that creator / class can request to join
+  (section 23).
+- Immediately before the join link (in-platform token or external unique link) is
+  issued, the member is shown a mandatory consent screen describing: that the session
+  is live, that their camera/microphone (if enabled) may be visible to the coach and
+  other participants where applicable, and how the recording (if any) will be stored
+  and used. The member must read and accept this screen; the link is issued only after
+  acceptance.
+- This acceptance is treated as the member's KVKK consent for that specific live
+  session, timestamped and logged (kvkk_consents, tied to the session).
+- Non-subscribers cannot obtain a join link in either mode.
+
+HOSTING DEVICES
+------------------------------------------------------------
+- The coach can go live from a phone (iOS / Android app), desktop web or tablet web, in
+  either mode.
+- Pre-live check (in-platform mode): camera / mic test, network quality indicator,
+  low-bandwidth fallback (lower resolution, audio-only).
+
+QUALITY AND COST CONTROLS (in-platform mode)
+------------------------------------------------------------
+- Default viewer quality 480p (about 0.7 Mbps). The coach publishes with simulcast so
+  each viewer receives an adaptive layer. Higher quality only where needed.
+- Members subscribe only to the coach's video and a limited set of thumbnails, not to a
+  full grid.
+- Audio-only fallback for weak networks.
+- Per-room participant cap and per-creator monthly live-minute limit (section 39).
+
+RECORDING AND PRIVACY (KVKK)
+------------------------------------------------------------
+- In-platform mode: only the coach's stream (video, audio, shared screen) is recorded
+  for replay by default. Member video and audio are NOT recorded by default.
+- External-link mode: recording is manual (coach uploads); see above for guidance on
+  keeping member video out of the recording where possible.
+- Replay follows the same entitlement rules as the live session.
+- Recording retention is set per plan (storage cost applies).
+- Live chat retention and moderation follow section 37 (moderation).
+
+LIVE DATA
+------------------------------------------------------------
+- live_sessions, live_participants, live_messages, live_replays
+- live_mode (in_platform / external_link), live_external_registrations
+- live_usage (participant minutes, estimated GB), live_limits, live_credit_packs
+  (section 39)
+
+
+============================================================
+14. HEALTH ENGINE
+============================================================
+
+APPLE HEALTH
+------------------------------------------------------------
+- Steps
+- Distance
+- Active calories
+- Workout
+- Exercise duration
+- Heart rate where supported
+- Sleep where supported
+- Weight where supported
+
+ANDROID HEALTH CONNECT
+------------------------------------------------------------
+- Steps
+- Distance
+- Active calories
+- Workout
+- Exercise duration
+- Heart rate where supported
+- Sleep where supported
+- Weight where supported
+
+HEALTH PRINCIPLE
+------------------------------------------------------------
+User explicitly grants device permissions (Apple Health / Health Connect).
+Health data is special-category personal data under KVKK (ozel nitelikli kisisel veri):
+sharing it with a coach requires the member's EXPLICIT consent, separate from the terms of
+service.
+Admins do not access individual health data (aggregate only, section 63).
+All health data is stored in Turkiye (section 61).
+
+COACH DATA ACCESS (DECIDED, Rev 6)
+------------------------------------------------------------
+1. OWN-AREA DATA (always visible to the coach while the subscription is active):
+   everything the member does in that coach's area — enrolled programs and session logs,
+   workouts / sets / reps, challenge participation and progress, coaching check-ins, notes,
+   messages, bookings, attendance, live attendance.
+   A coach NEVER sees program / session / challenge details the member does in ANOTHER
+   coach's area.
+2. HEALTH DATA (visible to EVERY coach the member is subscribed to):
+   steps, distance, active calories, exercise duration, heart rate, sleep, weight,
+   measurements, progress photos, activity trends.
+3. CONSENT FLOW: when a member subscribes to a coach, a separate consent screen asks:
+   "Saglik verilerimi (adim, uyku, nabiz, kilo, olculer, ilerleme fotograflari) bu koc ile
+   paylasiyorum." Consent is per coach, timestamped, stored in health_share_consents.
+   Without consent the coach sees only own-area data.
+4. REVOCATION: the member can revoke health sharing per coach at any time from privacy
+   settings; the coach immediately loses access to health data but keeps own-area data.
+5. END OF SUBSCRIPTION: coach access to that member's health data ends when the
+   subscription ends; own-area history stays readable to the coach for 30 days (proposed)
+   and then becomes hidden.
+6. SAFEGUARDS: view-only in the coach workspace, no bulk export / download, every coach access
+   to health data is written to audit logs; confidentiality obligation in the creator
+   agreement (section 62).
+7. MINORS: health sharing for a minor requires the guardian's consent (section 58).
+8. APPLE / GOOGLE: HealthKit / Health Connect data is shared only for the member's own
+   training / health purpose, never for advertising (store health-data rules).
+============================================================
+15. PROGRESS ENGINE
+============================================================
+
+- Weight
+- Basic measurements
+- Workout history
+- Activity
+- Steps
+- Calories
+- Program completion
+- Streak
+- Progress photos
+- Advanced measurements
+- Strength progression
+- Performance trends
+- Sleep trends
+- Recovery
+- Training load
+- Long-term analytics
+- Cross-device long-term health profile
+- Wearable ecosystem
+- Advanced health integrations
+
+
+============================================================
+16. NUTRITION ENGINE
+============================================================
+
+- Calories
+- Protein
+- Carbohydrates
+- Fat
+- Water
+- Recipes
+- Creator nutrition content
+- Advanced nutrition tracking
+- Meal planning
+- Nutrition analytics
+- Creator nutrition programs
+- Personalized recommendations
+- Advanced ecosystem integrations
+(See section 8 for the nutrition / healthy-eating BRANCH and its legal-review
+requirement, distinct from this general nutrition-tracking feature set.)
+
+
+============================================================
+17. GAMIFICATION
+============================================================
+
+- XP
+- Streak
+- Badge
+- Basic leaderboard
+- Daily quest
+- Levels
+- Achievements
+- Advanced quests
+- Leagues
+- Advanced leaderboard
+- Rewards
+- Platform-wide competitions
+- Creator challenges
+- Brand challenges
+- Community seasons
+
+
+============================================================
+18. COMMERCE ENGINE
+============================================================
+
+PRODUCT CATEGORIES
+------------------------------------------------------------
+SUPPLEMENTS
+- Protein
+- Creatine
+- BCAA
+- EAA
+- Amino acids
+- Vitamins
+- Minerals
+- Protein bars
+
+SPORTSWEAR
+- T-shirt
+- Shorts
+- Leggings
+- Shoes
+- Sportswear
+
+EQUIPMENT
+- Dumbbell
+- Resistance band
+- Mat
+- Accessories
+- Training equipment
+
+
+============================================================
+19. COMMERCE ARCHITECTURE
+============================================================
+
+Mettlo Store
+|
++-- Brands
+|
++-- Products
+|
++-- Categories
+|
++-- Discount Codes (Mettlo campaigns only)
+|
++-- Cart
+|
++-- Checkout
+|
++-- Orders
+|
++-- Payment
+|
++-- Shipping
+|
++-- Tracking
+|
++-- Refund
+|
++-- Commission
+
+COMMERCE MODEL (DECIDED, Rev 6)
+------------------------------------------------------------
+- Products are sold ONLY by Mettlo. Mettlo is the seller of record and issues the invoice.
+- Creators do NOT sell products, do NOT have a creator store, do NOT earn product
+  commission and do NOT run affiliate links.
+- Avoid an inventory-heavy model: supply through supplier partnership / dropship with Mettlo
+  as the seller.
+- Physical products carry the normal 14-day right of withdrawal (cayma) and return flow
+  (section 60).
+- Supplement product pages must avoid health / treatment claims (advertising rules).
+
+
+============================================================
+20. CREATOR COMMERCE — REMOVED (Rev 6)
+============================================================
+
+Creators do not sell or recommend products for commission. All commerce is run by Mettlo
+(section 19). Section number kept so other references stay valid.
+
+
+============================================================
+21. PAYMENT ARCHITECTURE
+============================================================
+
+PAYMENT
+------------------------------------------------------------
+- Subscription payment
+- Program payment
+- Coaching payment
+- Live payment
+- Product payment
+- Bundle payment
+- Live credit / pack payment (section 39)
+
+FINANCE
+------------------------------------------------------------
+- Gross sales
+- Platform commission
+- Payment fees
+- Refund
+- Chargeback
+- Creator share (internal creator earnings ledger)
+- Transaction history
+
+CREATOR COMPENSATION (DECIDED, Rev 6)
+------------------------------------------------------------
+- Creators are not companies; they are engaged under Mettlo like in-house service
+  providers. The platform collects NO IBAN, TCKN or tax number and has NO payout module.
+- The system keeps a creator_earnings ledger: 80% of net sales (after store fee where
+  applicable) per the flat 20% commission; live credits 1/3 to the creator (section 39).
+- The ledger is used for the creator's read-only earnings statement and for Mettlo's own
+  compensation process, which runs OUTSIDE the platform (managed by SUPER_ADMIN / accounting).
+- iyzico is used as a standard merchant account for Mettlo; no marketplace / split payment.
+- [OPEN - accountant] the legal form of paying creators (employment / SGK vs service contract
+  and stopaj). Any lawful payment to an individual will in practice need identity and tax
+  details, collected by accounting outside the app.
+
+IMPORTANT
+------------------------------------------------------------
+Platform commission != Net profit
+
+Platform commission is a flat 20% on all creator sales, with no attribution-based discount
+(decided; see sections 23, 53).
+
+Net platform economics must account for:
+- payment fees
+- app store / Google Play fees where applicable (section 22)
+- refunds
+- chargebacks
+- taxes
+- infrastructure (including live video cost per viewer-hour, section 39)
+- creator compensation (paid outside the platform)
+- operational costs
+
+
+============================================================
+22. PAYMENT CHANNELS & STORE BILLING (TURKIYE)
+============================================================
+
+CHANNELS
+------------------------------------------------------------
+- WEB (desktop / tablet / mobile web): iyzico card payment.
+- iOS app: Apple In-App Purchase (IAP) for digital sales; some exceptions below.
+- Android app: Google Play Billing for digital sales.
+- All channels feed ONE entitlement system (section 23): a member who paid on web can
+  use the app, and vice versa.
+
+WHAT THE STORE RULES SAY (researched 2026-09-25, VERIFY BEFORE LAUNCH)
+------------------------------------------------------------
+Google Play:
+- Play billing is required for subscription services (fitness explicitly listed),
+  digital items and in-app content / features.
+- Service fee: 15% on auto-renewing subscriptions regardless of revenue; other in-app
+  digital purchases 15% for the first USD 1M per year for enrolled developers, 30%
+  above.
+- Talking about alternative purchase options outside the app (e.g. email marketing) is
+  allowed as long as it is not inside the app.
+
+Apple:
+- IAP is required for digital goods and subscriptions (Guideline 3.1.1).
+- Commission: 30% standard; 15% for Small Business Program members (up to USD 1M in
+  proceeds in the previous year) and for subscriptions after their first year.
+- Guideline 3.1.3(d): real-time person-to-person services between two individuals
+  (fitness training, coaching, consultations) MAY use non-IAP payment. One-to-few and
+  one-to-many services, group classes, prerecorded content and general memberships must
+  use IAP.
+- Reports from developers say App Review may treat NON-real-time consulting (e.g. async
+  chat answers) as digital and require IAP. Assume async coaching = IAP unless cleared.
+- Physical goods consumed outside the app (Mettlo Store products) do not need IAP.
+- Gift cards / vouchers redeemable for digital goods must be sold via IAP on iOS.
+- Web-to-app: if the iOS app unlocks content bought elsewhere, Apple may require the
+  same content to also be purchasable via IAP inside the app (multiplatform services
+  rule).
+- The US-storefront external-link changes do NOT apply to the Turkish storefront. Do
+  not design around them.
+
+CHANNEL MATRIX (what pays how)
+------------------------------------------------------------
+| Product                                   | Web          | iOS app                          | Android app                 |
+|-------------------------------------------|--------------|-----------------------------------|------------------------------|
+| Creator membership (monthly / annual)     | iyzico       | IAP                               | Play Billing                |
+| Digital program / paid content            | iyzico       | IAP                               | Play Billing                |
+| Paid live / group class (one-to-many)     | iyzico       | IAP                               | Play Billing                |
+| 1:1 real-time session / coaching call     | iyzico       | iyzico allowed (3.1.3(d))         | iyzico (decided; no Google  |
+|                                            |              |                                    | equivalent to 3.1.3(d) is   |
+|                                            |              |                                    | documented — VERIFY before  |
+|                                            |              |                                    | build)                      |
+| Async coaching (chat / check-ins)         | iyzico       | IAP (conservative)                | Play Billing (conservative)  |
+| Physical products (Mettlo Store)          | iyzico       | iyzico                            | iyzico                       |
+| Vouchers / gift cards for digital items   | iyzico       | IAP                               | Play Billing                |
+| Live credit / session pack (section 39)   | iyzico       | IAP (conservative)                | Play Billing (conservative)  |
+
+WORKED EXAMPLE (KDV excluded; flat platform commission 20%, DECIDED)
+------------------------------------------------------------
+Product price 1000 TL. The store deducts its fee before paying Mettlo; the creator
+share is computed on the net.
+| Channel                              | Store fee | Net to Mettlo | Platform 20% | Creator gets |
+|---------------------------------------|-----------|----------------|---------------|----------------|
+| iOS, Apple 30%                        | 300       | 700            | 140           | 560            |
+| iOS, Apple 15% (Small Business)       | 150       | 850            | 170           | 680            |
+| Android subscription, Google 15%      | 150       | 850            | 170           | 680            |
+| Web (iyzico)                          | payment fee TBD | ~1000     | ~200          | ~800           |
+Notes: Google's 15% applies to auto-renewing subscriptions; other in-app purchases
+follow the rates above. The iyzico fee still has to be subtracted on web.
+
+CHANNEL PRICING (DECIDED)
+------------------------------------------------------------
+- Web price and mobile (store) price are set SEPARATELY, with mobile priced somewhat higher than
+  web to absorb the store fee. Web is the default for creator-shared links (Instagram / WhatsApp ->
+  Mettlo web checkout).
+- iOS STRATEGY (decided, overrides the above where they conflict): membership subscriptions are
+  purchased on WEB only. The iOS app does not sell the subscription via IAP; it recognizes and
+  unlocks access for a member who already has an active web-purchased entitlement (companion /
+  reader-style approach), consistent with section 23's single entitlement system.
+  COMPLIANCE RISK (flag, not resolved by this decision): Apple's guidelines are strict here. The
+  "previously purchased content" exception is documented mainly for reader apps (text / audio /
+  video content) with NO purchase buttons or upgrade prompts anywhere in the app; whether a fitness
+  / coaching membership qualifies is uncertain, and Apple's "multiplatform services" rule can require
+  offering IAP too if content bought elsewhere is consumed in the app. This needs an explicit App
+  Review pre-check or legal/consultant confirmation BEFORE relying on this approach; if Apple rejects
+  it, the fallback is in-app IAP subscriptions at the higher mobile price above.
+- One-off in-app digital purchases that are NOT the membership itself (e.g. a paid program bought
+  while already in the app, a group class, a live credit pack) still follow the CHANNEL MATRIX above
+  and use IAP / Play Billing where required, since the companion-app decision applies specifically to
+  the membership subscription purchase flow.
+- 1:1 real-time sessions may use iyzico on BOTH iOS and Android (decided; Android is treated the same
+  as iOS's 3.1.3(d) allowance here — see the Android policy caveat below).
+- Store prices are normally chosen from the store's price points, so a free-form creator price may
+  not map exactly [VERIFY, relevant mainly if the IAP fallback above is ever used].
+
+TURKIYE NOTES (verify with accountant / legal)
+------------------------------------------------------------
+- KDV (and any digital service tax if applicable) must be included in Turkish pricing.
+- For Play sales, Google calculates and invoices KDV automatically; treat store-channel
+  invoicing differently from web-channel invoicing (section 26).
+- A government / Ticaret Bakanligi support scheme that refunds part of store
+  commissions exists, but reported to exclude Turkish-market revenue and to require a
+  Turkish anonim / limited company. [OPEN - check eligibility, likely not useful for a
+  Turkiye-only platform]
+
+PRODUCT DECISIONS STILL OPEN
+------------------------------------------------------------
+- Confirm the companion-app approach with Apple (and ideally Google, for consistency) before relying
+  on it; have the IAP fallback pricing ready in case it is rejected.
+- Whether to register for Apple's Small Business Program and Google's reduced fee
+  program (both cap at USD 1M per year; a new developer normally qualifies).
+
+
+============================================================
+23. ENTITLEMENT & ACCESS CONTROL (DECIDED)
+============================================================
+
+CORE RULE
+------------------------------------------------------------
+Access to paid content is granted ONLY by the system, never by a creator's manual
+action. A creator is a content manager / coach: they cannot grant themselves or others
+paid access. Off-platform payment (WhatsApp, cash, IBAN) does not unlock content.
+
+ENTITLEMENT SOURCES (the only ways access can start)
+------------------------------------------------------------
+1. payment_succeeded    - iyzico webhook confirmed
+2. store_receipt        - Apple / Google server notification validated
+3. free                 - content marked FREE / MEMBERS_ONLY per rules
+4. promo_trial          - platform-defined trials and coupons
+5. creator_invite_grant - one-time declared quota, logged complimentary access (below)
+6. admin_grant          - support / compensation, always with a reason and audit log
+7. creator_exit_gift    - one free subscription when a member's creator leaves (section 59)
+
+ENTITLEMENT LIFECYCLE
+------------------------------------------------------------
+active -> grace (failed payment) -> expired
+active -> paused
+active -> cancelled (access until period end)
+active -> revoked (refund / chargeback / abuse / permanent ban)
+active -> suspended (creator suspended: billing paused for the suspension period, section 57)
+Every state change writes an entitlement_events record.
+
+WHY COACHES STILL HAVE WHAT THEY NEED (so they have no reason to go off-platform)
+------------------------------------------------------------
+- Payment link: creator shares a checkout link / QR / coupon on Instagram or WhatsApp;
+  the member pays through Mettlo and access unlocks automatically; the sale is
+  attributed to the creator.
+- Creator invite grants (DECIDED DESIGN): during creator onboarding, the platform asks "How many
+  active students do you currently have?" with a visible notice next to the field, e.g. "Registering
+  them on Mettlo will not be charged." The number the creator declares becomes their LIFETIME invite
+  quota (a one-time cap set at signup, not a recurring monthly allowance) — the system will not let
+  the creator send more free invites than the number they declared. This exists specifically to stop
+  a creator from grandfathering their real existing students honestly, then later bringing new,
+  never-before-served customers in for free by taking payment off-platform. The system can only
+  enforce the declared CAP; it has no way to verify the declared number itself, so this still relies
+  on the creator's honesty for the initial figure.
+  - Each individual invite grant lasts between 1 and 25 days, chosen by the creator per invite;
+    grants of 26-30 days are NOT allowed (hard validation in the invite form).
+  - The moment an invited person signs up through the invite, the system automatically assigns them
+    a free-subscriber role/status for that creator — no manual admin step.
+  - An admin can raise a creator's declared quota later (e.g. verified growth), logged with a reason.
+- Coaching workspace, check-ins, progress and messaging live in Mettlo, so the value
+  stays inside the platform even if the first contact happened on WhatsApp.
+- Commission is flat for all sales regardless of source (DECIDED, section 21/53): no lower rate for
+  customers the creator brought in themselves versus customers found through Mettlo discovery.
+
+CONTROLS
+------------------------------------------------------------
+- Terms of service: paid coaching and content must be sold through Mettlo.
+- Fraud signals: creator self-subscription, many invite grants to one device,
+  off-platform handle sharing in messages (moderation assist), a creator who exhausts their
+  declared invite quota unusually fast, or invite grants clustered at exactly the maximum 25-day
+  length (possible attempt to disguise a recurring free arrangement as a series of "trials").
+- Sensitive: entitlement data and health data are separate systems (KVKK).
+
+
+============================================================
+24. BOOKING ENGINE
+============================================================
+
+Creators run classes and sessions; members book them. Works for every branch
+(yoga class with 20 seats, pilates group class, 1:1 coaching call, live workout).
+
+CREATOR SIDE
+------------------------------------------------------------
+- availability (weekly schedule, exceptions, time zone)
+- class / session types: group class (capacity), 1:1 session, workshop / live event
+- recurring classes and one-off events
+- price per session, session pack, or included in membership
+- cancellation and refund policy per class (with platform minimums)
+- waitlist on / off
+- attendance marking and no-show handling
+- link to Live Engine: live room is created automatically for the booked session
+
+MEMBER SIDE
+------------------------------------------------------------
+- browse a creator's schedule, book, cancel / reschedule within the policy window
+- pay per session, use a pack, or use membership benefits
+- reminders (push, email, SMS), add to calendar (ICS)
+- waitlist promotion notification
+
+RULES
+------------------------------------------------------------
+- Capacity is enforced atomically (no overbooking).
+- Instructor cancels -> automatic refund or credit to members.
+- Attendance feeds streak / XP / challenge progress.
+- Payment channel rules follow section 22 (group class = IAP on iOS; 1:1 real-time
+  session may use iyzico on iOS).
+- Interactive classes join a live room (section 13); capacity cap per class
+  (recommended 20-30).
+- Session packs / live credits are bound to ONE creator (section 39).
+- Time zone default: Turkiye (UTC+3); store timestamps in UTC.
+
+TABLES: availability_slots, class_sessions, bookings, booking_waitlists,
+cancellation_policies, session_packs
+API: /api/v1/bookings, /api/v1/creators/:id/availability, /api/v1/classes
+
+
+============================================================
+25. REVIEWS & RATINGS ENGINE
+============================================================
+
+- Reviewable entities: creator, program, class / session, product.
+- Verified reviews only: member must have an active or past entitlement and minimum
+  activity (e.g. attended a class / completed part of a program).
+- Rating 1-5, text, optional tags (e.g. "clear instructions", "good for beginners").
+- Creator can reply publicly; creator cannot delete or edit a review.
+- Report / moderation flow; fake review and self-review detection (see section 38).
+- Aggregate rating shown on profile and in search; ranking uses rating with a minimum
+  review count so tiny samples do not dominate.
+- Incentivized reviews (reward for 5 stars) are not allowed.
+
+TABLES: reviews, review_replies, review_reports
+API: /api/v1/reviews
+
+
+============================================================
+26. INVOICING (FATURA)
+============================================================
+
+DECIDED
+------------------------------------------------------------
+Mettlo is the invoicing party. Mettlo issues invoices to members for web-channel sales;
+creators do not invoice members directly.
+
+INVOICE CONTENT (DECIDED): the member's invoice shows a single flat, KDV-inclusive price for the
+product purchased. The platform commission and the creator's share are NOT broken out on the member
+invoice. For invoicing purposes the creator is treated like a service provider to Mettlo (similar to
+an internal contractor), not as a party the member transacts with directly. The creator's own share
+is documented separately, between Mettlo and the creator (earnings statement / creator-facing
+document), never on the member-facing invoice.
+
+STANDARD MODULE
+------------------------------------------------------------
+- invoice generation for every completed web-channel sale (via an e-Fatura / e-Arsiv
+  integrator, to be chosen)
+- refund -> credit note (iade faturasi)
+- invoice PDF / link available to the member in the app and by email
+- creator earnings statements (read-only, from the creator_earnings ledger)
+- invoice storage, retention and audit trail
+- Mettlo Store product invoices (Mettlo is the seller, section 19)
+- no creator tax profile / IBAN is collected by the platform (section 21)
+
+CHANNEL DIFFERENCES
+------------------------------------------------------------
+- Web sales (iyzico): invoiced by Mettlo per the flow above.
+- iOS / Android store sales: the store is the merchant of record for the customer sale;
+  Mettlo's own accounting entries are based on store reports (store_transactions).
+
+OPEN ITEMS FOR THE ACCOUNTANT (before launch)
+------------------------------------------------------------
+- The legal form of creator compensation outside the platform (section 21) and its
+  KDV / stopaj / SGK consequences.
+- KDV rates per product type (membership, program, live class, live credit, physical goods).
+- Invoice / record retention periods (VUK / TTK) used by account deletion (section 57).
+- e-Fatura vs e-Arsiv obligations for Mettlo's own company type.
+
+TABLES: invoices, invoice_items, credit_notes, invoice_events
+API: /api/v1/invoices
+
+
+============================================================
+27. CREATOR SUCCESS PROGRAM
+============================================================
+
+Creators grow the platform; the platform helps creators earn.
+
+- Onboarding checklist (profile, first free content, first paid offer, first class)
+- First-program wizard with branch-specific templates (strength, yoga flow, pilates
+  class ...)
+- Launch kit: profile link, QR code, Instagram bio link, promo codes, share cards
+- Creator resource hub: guides, pricing tips, content ideas, platform rules
+- Private creator community and live Q&A sessions
+- Human creator success support for early cohorts
+- Creator challenges (e.g. quarterly) with visibility rewards
+- Benchmark analytics: retention, response time, conversion vs platform averages
+- Creator health score (activity, responsiveness, ratings) used by admin and discovery
+
+TABLES: creator_onboarding_tasks, creator_resources, creator_success_notes
+
+
+============================================================
+28. DISCOVERY ENGINE
+============================================================
+
+- Search
+- Categories / branches
+- Goals
+- Level
+- Price
+- Creator
+- Program
+- Product
+- Personalized discovery
+- Behavioral recommendations
+- Content recommendations
+- Creator recommendations
+- Product recommendations
+- Platform intelligence
+- Cross-ecosystem discovery
+- Brand / creator / product recommendations
+
+
+============================================================
+29. AI / YAPAY ZEKA LAYER
+============================================================
+
+AI IS SUPPORTING TECHNOLOGY.
+AI IS NOT THE CORE PRODUCT.
+
+- Content tagging
+- Moderation assistance
+- Basic recommendations
+- Content summaries
+- Search assistance
+- Personalized recommendations
+- Member segmentation
+- Creator analytics summaries
+- Content performance analysis
+- Product recommendations
+- Coaching assistance
+- Advanced platform intelligence
+- Cross-domain recommendations
+- Advanced personalization
+- Creator business intelligence
+
+
+============================================================
+30. ANALYTICS
+============================================================
+
+MEMBER ANALYTICS
+------------------------------------------------------------
+- Activity
+- Workout / session
+- Program progress
+- Challenge progress
+- Streak
+- Health trends
+
+CREATOR ANALYTICS
+------------------------------------------------------------
+- Revenue
+- Subscribers
+- Churn
+- Retention
+- Views
+- Watch time
+- Program sales
+- Challenge participation
+- Live attendance
+- Coaching revenue
+- Conversion
+- Booking / attendance / no-show rates
+- Reviews / ratings trend
+
+PLATFORM ANALYTICS
+------------------------------------------------------------
+- DAU
+- WAU
+- MAU
+- Retention
+- Churn
+- Conversion
+- ARPU
+- LTV
+- CAC
+- GMV
+- Platform take
+- Creator GMV
+- Commerce GMV
+- Subscription GMV
+- Coaching GMV
+- Live infrastructure cost vs live commission (margin tracking, section 39)
+- Refund
+- Chargeback
+
+
+============================================================
+31. CAMPAIGN ENGINE
+============================================================
+
+- Campaign
+- Coupon
+- Discount
+- Referral
+- Creator campaign
+- Product campaign
+- Challenge campaign
+- Brand campaign
+- Sponsored campaign
+
+
+============================================================
+32. REFERRAL ENGINE
+============================================================
+
+User
+ |
+ +-- Referral Link
+ |
+ +-- New User
+ |
+ +-- Purchase
+ |
+ +-- Reward
+
+Creator referral commission: REMOVED (Rev 6). Creators bring their students through
+payment links and invite grants (section 23); there is no separate creator referral commission.
+
+
+============================================================
+33. AFFILIATE ENGINE — REMOVED (Rev 6)
+============================================================
+
+No affiliate links or product commissions for creators. Products are sold only by Mettlo
+(section 19). Section number kept so other references stay valid.
+
+
+============================================================
+34. NOTIFICATION ENGINE
+============================================================
+
+EVENT
+ |
+ v
+NOTIFICATION SERVICE
+ |
+ +-- Push
+ +-- Email
+ +-- SMS
+ +-- In-App
+
+EVENTS
+------------------------------------------------------------
+- Live starting
+- New content
+- Subscription renewal
+- Payment failed
+- Coaching check-in
+- Challenge reminder
+- Workout / session reminder
+- Order update
+- Campaign (only to members with IYS-registered commercial consent, section 61)
+- Account suspension / ban notice with reason (section 57)
+- Account deletion request received / completed (section 57)
+- Creator exit notice + free subscription gift (section 59)
+- Booking confirmation / reminder / cancellation
+- Review received / replied
+
+
+============================================================
+35. SEARCH ENGINE
+============================================================
+
+SEARCH INDEX
+------------------------------------------------------------
+Creator
+Program
+Workout / Session
+Content
+Challenge
+Product
+Brand
+
+FILTERS
+------------------------------------------------------------
+- Category / branch
+- Goal
+- Level
+- Price
+- Rating
+- Creator
+- Duration
+- Equipment
+- Product category
+
+
+============================================================
+36. ADMIN ARCHITECTURE
+============================================================
+
+ADMIN
+|
++-- Dashboard
++-- Users
++-- Creators
++-- Verification
++-- Content
++-- Programs
++-- Workouts / Sessions
++-- Challenges
++-- Community
++-- Products
++-- Brands
++-- Orders
++-- Payments
++-- Subscriptions
++-- Creator Earnings (ledger, read-only)
++-- Commissions
++-- Refunds
++-- Chargebacks
++-- Campaigns
++-- Coupons
++-- Referral
++-- Analytics
++-- Support
++-- Moderation
++-- KVKK
++-- Audit Logs
++-- System Settings
++-- Branches
++-- Bookings
++-- Reviews
++-- Invoices
++-- Entitlements
++-- Store Billing
++-- Creator Success
++-- Sanctions (suspensions / bans)
++-- Account Deletion Requests
++-- Guardians / Minor Accounts
++-- Creator Exits
+
+Who can see / do what in each module: section 63.
+
+
+============================================================
+37. MODERATION
+============================================================
+
+- Creator verification
+- Content moderation
+- Community moderation
+- Report system
+- Block system
+- Sanctions: warning, temporary suspension, permanent ban (section 57)
+- Fake creator detection
+- Fake review detection
+- Fake engagement detection
+- Fraud detection
+- Payment abuse
+- Coupon abuse
+- Chargeback abuse
+
+
+============================================================
+38. FRAUD / ABUSE
+============================================================
+
+PROTECTION AGAINST
+------------------------------------------------------------
+- Fake creator
+- Fake subscribers
+- Fake reviews
+- Fake engagement
+- Coupon abuse
+- Trial abuse
+- Payment fraud
+- Chargeback
+- Multiple accounts
+- Creator self-subscription manipulation
+- Ban evasion (re-registration after a permanent ban, section 57)
+
+SIGNALS
+------------------------------------------------------------
+- Device signals
+- IP signals
+- Payment signals
+- Behavioral signals
+
+
+============================================================
+39. LIVE COST MODEL, LIMITS & INFRASTRUCTURE DECISIONS
+============================================================
+
+DECISION
+------------------------------------------------------------
+- In-platform live = WebRTC on LiveKit Cloud. No HLS / CDN broadcast mode.
+- Large subscriber broadcasts use the EXTERNAL LINK mode instead (section 13), which
+  has zero live-infrastructure cost to Mettlo.
+- Viewer-only members in in-platform mode still cost bandwidth (they receive the
+  coach's video), so in-platform live must be limited and priced. It cannot be an
+  unlimited free benefit.
+
+LIVEKIT CLOUD PRICING (researched 2026-09-25 from public comparison sites, VERIFY on
+the official page)
+------------------------------------------------------------
+- Build: free (5,000 WebRTC minutes, 50 GB downstream). Development only.
+- Ship: $50 / month. 150,000 WebRTC minutes and 250 GB downstream included, then
+  $0.12 / GB.
+- Scale: $500 / month. 3 TB downstream included, then $0.10 / GB.
+- WebRTC participant minute: about $0.0004 - $0.0005.
+- Video recording / composite export: about $0.015 per minute.
+- Upstream (coach / members sending) is free. Downstream (to viewers) is billed and is
+  the main cost driver.
+- Plans may limit concurrent rooms / participants. [VERIFY before launch]
+
+COST PER VIEWER-HOUR, IN-PLATFORM MODE (bandwidth per viewer is an ASSUMPTION; measure
+in real tests)
+------------------------------------------------------------
+Formula: GB per hour x $0.12 + 60 minutes x $0.0005 (Ship rates).
+| Viewer quality        | GB / hour | Cost / viewer-hour | In TL (49 TL per USD, example rate) |
+|-------------------------|-----------|----------------------|----------------------------------------|
+| 720p, about 1.5 Mbps    | 0.68      | about $0.11          | about 5.4 TL                           |
+| 480p, about 0.7 Mbps    | 0.32      | about $0.07          | about 3.3 TL                           |
+Included Ship quotas are small: 250 GB covers only about 370 viewer-hours at 720p.
+
+ONE CREATOR, IN-PLATFORM MODE (100 subscribers, 22 live days per month, monthly cost at
+Ship rates)
+------------------------------------------------------------
+| Live pattern            | Viewer-hours | 720p   | 480p   | Per subscriber (480p / 720p) |
+|--------------------------|---------------|---------|---------|---------------------------------|
+| 1 h/day, 40% attend      | 880           | ~$97    | ~$60    | ~29 TL / ~48 TL                 |
+| 1 h/day, 100% attend     | 2,200         | ~$242   | ~$149   | ~73 TL / ~119 TL                |
+| 2 h/day, 40% attend      | 1,760         | ~$194   | ~$119   | ~58 TL / ~95 TL                 |
+| 2 h/day, 100% attend     | 4,400         | ~$484   | ~$298   | ~146 TL / ~237 TL               |
+Interactive classes cost more per participant than viewer-only rooms because each
+participant receives more tracks. Cap thumbnails / tiles and measure real usage.
+This is exactly the scenario the EXTERNAL LINK mode exists for: a coach broadcasting to
+100 subscribers should normally use external-link mode, not in-platform mode, unless
+the interactive (camera-on) features are actually needed.
+
+PLATFORM SCALE, IN-PLATFORM MODE ONLY (each creator: 100 subscribers, 1 h/day, 40%
+attend, 720p)
+------------------------------------------------------------
+| Creators | Live cost / month | Platform commission (example: 299 TL membership, 20%, 49 TL per USD) |
+|-----------|----------------------|---------------------------------------------------------------------------|
+| 10        | about $970           | about $1,220                                                               |
+| 50        | about $4,850         | about $6,100                                                               |
+| 200       | about $19,400        | about $24,400                                                              |
+- If every creator used in-platform mode for large broadcasts, cost would grow
+  linearly and consume most of the commission (before payment fees, store fees, KDV,
+  support and other costs). External-link mode removes this cost entirely for
+  broadcasts; in-platform mode should be reserved for genuinely interactive small
+  classes and 1:1 sessions, where the cost is naturally bounded by room-size limits.
+
+PEAK CONCURRENCY (in-platform mode)
+------------------------------------------------------------
+- Evening peaks with many creators live at once: check Cloud concurrency limits.
+- Self-host: capacity has to be built for the peak hour.
+
+SELF-HOST OPTION (LiveKit server is open source)
+------------------------------------------------------------
+- No per-minute / per-GB fee to LiveKit. You pay for servers, bandwidth, TURN, Redis
+  (multi-node), recording (Egress) and operations.
+- Reported infrastructure figures [VERIFY]: bare-metal bandwidth about $0.001 / GB
+  (Hetzner), a 16-core server about EUR 39 / month, about 200 concurrent users per
+  roughly $60 node as a starting estimate (fewer for video-heavy rooms).
+- With those numbers bandwidth becomes almost free, so cost moves to fixed server
+  capacity and engineering time. Servers in the EU are closer to Turkiye, but media
+  still leaves Turkiye (KVKK check).
+- Trigger to evaluate: monthly in-platform live bill of several hundred USD or more, or
+  Cloud limits blocking growth -> run a load test and a cost model, then decide.
+
+LIVE PRICING / LIMIT MODEL (DECIDED)
+------------------------------------------------------------
+1. PER-CREATOR IN-PLATFORM LIVE CAP (decided): 5 sessions per week, 1 hour each, 16 hours per month
+   hard cap. This applies to in-platform (LiveKit) usage only — external-link broadcasts are not
+   counted against this cap, since they cost Mettlo nothing. Note: 5h/week over a typical month is
+   arithmetically closer to 20-22 hours; 16 hours/month is the stated hard ceiling regardless, so in
+   practice a creator will hit the monthly cap before using every weekly session in some months —
+   flag this for the product team to confirm which number should govern in the UI (weekly 5x1h or
+   the 16h/month ceiling) so the limit is enforced consistently.
+   RESOLVED (Rev 6): the 16 hours / month ceiling GOVERNS. Weekly limit is max 5 sessions of max
+   1 hour each. The UI shows "remaining in-platform live hours this month"; when the monthly 16
+   hours are used up, no new in-platform session can be scheduled until the next month (the
+   creator can still use external-link mode).
+2. LIVE CREDIT PRICING (proposed by Claude, as requested):
+   - 1 live credit = access to one interactive class booking, up to 60 minutes.
+   - Price: 29 TL per credit. At 480p (about 3.3 TL infra cost/hour) this is roughly 9x the raw
+     infrastructure cost; at 720p (about 5.4 TL/hour) roughly 5x — a healthy margin over the LiveKit
+     cost even before payment fees, so it comfortably covers infra plus overhead.
+   - Packs (bound to ONE creator, per section 24): 4 credits for 99 TL (~24.75 TL/credit), 8 credits
+     for 179 TL (~22.4 TL/credit) — a modest volume discount that still clears the cost floor.
+   - Interactive-class access is credit-based by default; membership does NOT include free
+     interactive-class hours unless a creator or admin chooses to bundle credits into a higher-tier
+     membership as a merchandising decision later (not a core system requirement).
+   - Credits expire after 90 days (proposed; adjust if needed) and follow the payment-channel rules
+     in section 22 (conservatively IAP / Play Billing on mobile).
+   - REVENUE SPLIT (DECIDED, Rev 6): 1/3 of credit revenue goes to the coach, 2/3 to Mettlo
+     (Mettlo's share carries the LiveKit infrastructure cost). Computed on the net amount after
+     store fee where applicable. Example on web: 29 TL credit -> about 9.67 TL coach, about
+     19.33 TL Mettlo (KDV excluded). This is the ONLY exception to the flat 20% commission.
+   - PREMIUM LIVE MEMBERSHIP TIER (defined, Rev 6): an optional higher membership tier a creator
+     can switch on. It = the creator's normal membership + 4 interactive-class credits per month
+     (credits valid only for that creator, reset monthly, unused credits do not roll over).
+     Minimum add-on price over the base membership: 99 TL / month (same as the 4-credit pack).
+     Split: base membership part flat 20% commission; add-on part 1/3 coach, 2/3 Mettlo.
+3. Room caps: interactive classes 20-30 participants; coach-live (in-platform) rooms sized by plan.
+4. Default 480p for viewers, simulcast, audio-only fallback, viewers subscribe only to the coach
+   track.
+5. Usage metering: live_usage per session (participant minutes, estimated GB) feeds the 16-hour cap,
+   analytics and margin reporting per creator.
+6. External-link mode has no Mettlo infrastructure cost and is not subject to the 16-hour cap; the
+   platform commission model for external-link sessions is the same flat 20% as any other paid
+   content (section 53).
+7. LIVE STRATEGY CONFIRMED: continue with LiveKit for in-platform interactive classes / 1:1 sessions,
+   and Zoom (external-link mode, section 13) for large subscriber broadcasts, combined with the
+   credit system above. Self-hosting LiveKit remains a later option only if the in-platform bill
+   grows large despite the 16-hour cap (see the self-host trigger above).
+
+TABLES: live_usage, live_limits, live_credit_packs, premium_live_tiers
+
+MEASUREMENTS BEFORE LAUNCH
+------------------------------------------------------------
+- Real bandwidth per viewer at 480p / 720p in typical classes
+- Latency from Turkiye to LiveKit Cloud regions vs 100ms / Daily / Agora (as
+  alternatives to evaluate)
+- Cloud concurrency limits and plan limits
+- KVKK cross-border transfer requirements (both LiveKit and any external-link
+  provider such as Zoom)
+- Official LiveKit pricing page
+- Zoom (or chosen external-link provider) registration API behavior: confirm the
+  registration-required unique-link flow and its limitations end to end
+
+
+============================================================
+40. KVKK / PRIVACY
+============================================================
+
+- Consent management
+- Privacy settings
+- Data minimization
+- Sensitive data protection
+- Health permission system
+- Data access control
+- Data deletion
+- Data export
+- Audit trail
+- Retention policies
+
+Coach access to member data follows section 14 COACH DATA ACCESS: own-area data for each
+coach, health data for every subscribed coach only with the member's explicit, revocable,
+per-coach consent (health_share_consents).
+Admin roles do not see individual health data (section 63).
+All personal and sensitive data (database, health, progress photos, invoices, private files) is
+hosted in Turkiye on Turhost servers (section 61).
+Minors: guardian consent required (section 58). Account deletion and retention: section 57.
+
+Corporate customers should receive aggregate analytics rather than individual sensitive
+health data.
+
+Live video: member camera / microphone is not recorded by default in in-platform mode.
+Live infrastructure providers (LiveKit and any external-link provider) process media
+outside Turkiye. Cross-border transfer confirmation with legal counsel is DEPRIORITIZED FOR NOW
+by founder decision (2026-09-25). This is noted as a compliance item to revisit before public
+launch, and especially before the nutrition / healthy-eating branch opens (section 8), rather than
+something resolved by this decision.
+
+Live consent: joining any live session (either mode) requires the member to read and
+accept a consent screen immediately before the join link is issued (section 13). That
+acceptance is logged as the KVKK consent for that specific session (kvkk_consents,
+tied to the session, timestamped).
+
+
+============================================================
+41. OPEN DECISIONS
+============================================================
+
+REMOVED
+------------------------------------------------------------
+- Gym / salon software integration (gym integration, gym memberships, gym + creator
+  programs, trainer + creator collaboration). Mettlo is not gym-management software.
+  Salons or gyms may still join later as ordinary creators / brands if desired.
+- Public "Free Live" type: every live session now requires an active entitlement
+  (section 13).
+- HLS / CDN broadcast mode: replaced by external-link mode for large broadcasts
+  (section 13); reconsider only if external-link mode proves insufficient.
+
+DEFERRED
+------------------------------------------------------------
+- Nutrition / healthy-eating branch requires legal review before opening to creators
+  and members (section 8).
+- Health-professional features such as lab tests or doctor consultations (not planned;
+  would require separate regulatory review).
+
+DECIDED THIS ROUND (2026-09-25)
+------------------------------------------------------------
+1. Channel pricing: web and mobile priced separately, mobile somewhat higher (section 22)
+2. iOS: web-purchased entitlement recognized in app (companion style), not sold via IAP for the
+   membership itself — COMPLIANCE RISK still needs an Apple / legal check (section 22)
+3. 1:1 real-time session payment allowed via iyzico on both iOS and Android (section 22)
+4. Member invoice shows one flat KDV-inclusive price; no creator-split shown to member (section 26)
+5. Commission flat 20%, no attribution-based discount (sections 21, 23, 53)
+6. Creator invite grants: one-time declared quota at onboarding, 1-25 day grants, auto free-role on
+   signup (section 23)
+7. In-platform live cap: 5 sessions/week, 1h each, 16h/month hard ceiling per creator (section 39;
+   the weekly-vs-monthly arithmetic mismatch noted there still needs a product decision)
+8. Live credit pricing: 29 TL/credit, pack discounts, interactive classes credit-based by default
+   (section 39, proposed by Claude as requested)
+9. Live infrastructure strategy: LiveKit (in-platform) + Zoom (external-link) confirmed (section 39)
+10. KVKK cross-border transfer for live video: deprioritized for now, revisit before public launch
+    (section 40)
+11. External-link provider: proceed with Zoom, pending real-world testing (section 13)
+
+DECIDED IN REVISION 6
+------------------------------------------------------------
+12. Single release: all modules ship together
+13. No FINANCE role; finance is SUPER_ADMIN only (section 63)
+14. Member / creator self-service account deletion request (section 57)
+15. Temporary suspension and permanent ban for members and creators (section 57)
+16. Coach data access: own-area data per coach, health data to every subscribed coach with
+    explicit consent (section 14)
+17. Creators are not companies; no IBAN / TCKN / tax number collected; no payout module;
+    internal earnings ledger only (section 21)
+18. 18+ only; under-18 only via parent / guardian registration (section 58)
+19. No right of withdrawal on digital purchases because access opens at payment; checkout
+    acknowledgement required (section 60)
+20. Creator exit: full indemnity of received payments, legal action if not paid; one free
+    subscription to a creator of choice for each affected subscriber (section 59)
+21. Hosting in Turkiye on Turhost (section 61)
+22. IYS registration (section 61)
+23. Lowest-cost provider per category (section 61)
+24. Live credits: 1/3 coach, 2/3 Mettlo; Premium Live tier defined; 16h/month cap governs
+    (section 39)
+25. Products sold only by Mettlo; creator store, creator commerce and affiliate removed
+    (sections 19, 20, 33)
+26. Flat 20% commission on all creator sales (only exception: live credits)
+
+STILL OPEN (before build / launch)
+------------------------------------------------------------
+1. Apple (and ideally Google) confirmation that the web-purchased/companion-app entitlement
+   approach is acceptable for a membership product, with the IAP fallback pricing ready if not
+   (section 22)
+2. Google Play's actual policy on 1:1 real-time session payments outside Play Billing — no
+   documented equivalent to Apple's 3.1.3(d) was found; verify before relying on it (section 22)
+3. Legal form of creator compensation outside the platform (employment / SGK vs service
+   contract, stopaj, KDV) — accountant (sections 21, 26)
+4. Legal review for the nutrition / healthy-eating branch before it opens (section 8)
+5. (RESOLVED in Rev 6: 16h/month governs, section 39)
+6. LiveKit official pricing and plan limits, latency test from Turkiye, Cloud -> self-host trigger
+   (section 39)
+7. Full KVKK cross-border transfer review for live video infrastructure, both modes, before public
+   launch (sections 39, 40)
+8. Confirm Zoom's registration / unique-link flow end to end in real testing (section 13)
+9. DISCUSS LATER: whether the "no withdrawal because access opens at payment" checkout approach
+   (section 60) causes any problem with App Store / Google Play refund rules
+10. Creator exit indemnity clause: lawyer to draft and confirm enforceability; suing a creator
+    requires the creator's legal identity to be held in the signed creator agreement (section 59)
+11. Minor accounts: lawyer to confirm guardian-registration flow and safeguards (section 58)
+12. Legal texts: drafted at the end of the build (section 62)
+13. Verify current prices of every chosen provider at build time (section 61)
+
+
+============================================================
+42. INFRASTRUCTURE
+============================================================
+
+DATABASE
+------------------------------------------------------------
+PostgreSQL
+
+CACHE
+------------------------------------------------------------
+Redis
+
+QUEUE
+------------------------------------------------------------
+Redis / Queue System
+
+OBJECT STORAGE
+------------------------------------------------------------
+S3-compatible Object Storage
+
+CDN
+------------------------------------------------------------
+CDN / Edge Delivery
+
+VIDEO (on-demand content)
+------------------------------------------------------------
+HLS
+Adaptive Streaming
+Video Processing
+
+LIVE
+------------------------------------------------------------
+In-platform: LiveKit Cloud (Ship plan) at launch
+Later option: self-hosted LiveKit on EU servers when the live bill justifies it
+(section 39)
+Alternatives to test for latency from Turkiye: 100ms, Daily, Agora
+External-link mode: coach's own Zoom (or equivalent) account; Mettlo integrates via
+the provider's registration API for access control (section 13)
+Recording (in-platform Egress) to S3-compatible storage; external-link recordings are
+uploaded manually by the coach
+
+HOSTING
+------------------------------------------------------------
+Turhost servers in Turkiye (production). Separate development server for Claude Code.
+Providers per category: section 61.
+
+EMAIL
+------------------------------------------------------------
+Amazon SES (lowest cost, section 61)
+
+SMS
+------------------------------------------------------------
+Turkish SMS provider with IYS integration (lowest quote, section 61)
+
+PUSH
+------------------------------------------------------------
+FCM
+APNs
+
+PAYMENT
+------------------------------------------------------------
+iyzico (card payments; standard merchant account for Mettlo, no marketplace / split payment)
+Apple In-App Purchase (iOS digital sales) + Google Play Billing (Android digital
+sales)
+See section 22
+
+PAYOUT
+------------------------------------------------------------
+None. No payout module (section 21).
+
+MONITORING
+------------------------------------------------------------
+- Sentry
+- Logs
+- Metrics
+- Tracing
+- Health Checks
+- Alerting
+
+
+============================================================
+43. SECURITY
+============================================================
+
+- HTTPS
+- JWT / secure session
+- Refresh token
+- Password hashing
+- 2FA (MANDATORY for all admin roles and all creators)
+- RBAC
+- Permission system
+- Rate limiting
+- API validation
+- Input sanitization
+- SQL injection protection
+- XSS protection
+- CSRF protection where applicable
+- Secure cookies
+- Signed URLs
+- Private storage
+- Audit logs
+- Fraud detection
+- Backup
+- Disaster recovery
+
+
+============================================================
+44. BACKUP / DISASTER RECOVERY
+============================================================
+
+PostgreSQL
+- Automated backup
+- Point-in-time recovery
+
+Object Storage
+- Versioning
+- Backup
+
+Infrastructure
+- Disaster recovery plan
+- Restore tests
+
+Critical data
+- Redundant backup
+
+
+============================================================
+45. OBSERVABILITY
+============================================================
+
+MONITOR
+- API latency
+- Error rate
+- Database performance
+- Payment failures
+- Payment success
+- Video processing failures
+- Video playback failures
+- Live failures (both modes)
+- Queue backlog
+- Notification failures
+- Storage failures
+- Server health
+
+ALERTS
+------------------------------------------------------------
+Critical
+High
+Medium
+Low
+
+
+============================================================
+46. PERFORMANCE
+============================================================
+
+WEB
+------------------------------------------------------------
+- SSR / SSG where appropriate
+- Code splitting
+- Lazy loading
+- Route-level loading
+- Skeleton
+- Optimistic UI
+- Image optimization
+
+IMAGES
+------------------------------------------------------------
+- WebP
+- AVIF
+
+VIDEO
+------------------------------------------------------------
+- HLS
+- Adaptive bitrate
+- CDN
+- Lazy loading
+
+MOBILE
+------------------------------------------------------------
+- Efficient caching
+- Offline-friendly data where appropriate
+- Background synchronization
+
+
+============================================================
+47. API ARCHITECTURE
+============================================================
+
+/api/v1/
+
+AUTH
+------------------------------------------------------------
+/auth
+/auth/login
+/auth/register
+/auth/logout
+/auth/refresh
+/auth/verify
+/auth/reset
+
+USERS
+------------------------------------------------------------
+/users
+/users/me
+/users/:id
+
+CREATORS
+------------------------------------------------------------
+/creators
+/creators/:id
+/creators/:id/content
+/creators/:id/programs
+/creators/:id/workouts
+/creators/:id/challenges
+/creators/:id/live
+/creators/:id/coaching
+/creators/:id/earnings
+/creators/:id/availability
+
+CONTENT
+------------------------------------------------------------
+/content
+/content/:id
+
+WORKOUT / SESSION
+------------------------------------------------------------
+/workouts
+/workouts/:id
+/workouts/:id/log
+
+PROGRAM
+------------------------------------------------------------
+/programs
+/programs/:id
+/programs/:id/enroll
+
+CHALLENGE
+------------------------------------------------------------
+/challenges
+/challenges/:id
+/challenges/:id/join
+
+COACHING
+------------------------------------------------------------
+/coaching
+/coaching/packages
+/coaching/clients
+/coaching/checkins
+
+COMMUNITY
+------------------------------------------------------------
+/communities
+/posts
+/comments
+/messages
+
+LIVE
+------------------------------------------------------------
+/live
+/live/:id
+/live/:id/token           (in-platform, short-lived, entitlement-checked)
+/live/:id/external-link   (external-link mode, entitlement-checked, per-member unique link)
+/live/:id/usage
+/live/:id/consent         (records the pre-join consent acceptance)
+
+BOOKING
+------------------------------------------------------------
+/bookings
+/creators/:id/availability
+/classes
+
+REVIEWS
+------------------------------------------------------------
+/reviews
+
+INVOICES
+------------------------------------------------------------
+/invoices
+
+HEALTH
+------------------------------------------------------------
+/health
+/health/connect
+/health/permissions
+/health/activity
+/health/sleep
+/health/sharing           (per-coach health sharing consent, grant / revoke)
+
+COMMERCE
+------------------------------------------------------------
+/products
+/brands
+/cart
+/orders
+/checkout
+/checkout/acknowledgement (no-withdrawal acknowledgement, section 60)
+
+PAYMENTS
+------------------------------------------------------------
+/payments
+/subscriptions
+/commissions
+
+ACCOUNT
+------------------------------------------------------------
+/account/deletion-request (create / cancel within grace period)
+/account/data-export
+/guardians                (guardian links and minor profiles)
+
+ADMIN
+------------------------------------------------------------
+/admin/sanctions
+/admin/account-deletions
+/admin/creator-exits
+
+ANALYTICS
+------------------------------------------------------------
+/analytics
+/creator/analytics
+/member/analytics
+/admin/analytics
+
+
+============================================================
+48. FRONTEND DESIGN ARCHITECTURE
+============================================================
+
+DESIGN SYSTEM
+------------------------------------------------------------
+Primary:
+#F97316
+Secondary:
+#FB7185
+Accent:
+#EC4899
+Highlight:
+#FDE047
+Background:
+#0B1220
+Surface:
+#111827
+Surface 2:
+#1F2937
+Surface 3:
+#374151
+Text:
+#F9FAFB
+Muted:
+#6B7280
+Success:
+#34D399
+Warning:
+#FDE047
+Error:
+#F87171
+
+TYPOGRAPHY
+------------------------------------------------------------
+Primary:
+Inter
+Alternative:
+Manrope
+
+Desktop:
+Display XL 64/72
+Display 56/64
+H1 48/56
+H2 36/44
+H3 28/36
+H4 22/30
+Body 16/24
+Small 14/20
+Caption 12/18
+
+Mobile:
+Display 38/44
+H1 32/40
+H2 26/34
+H3 22/30
+Body 15/23
+
+SPACING
+------------------------------------------------------------
+4
+8
+12
+16
+20
+24
+32
+40
+48
+56
+64
+80
+96
+120
+
+RADIUS
+------------------------------------------------------------
+8
+12
+16
+20
+24
+9999
+
+ANIMATION
+------------------------------------------------------------
+150ms
+200ms
+250ms
+300ms
+
+Use:
+- hover
+- transition
+- micro interaction
+- page transition
+- loading
+
+Support:
+prefers-reduced-motion
+
+
+============================================================
+49. RESPONSIVE BREAKPOINTS
+============================================================
+
+<480
+Mobile Small
+
+480-639
+Mobile
+
+640-767
+Large Mobile
+
+768-1023
+Tablet
+
+1024-1279
+Desktop Small
+
+1280-1535
+Desktop
+
+1536+
+Large Desktop
+
+
+============================================================
+50. FRONTEND COMPONENT ARCHITECTURE
+============================================================
+
+components/
+|
++-- ui/
++-- buttons/
++-- inputs/
++-- forms/
++-- cards/
++-- modals/
++-- dropdowns/
++-- tabs/
++-- accordion/
++-- progress/
++-- charts/
++-- navigation/
++-- sidebar/
++-- navbar/
++-- creator/
++-- member/
++-- coaching/
++-- workout/
++-- program/
++-- challenge/
++-- community/
++-- live/
++-- health/
++-- commerce/
++-- product/
++-- checkout/
++-- booking/
++-- reviews/
++-- invoices/
++-- analytics/
+
+
+============================================================
+51. USER RETENTION LOOP
+============================================================
+
+Creator Discovery
+       |
+Subscription
+       |
+Program
+       |
+Workout / Session
+       |
+Health / Activity
+       |
+Daily Quest
+       |
+Streak
+       |
+Challenge
+       |
+Leaderboard
+       |
+Community
+       |
+Progress
+       |
+New Goal
+       |
+New Content
+       |
+Workout / Session
+       |
+REPEAT
+
+
+============================================================
+52. CREATOR BUSINESS LOOP
+============================================================
+
+Instagram / Social Media
+          |
+          v
+      Audience
+          |
+          v
+      Mettlo Profile
+          |
+          v
+       Free Content
+          |
+          v
+      Membership
+          |
+          +------> Program
+          |
+          +------> Challenge
+          |
+          +------> Live
+          |
+          +------> 1:1 Coaching
+          |
+          v
+       Revenue
+          |
+          v
+       Analytics
+          |
+          v
+      Retention
+          |
+          v
+      More Revenue
+
+
+============================================================
+53. METTLO BUSINESS MODEL
+============================================================
+
+REVENUE SOURCES
+------------------------------------------------------------
+
+1. Creator Membership Commission
+2. 1:1 Coaching Commission
+3. Digital Program Commission
+4. Challenge Commission
+5. Live Commission
+6. Bundle Commission
+7. Mettlo Store product sales (Mettlo is the seller, section 19)
+8. Creator Pro Subscription
+9. Brand Campaign Revenue
+10. Platform Membership
+11. Corporate Fitness
+12. Enterprise
+13. Future API / Infrastructure
+14. Live credit packs (bound to one creator; 2/3 Mettlo, 1/3 coach)
+15. Premium Live membership tier (section 39)
+
+All creator sales: flat 20% commission (only exception: live credits, above).
+
+COST NOTE: in-platform live video infrastructure (section 39) is a direct cost of
+revenue. Commission and live limits must be set so that live cost does not consume the
+commission. External-link mode (section 13) removes this cost for large broadcasts.
+
+
+============================================================
+54. FINAL PRODUCT DEFINITION
+============================================================
+
+METTLO IS:
+
+A creator-first, multi-branch movement and wellness business platform
+that combines:
+- Creator Marketplace
+- Membership
+- Digital Programs
+- Workout / Session builder (branch-aware)
+- Challenges
+- Live (in-platform and external-link modes)
+- Community
+- 1:1 Coaching
+- VIP Coaching
+- Booking (classes and sessions)
+- Reviews & Ratings
+- Health Tracking
+- Activity Tracking
+- Nutrition
+- Progress
+- Gamification
+- Commerce (Mettlo Store, Mettlo is the seller)
+- Payments
+- Invoicing
+- Account safety (sanctions, deletion, guardian accounts)
+- Analytics
+- Recommendations
+- Creator Success / Business Tools
+
+
+============================================================
+55. DEVELOPMENT PRINCIPLE
+============================================================
+
+DO NOT BUILD METTLO AS:
+- Only a fitness app
+- Only a video platform
+- Only a PT marketplace
+- Only an AI app
+- Only an e-commerce store
+- Gym management software
+
+BUILD METTLO AS:
+CREATOR
+      +
+MULTI-BRANCH MOVEMENT & WELLNESS
+      +
+COACHING
+      +
+COMMUNITY
+      +
+HEALTH
+      +
+COMMERCE
+      +
+BUSINESS INFRASTRUCTURE
+
+All modules must share:
+- Same Account
+- Same Identity
+- Same Payment System
+- Same Subscription System
+- Same User Data Layer
+- Same Creator System
+- Same Notification System
+- Same Analytics Layer
+- Same Design System
+- Same API
+- Same Security Model
+
+
+============================================================
+56. DATABASE CORE
+============================================================
+
+CORE TABLE GROUPS
+------------------------------------------------------------
+users
+roles
+permissions
+sessions
+devices
+member_profiles
+creator_profiles
+creator_verifications
+follows
+subscriptions
+subscription_plans
+contents
+content_access
+media
+videos
+documents
+exercises
+workouts
+workout_exercises
+workout_logs
+programs
+program_weeks
+program_days
+program_workouts
+program_enrollments
+challenges
+challenge_tasks
+challenge_participants
+challenge_progress
+coaching_packages
+coaching_clients
+coaching_checkins
+coaching_notes
+communities
+community_members
+posts
+comments
+reactions
+messages
+conversations
+live_sessions
+live_participants
+live_messages
+live_replays
+live_mode
+live_external_registrations
+health_connections
+health_permissions
+health_records
+activity_records
+sleep_records
+progress_records
+measurements
+progress_photos
+nutrition_profiles
+nutrition_logs
+recipes
+meals
+xp_records
+streaks
+badges
+achievements
+leaderboards
+products
+product_categories
+brands
+product_variants
+carts
+cart_items
+orders
+order_items
+shipments
+payments
+payment_transactions
+refunds
+chargebacks
+creator_earnings
+commissions
+campaigns
+coupons
+coupon_redemptions
+referrals
+referral_rewards
+notifications
+notification_preferences
+analytics_events
+creator_analytics
+member_analytics
+platform_analytics
+reports
+moderation_actions
+audit_logs
+support_tickets
+kvkk_consents
+privacy_settings
+branches
+content_categories
+creator_branches
+branch_metric_sets
+workout_blocks
+entitlements
+entitlement_events
+creator_invite_grants
+store_transactions
+store_receipts
+availability_slots
+class_sessions
+bookings
+booking_waitlists
+cancellation_policies
+session_packs
+reviews
+review_replies
+review_reports
+invoices
+invoice_items
+credit_notes
+invoice_events
+creator_onboarding_tasks
+creator_resources
+creator_success_notes
+live_usage
+live_limits
+live_credit_packs
+premium_live_tiers
+health_share_consents
+account_sanctions
+account_deletion_requests
+banned_identifiers
+guardian_links
+guardian_consents
+creator_exits
+creator_exit_gifts
+checkout_acknowledgements
+iys_consents
+
+
+============================================================
+57. ACCOUNT LIFECYCLE: DELETION & SANCTIONS
+============================================================
+
+ACCOUNT DELETION (member and creator, self-service)
+------------------------------------------------------------
+- Members and creators can request deletion of their own account from settings on web, iOS
+  and Android (Apple requires in-app account deletion).
+- Before confirming, the user can download a data export (KVKK).
+- 30-day grace period: the account is set to pending_deletion, login shows "cancel deletion".
+  After 30 days deletion runs automatically (worker: account-deletion).
+- Subscriptions: web subscriptions are cancelled immediately, no refund for digital services
+  (section 60). App Store / Google Play subscriptions must be cancelled by the user in the
+  store; the app shows how.
+- CREATOR accounts: a creator deletion request first starts the CREATOR EXIT process
+  (section 59); the account is deleted only after the exit is closed.
+
+WHAT IS DELETED
+- profile, avatar, health data, health connections, progress photos, measurements,
+  nutrition logs, device tokens, notification preferences, private files.
+- messages and community posts: content deleted, sender shown as "Silinmis kullanici".
+- reviews: kept for rating integrity but anonymized.
+
+WHAT IS KEPT (legal obligation, access SUPER_ADMIN only)
+- invoices, payments, orders, refunds, entitlement events, KVKK consent logs, checkout
+  acknowledgements, sanction records, audit logs — kept for the legal retention period
+  (VUK / TTK; exact periods confirmed by the accountant, section 26), then destroyed.
+- identity fields in kept records are minimized to what the legal record requires.
+
+SANCTIONS (members and creators)
+------------------------------------------------------------
+Types:
+- warning
+- temporary suspension: 1 to 90 days (chosen per case)
+- permanent ban
+
+Reasons (examples): harassment, hate speech, sexual content, fraud / payment abuse, taking
+payment off-platform, fake reviews / engagement, sharing paid content, ban evasion, unsafe
+advice, any conduct against the terms of service.
+
+Who can apply:
+- MODERATOR: warning, suspension up to 7 days
+- ADMIN: suspension up to 90 days, permanent ban
+- SUPER_ADMIN: everything, and lifting any sanction
+
+Rules:
+- Every sanction stores reason, evidence, issuer, start / end, and writes an audit log.
+- The user is notified with the reason and end date; one appeal via support, reviewed by
+  someone other than the issuer.
+- SUSPENDED MEMBER: cannot log in during the suspension; subscriptions keep running, no refund
+  (terms of service).
+- BANNED MEMBER: entitlements revoked, no refund (terms of service); hashed e-mail / phone /
+  device identifiers kept in banned_identifiers to block re-registration.
+- SUSPENDED CREATOR: profile hidden, no new sales, lives and bookings cancelled with credits
+  returned; subscribers' billing is PAUSED for the suspension period so members are not charged
+  for time without service.
+- Creator suspended longer than 30 days, or permanently banned: creator exit rules apply
+  (section 59), including indemnity and the subscriber gift.
+
+TABLES: account_sanctions, account_deletion_requests, banned_identifiers
+
+
+============================================================
+58. AGE LIMIT & GUARDIAN (PARENT) ACCOUNTS
+============================================================
+
+- Mettlo is for users 18 and older. Birth date is required at signup.
+- Users under 18 CANNOT register themselves. They can join ONLY when a parent / legal
+  guardian registers them: the guardian creates (or uses) their own adult account and adds a
+  minor profile linked to it (guardian_links).
+- The guardian gives all consents for the minor (KVKK, health sharing with coaches, terms) and
+  makes all purchases (guardian_consents).
+- Proposed minimum age even with a guardian: 13 (confirm with lawyer).
+- Safeguards for minor profiles (proposed):
+  - coach <-> minor direct messages are visible to the guardian
+  - 1:1 live sessions with a minor only after guardian approval per booking
+  - progress photos disabled for minors
+  - shown with a nickname only on public leaderboards / community
+- Signup screens and terms state clearly: "18 yasindan kucukler yalnizca ebeveyn / yasal
+  vasi kaydi ile uye olabilir."
+
+TABLES: guardian_links, guardian_consents
+
+
+============================================================
+59. CREATOR EXIT
+============================================================
+
+Applies when a creator leaves voluntarily, requests account deletion, is suspended longer
+than 30 days, or is permanently banned.
+
+CREATOR OBLIGATIONS (creator agreement)
+------------------------------------------------------------
+- Voluntary exit requires 30 days' written notice from the creator dashboard (proposed).
+- A leaving creator is obliged to indemnify (tazmin) Mettlo IN FULL for the payments they
+  received, as defined in the creator agreement.
+- If the indemnity is not paid, Mettlo will take legal action (dava) against the creator.
+- [OPEN - lawyer] exact wording, scope and enforceability of the clause; the signed creator
+  agreement must hold the creator's legal identity so legal action is possible.
+
+SUBSCRIBER PROTECTION
+------------------------------------------------------------
+- Every member with an ACTIVE subscription to the leaving creator receives ONE free
+  subscription (one month) to ANY creator of their choice (entitlement source
+  creator_exit_gift, section 23).
+- The member has 60 days to choose the creator; after that the gift expires (proposed).
+- Annual subscribers: the remaining full months are also converted into free months with the
+  chosen creator (proposed).
+- The chosen creator earns their normal share of their web list price for gifted months in
+  the earnings ledger; the cost is funded by Mettlo and claimed from the leaving creator's
+  indemnity (proposed).
+- Programs already purchased stay accessible to buyers; the creator agreement grants Mettlo a
+  licence to keep serving already-sold content (proposed).
+- Future bookings are cancelled; unused live credits of that creator are refunded (web) or
+  replaced with the same number of credits for the chosen creator (proposed).
+- Members are notified by push, e-mail and in-app.
+
+TABLES: creator_exits, creator_exit_gifts
+
+
+============================================================
+60. CHECKOUT & RIGHT OF WITHDRAWAL (CAYMA)
+============================================================
+
+- Digital purchases (memberships, programs, paid content, live credits, Premium Live tier):
+  access opens at the moment of payment, so the service is considered performed immediately
+  and there is NO right of withdrawal (Mesafeli Sozlesmeler Yonetmeligi exception for
+  services performed instantly in electronic form).
+- Web checkout, before the pay button: the pre-information form (on bilgilendirme formu) and
+  the distance sales contract (mesafeli satis sozlesmesi) are shown, plus a mandatory
+  checkbox:
+  "Satin aldigim dijital icerik / hizmete erisimin odeme ile aninda baslayacagini ve bu
+  nedenle cayma hakkimin bulunmadigini biliyor ve kabul ediyorum."
+- The acknowledgement is stored with timestamp, user, product, contract version
+  (checkout_acknowledgements).
+- Physical products from the Mettlo Store: the normal 14-day right of withdrawal and return
+  flow applies.
+- Booked future classes / 1:1 sessions: follow the cancellation policy of section 24.
+- App Store / Google Play purchases: refunds are handled by Apple / Google under their rules.
+  [DISCUSS LATER - see section 41: whether this approach causes any problem for the stores.]
+
+TABLES: checkout_acknowledgements
+
+
+============================================================
+61. HOSTING, PROVIDERS & IYS
+============================================================
+
+HOSTING (DECIDED)
+------------------------------------------------------------
+- Turhost servers in Turkiye for API, workers, PostgreSQL, Redis and private file storage.
+- Development server (where Claude Code runs) is separate from production. Production
+  secrets are never placed on the development server.
+- Personal and sensitive data (database, health data, progress photos, invoices, private
+  uploads) stays in Turkiye.
+
+PROVIDERS (DECIDED: lowest cost per category; VERIFY current prices at build time)
+------------------------------------------------------------
+- Language / stack: TypeScript everywhere (NestJS API + workers, Next.js web apps, React
+  Native + Expo mobile, Prisma ORM), same as the founder's existing ORCA stack.
+- Private file storage: self-hosted S3-compatible storage on the Turhost server (no extra
+  licence cost).
+- On-demand video (creator content, replays) + CDN: Bunny Stream / Bunny CDN (transcoding
+  included, pay per storage and delivery). Creator videos are the creator's own content;
+  the creator agreement covers processing of the creator's image abroad.
+- Video transcoding: done by Bunny Stream (no own FFmpeg farm needed).
+- E-mail: Amazon SES.
+- SMS: Turkish SMS provider with built-in IYS integration, chosen by lowest quote.
+- Push: FCM + APNs through Expo push service (free).
+- Search: PostgreSQL full-text search with Turkish configuration (no extra service).
+- Queue: BullMQ on the existing Redis.
+- Error monitoring: Sentry free tier (or self-hosted alternative if the limit is exceeded).
+- e-Fatura / e-Arsiv integrator: lowest per-invoice quote.
+- Payment: iyzico standard merchant (section 22). Live: LiveKit Cloud + Zoom (section 39).
+
+IYS (DECIDED)
+------------------------------------------------------------
+- Mettlo registers with IYS (Ileti Yonetim Sistemi) before launch.
+- Commercial SMS / e-mail (campaigns, promotions) only to users with a recorded IYS consent;
+  consents collected at signup / settings and synced to IYS (iys_consents).
+- Transactional messages (payment, invoice, booking reminders, security) do not need
+  commercial consent.
+
+
+============================================================
+62. LEGAL DOCUMENTS (DEFERRED TO THE END OF THE BUILD)
+============================================================
+
+To be drafted at the end, before launch:
+- Kullanim sartlari (terms of service), incl. sanctions and no-refund-on-ban rules
+- KVKK aydinlatma metni
+- Acik riza metinleri (health sharing with coaches, live sessions, marketing / IYS)
+- Gizlilik ve cerez politikasi
+- On bilgilendirme formu + mesafeli satis sozlesmesi (section 60)
+- Creator agreement (service terms, confidentiality, content licence, exit indemnity,
+  section 59)
+- Guardian consent text for minor accounts (section 58)
+- VERBIS registration
+
+
+============================================================
+63. ADMIN ROLE & PERMISSION MATRIX
+============================================================
+
+SUPER_ADMIN (1-2 people, 2FA mandatory)
+- Everything, including: role management, system settings, ALL FINANCE (payments, refunds
+  approval, chargebacks, invoices, commissions, creator earnings ledger), KVKK requests, legal
+  retention records, lifting any sanction, raising creator invite quotas.
+
+ADMIN (2FA mandatory)
+- Users, creators, content, programs, challenges, branches, bookings, reviews, campaigns,
+  coupons, Mettlo Store products / orders (no payment details), creator success, analytics
+  (aggregate), sanctions up to 90 days and permanent ban, creator exits (operations part).
+- Can REQUEST refunds; approval is SUPER_ADMIN.
+- No finance data, no individual health data.
+
+MODERATOR (2FA mandatory)
+- Content, community, reviews, reports, creator verification documents, warnings and
+  suspensions up to 7 days.
+- No finance data, no health data, only minimal user info needed for the case.
+
+SUPPORT (2FA mandatory)
+- User lookup with masked e-mail / phone, subscription and entitlement status, order status,
+  tickets, account deletion requests (can see and help, cannot force-delete).
+- Can REQUEST refunds (approval SUPER_ADMIN).
+- No finance data, no health data, no messages content.
+
+ALL ROLES
+- No admin role sees individual health data (aggregate only).
+- Every access to sensitive data and every admin action is written to audit logs.
+- No "log in as user" feature (proposed); if ever added, read-only and fully logged.
+
+
+============================================================
+END OF METTLO FULL ARCHITECTURE (REVISION 6 — SINGLE UNIFIED SPEC, DECISIONS LOCKED)
+============================================================

@@ -1,0 +1,17 @@
+packages:
+  - "apps/*"
+  - "services/*"
+  - "packages/*"
+  # Mobil uygulama Flutter/Dart'tir (pnpm paketi degil, pubspec.yaml ile yonetilir); workspace disinda tutulur.
+  - "!apps/member-mobile"
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  prisma: true
+  esbuild: true
+  sharp: true
+  argon2: true
+  "@nestjs/core": true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - lucide-react@1.48.0

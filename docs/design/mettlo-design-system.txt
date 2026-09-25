@@ -1,0 +1,2464 @@
+METTLO — SUNRISE VITALITY
+PREMIUM UI / UX DESIGN SYSTEM + CLAUDE CODE IMPLEMENTATION SPEC
+===============================================================
+
+DOCUMENT PURPOSE
+----------------
+Bu doküman, METTLO'nun "SUNRISE VITALITY" renk paletine göre web + tablet +
+mobil arayüzünün Claude Code tarafından eksiksiz uygulanması için hazırlanmıştır.
+
+AMAÇ:
+- Premium
+- Dinamik
+- Enerjik
+- Modern
+- Fitness + Wellness odaklı
+- Kullanıcıyı yormayan
+- Uzun süre kullanımda göz konforunu koruyan
+- Güçlü fakat agresif olmayan
+- Görsel olarak ayırt edilebilir
+- Apple/Google seviyesinde temiz ürün hissi
+- Mettlo'nun fitness, wellness, coaching, community ve commerce ekosistemini
+  tek bir tasarım dili altında birleştirmek
+
+ÖNEMLİ:
+Bu sistem yalnızca mobil uygulama için değildir.
+
+METTLO aynı ürün deneyimini:
+1. Desktop Web / PC / Mac
+2. Tablet
+3. Mobile Web
+4. iOS
+5. Android
+
+üzerinde sunmalıdır.
+
+Aynı kullanıcı hesabı, veri, abonelik, içerik, workout, progress,
+community, commerce ve coaching verileri bütün cihazlarda senkronize
+çalışmalıdır.
+
+
+====================================================================
+1. MARKA TASARIM FELSEFESİ
+====================================================================
+
+METTLO'nun görsel karakteri:
+
+PREMIUM + WARM + ENERGETIC + HUMAN + DIGITAL + WELLNESS
+
+Tasarım:
+- Soğuk kurumsal SaaS gibi görünmemeli.
+- Ucuz fitness uygulaması gibi görünmemeli.
+- Aşırı neon kullanılmamalı.
+- Her bölümde gradient kullanılmamalı.
+- Turuncu/pembe renkler dikkat çekmek için kullanılmalı.
+- Ana yüzeyler koyu ve sakin olmalı.
+- İçerik alanları rahat okunmalı.
+- Kullanıcı gözünü yoran yüksek doygunluklu renk bloklarından kaçınılmalı.
+- Renkler hiyerarşi yaratmalı.
+- Primary renk bütün ekranı kaplamamalı.
+- CTA, progress, selected state, achievement ve commerce vurgularında
+  canlı renkler kullanılmalı.
+
+Ana his:
+
+"Sabah güneşi + hareket + enerji + gelişim + iyi yaşam."
+
+
+====================================================================
+2. ANA RENK PALETİ — SUNRISE VITALITY
+====================================================================
+
+PRIMARY
+-------
+#F97316
+RGB: 249, 115, 22
+HSL yaklaşık: 24°, 94%, 53%
+
+Kullanım:
+- Ana CTA
+- Primary button
+- Active state
+- Important action
+- Progress highlight
+- Workout başlat
+- Satın al
+- Abone ol
+- Ana marka vurguları
+
+PRIMARY HOVER
+-------------
+#EA580C
+
+PRIMARY PRESSED
+--------------
+#C2410C
+
+
+SECONDARY
+---------
+#FB7185
+RGB: 251, 113, 133
+HSL yaklaşık: 351°, 95%, 71%
+
+Kullanım:
+- Secondary CTA
+- Sosyal etkileşim
+- Community
+- Wellness
+- Heart / favorite
+- Soft emphasis
+- Secondary gradient
+
+
+ACCENT
+------
+#EC4899
+RGB: 236, 72, 153
+HSL yaklaşık: 330°, 81%, 60%
+
+Kullanım:
+- Premium vurgu
+- Active tabs
+- Achievement
+- Challenge
+- Creator highlight
+- Special offer
+- Selected state
+
+
+HIGHLIGHT
+---------
+#FDE047
+RGB: 253, 224, 71
+HSL yaklaşık: 53°, 98%, 64%
+
+Kullanım:
+- XP
+- Badge
+- Streak
+- Achievement
+- Success highlight
+- Gamification
+- Small attention marker
+
+UYARI:
+Highlight sarı büyük yüzeylerde kullanılmamalı.
+Özellikle body background yapılmamalı.
+
+
+====================================================================
+3. NEUTRAL SYSTEM
+====================================================================
+
+BACKGROUND / 01
+----------------
+#0B1220
+Kullanım:
+- Ana uygulama arka planı
+- Desktop background
+- Navigation background
+
+
+BACKGROUND / 02
+----------------
+#111827
+
+Kullanım:
+- Main cards
+- Header
+- Dashboard panels
+- Secondary background
+
+
+SURFACE / 01
+------------
+#1F2937
+
+Kullanım:
+- Elevated cards
+- Input
+- Modal
+- Dropdown
+- Secondary panel
+
+
+SURFACE / 02
+------------
+#374151
+
+Kullanım:
+- Disabled/secondary surfaces
+- Dividers
+- Secondary elements
+
+
+MUTED
+-----
+#6B7280
+
+Kullanım:
+- Secondary text
+- Placeholder
+- Metadata
+- Caption
+
+
+LIGHT TEXT
+----------
+#F9FAFB
+
+Kullanım:
+- Main heading
+- Main body
+- Important text
+- Navigation
+
+
+PURE WHITE
+----------
+#FFFFFF
+
+Kullanım:
+- Çok yüksek kontrast gereken kısa metinler
+- Modal heading
+- Button text gerektiğinde
+
+
+BORDER
+------
+rgba(255,255,255,0.08)
+
+HOVER BORDER
+------------
+rgba(249,115,22,0.35)
+
+
+====================================================================
+4. RENK KULLANIM ORANI
+====================================================================
+
+Önerilen görsel dağılım:
+
+60%  Dark neutral surfaces
+20%  Secondary neutral surfaces
+10%  White/light typography
+5%   Orange / coral / pink accents
+5%   Yellow / special highlights
+
+Renkler ekranı doldurmak için değil, yönlendirmek için kullanılmalıdır.
+
+
+====================================================================
+5. PREMIUM GRADIENT SYSTEM
+====================================================================
+
+SUNRISE PRIMARY GRADIENT
+------------------------
+linear-gradient(135deg, #F97316 0%, #FB7185 55%, #EC4899 100%)
+
+Kullanım:
+- Hero CTA
+- Featured card
+- Premium membership
+- Main promotional banners
+
+
+SUNRISE SOFT
+------------
+linear-gradient(135deg, rgba(249,115,22,.18) 0%,
+rgba(251,113,133,.12) 50%,
+rgba(236,72,153,.18) 100%)
+
+Kullanım:
+- Glass cards
+- Background glow
+- Hero overlay
+
+
+SUNRISE HORIZONTAL
+------------------
+linear-gradient(90deg, #F97316 0%, #FB7185 50%, #EC4899 100%)
+
+Kullanım:
+- Progress
+- Selected navigation
+- Small visual strips
+
+
+SUNRISE DARK
+------------
+linear-gradient(135deg, #111827 0%, #251A22 45%, #3A1828 100%)
+
+Kullanım:
+- Premium dark cards
+- Coaching feature
+- Commerce featured product
+
+
+GOLDEN MORNING
+--------------
+linear-gradient(135deg, #F97316 0%, #FDE047 100%)
+
+Kullanım:
+- Gamification only
+- Achievement
+- Streak
+- XP
+
+Bu gradient ana CTA olarak sürekli kullanılmamalıdır.
+
+
+====================================================================
+6. GLOW SYSTEM
+====================================================================
+
+Turuncu glow:
+0 0 40px rgba(249,115,22,0.18)
+
+Pink glow:
+0 0 40px rgba(236,72,153,0.16)
+
+Coral glow:
+0 0 35px rgba(251,113,133,0.14)
+
+Yellow glow:
+0 0 30px rgba(253,224,71,0.14)
+
+Glow:
+- subtle
+- soft
+- blurred
+- never overwhelming
+
+Kartların tamamında glow kullanma.
+
+Sadece:
+- featured
+- active
+- premium
+- achievement
+- CTA
+gibi özel durumlarda kullan.
+
+
+====================================================================
+7. TYPOGRAPHY
+====================================================================
+
+PRIMARY FONT:
+Inter
+
+Fallback:
+system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+
+Alternatif marka başlık fontu:
+Manrope
+
+Ancak ürün UI'sında Inter ana font olarak kullanılmalıdır.
+
+FONT WEIGHT
+-----------
+
+Regular:
+400
+
+Medium:
+500
+
+Semibold:
+600
+
+Bold:
+700
+
+Extra Bold:
+800
+
+BLACK:
+900 yalnızca çok büyük hero heading için gerektiğinde.
+
+
+====================================================================
+8. TYPOGRAPHY SCALE
+====================================================================
+
+Desktop:
+
+Display XL:
+64px / 72px / 800
+
+Display:
+56px / 64px / 800
+
+H1:
+48px / 56px / 700
+
+H2:
+36px / 44px / 700
+
+H3:
+28px / 36px / 700
+
+H4:
+22px / 30px / 600
+
+H5:
+18px / 26px / 600
+
+Body Large:
+18px / 28px / 400
+
+Body:
+16px / 24px / 400
+
+Body Small:
+14px / 20px / 400
+
+Caption:
+12px / 18px / 500
+
+Overline:
+11px / 16px / 700
+letter-spacing: 0.14em
+
+
+TABLET:
+
+Display:
+48px / 56px
+
+H1:
+40px / 48px
+
+H2:
+32px / 40px
+
+H3:
+24px / 32px
+
+Body:
+16px / 24px
+
+
+MOBILE:
+
+Display:
+38px / 44px
+
+H1:
+32px / 40px
+
+H2:
+26px / 34px
+
+H3:
+22px / 30px
+
+H4:
+18px / 26px
+
+Body:
+15px / 23px
+
+Caption:
+12px / 18px
+
+
+====================================================================
+9. TEXT COLOR HIERARCHY
+====================================================================
+
+Primary:
+#F9FAFB
+
+Secondary:
+rgba(249,250,251,0.72)
+
+Tertiary:
+rgba(249,250,251,0.50)
+
+Disabled:
+rgba(249,250,251,0.30)
+
+Accent text:
+#FB7185 veya #F97316
+
+Premium:
+#EC4899
+
+Success:
+#34D399
+
+Warning:
+#FDE047
+
+Error:
+#F87171
+
+
+====================================================================
+10. SPACING SYSTEM
+====================================================================
+
+4px base grid.
+
+4
+8
+12
+16
+20
+24
+32
+40
+48
+56
+64
+80
+96
+120
+
+Desktop section spacing:
+96–120px
+
+Tablet:
+72–96px
+
+Mobile:
+56–72px
+
+Card internal padding:
+16 / 20 / 24 / 32px
+
+Mobile card padding:
+16–20px
+
+
+====================================================================
+11. CONTAINER SYSTEM
+====================================================================
+
+Desktop max-width:
+1440px
+
+Wide:
+1600px gerektiğinde
+
+Standard content:
+1280px
+
+Tablet:
+100% - 48px
+
+Mobile:
+100% - 32px
+
+Desktop horizontal padding:
+40px
+
+Tablet:
+24px
+
+Mobile:
+16px
+
+
+====================================================================
+12. BORDER RADIUS
+====================================================================
+
+XS:
+6px
+
+SM:
+8px
+
+MD:
+12px
+
+LG:
+16px
+
+XL:
+20px
+
+2XL:
+24px
+
+Card:
+20px
+
+Hero card:
+28px
+
+Modal:
+24px
+
+Pill:
+9999px
+
+
+Ana METTLO hissi:
+Keskin köşeler kullanılmamalı.
+Ancak her şey aşırı yuvarlak da yapılmamalı.
+
+
+====================================================================
+13. SHADOW SYSTEM
+====================================================================
+
+SM:
+0 4px 12px rgba(0,0,0,.18)
+
+MD:
+0 8px 24px rgba(0,0,0,.24)
+
+LG:
+0 16px 48px rgba(0,0,0,.30)
+
+XL:
+0 24px 80px rgba(0,0,0,.36)
+
+Premium:
+0 20px 60px rgba(0,0,0,.30),
+0 0 40px rgba(249,115,22,.08)
+
+
+====================================================================
+14. GLASSMORPHISM
+====================================================================
+
+Glass surface:
+
+background:
+rgba(17,24,39,0.68)
+
+backdrop-filter:
+blur(20px)
+
+border:
+1px solid rgba(255,255,255,0.08)
+
+Shadow:
+0 12px 40px rgba(0,0,0,.18)
+
+Glass kullanılabilecek alanlar:
+- Hero floating cards
+- Header
+- Live cards
+- Progress widgets
+- Creator mini cards
+- Health widgets
+
+Her kart glass yapılmamalıdır.
+
+
+====================================================================
+15. HEADER / NAVBAR
+====================================================================
+
+Desktop:
+
+Logo:
+METTLO
+
+Menu:
+
+Keşfet
+Programlar
+Koçlar
+Topluluk
+Mağaza
+Fiyatlar
+
+Sağ:
+
+Search
+Giriş Yap
+Hemen Başla
+
+Header:
+Height 72px
+
+Background:
+rgba(11,18,32,.78)
+
+Backdrop:
+blur(18px)
+
+Border bottom:
+rgba(255,255,255,.06)
+
+Sticky:
+true
+
+Scroll sonrası:
+background daha opak hale gelsin.
+
+Active menu:
+#F97316 veya #FB7185
+
+
+====================================================================
+16. DESKTOP HERO
+====================================================================
+
+Hero height:
+620–700px
+
+Background:
+Sunrise mountain photography / cinematic wellness scene.
+
+Overlay:
+Dark navy → transparent → warm sunrise.
+
+Başlık:
+
+"Sağlıklı Alışkanlıklar
+Daha Güzel Bir Yaşam"
+
+Gradient text:
+
+#F97316 → #FB7185 → #EC4899
+
+Başlık:
+56–64px
+800 weight
+
+Subtitle:
+18px
+max-width 620px
+
+Örnek:
+
+"Mettlo, fitness, wellness ve koçluk deneyimini tek bir platformda
+bir araya getirir. Hedeflerine ulaşman için ihtiyacın olan araçlar
+tek bir yerde."
+
+CTA:
+
+Primary:
+"Hemen Başla →"
+
+Secondary:
+"Mettlo'yu Keşfet"
+
+Primary button:
+gradient #F97316 → #EC4899
+
+Secondary:
+transparent / glass
+
+
+====================================================================
+17. HERO FEATURE QUICK ACCESS
+====================================================================
+
+Hero altında veya overlay içinde:
+
+Programlar
+1:1 Koçluk
+Canlı Dersler
+Topluluk
+Mağaza
+Sağlık Takibi
+
+Her icon:
+20–24px
+
+Icon background:
+rgba(255,255,255,.06)
+
+Hover:
+orange/pink gradient border.
+
+
+====================================================================
+18. CATEGORY SYSTEM
+====================================================================
+
+Ana kategoriler:
+
+Ağırlık / Fitness
+Yoga & Mobility
+Pilates
+Fonksiyonel
+Sağlıklı Beslenme
+Zihin & Wellness
+Outdoor
+
+Her category card:
+- image
+- category name
+- short descriptor
+- arrow
+
+Card:
+height 170–190px
+
+Border radius:
+18–20px
+
+Image:
+cover
+
+Overlay:
+linear-gradient(transparent, rgba(0,0,0,.72))
+
+Hover:
+scale(1.02)
+image scale(1.05)
+orange accent line
+
+
+====================================================================
+19. HOME FEATURE SECTION
+====================================================================
+
+Başlık:
+
+"Hedefine Giden Tüm Araçlar Mettlo'da"
+
+Feature cards:
+
+1. Membership
+"En sevdiğin creator'larla düzenli ilerle."
+
+2. 1:1 Koçluk
+"Sana özel plan ve destek al."
+
+3. Dijital Programlar
+"Hedefine uygun hazır programlar."
+
+4. Canlı Dersler
+"Gerçek zamanlı derslere katıl."
+
+5. Challenge
+"Toplulukla birlikte kendini zorla."
+
+6. Topluluk
+"Aynı hedefteki insanlarla buluş."
+
+7. Mettlo Mağaza
+"Spor giyim, takviye, ekipman ve daha fazlası."
+
+7. kart commerce için sıcak gradient ile öne çıkarılabilir.
+
+
+====================================================================
+20. BUTTON SYSTEM
+====================================================================
+
+PRIMARY BUTTON
+--------------
+Background:
+linear-gradient(135deg,#F97316,#EC4899)
+
+Text:
+#FFFFFF
+
+Height:
+48px desktop
+44px mobile
+
+Radius:
+12px
+
+Font:
+14px / 600
+
+Hover:
+brightness(1.05)
+transform translateY(-1px)
+
+Active:
+translateY(0)
+
+Shadow:
+0 8px 24px rgba(249,115,22,.18)
+
+
+SECONDARY BUTTON
+----------------
+Background:
+rgba(255,255,255,.06)
+
+Border:
+rgba(255,255,255,.10)
+
+Hover:
+rgba(255,255,255,.10)
+
+
+GHOST BUTTON
+------------
+transparent
+
+Hover:
+rgba(249,115,22,.08)
+
+Text:
+#FB7185
+
+
+DANGER:
+#F87171
+
+
+====================================================================
+21. INPUT SYSTEM
+====================================================================
+
+Height:
+48px
+
+Background:
+#111827
+
+Border:
+1px solid rgba(255,255,255,.08)
+
+Radius:
+12px
+
+Focus:
+border #F97316
+
+Focus ring:
+0 0 0 3px rgba(249,115,22,.14)
+
+Placeholder:
+#6B7280
+
+Text:
+#F9FAFB
+
+
+====================================================================
+22. CARD SYSTEM
+====================================================================
+
+Default card:
+
+background:
+#111827
+
+border:
+1px solid rgba(255,255,255,.06)
+
+radius:
+20px
+
+padding:
+24px
+
+hover:
+translateY(-2px)
+
+transition:
+180ms ease
+
+Featured:
+warm gradient border + subtle glow.
+
+Never make all cards animated.
+
+
+====================================================================
+23. MEMBERSHIP CARD
+====================================================================
+
+Creator avatar
+Creator name
+Verified badge
+Specialty
+Rating
+Subscriber count
+
+Plan:
+"Premium"
+
+Price:
+"199 TL / ay"
+
+Features:
+✓ Premium videolar
+✓ Programlar
+✓ Challenge
+✓ Community
+✓ Live
+
+CTA:
+"Üyeliği İncele"
+
+Premium accent:
+orange → pink
+
+
+====================================================================
+24. COACH PROFILE CARD
+====================================================================
+
+Avatar
+Cover image
+Name
+@username
+Verification
+Specialty
+Rating
+
+Stats:
+Üye
+Program
+Live
+
+Buttons:
+"Profili Gör"
+"Koçluk Al"
+
+Creator-specific primary color allowed ONLY as a secondary accent;
+Mettlo base remains Sunrise Vitality.
+
+
+====================================================================
+25. WORKOUT CARD
+====================================================================
+
+Thumbnail
+Workout name
+Duration
+Level
+Equipment
+Calories (estimated where applicable)
+
+CTA:
+"Antrenmana Başla"
+
+Progress:
+gradient orange → pink
+
+
+====================================================================
+26. PROGRAM CARD
+====================================================================
+
+Image
+Program title
+Creator
+Duration
+Level
+Goal
+
+Examples:
+"8 Haftalık Güç Programı"
+"30 Günlük Yağ Yakım Challenge"
+"Başlangıç Pilates"
+
+CTA:
+"Programı İncele"
+
+
+====================================================================
+27. CHALLENGE CARD
+====================================================================
+
+Challenge image
+
+30 GÜN
+"Sunrise Body Challenge"
+
+Progress:
+72%
+
+Stats:
+• 18 gün tamamlandı
+• 4.2K katılımcı
+
+Badge:
+"AKTİF"
+
+CTA:
+"Challenge'a Katıl"
+
+Progress gradient:
+orange → pink
+
+Achievement highlight:
+#FDE047
+
+
+====================================================================
+28. COMMUNITY CARD
+====================================================================
+
+Avatar
+Username
+Post
+Reaction
+Comments
+Challenge progress
+
+Like:
+#FB7185
+
+Active:
+#EC4899
+
+
+====================================================================
+29. LIVE CARD
+====================================================================
+
+LIVE badge:
+#F97316
+
+Creator
+Class title
+Date
+Time
+Participant count
+
+CTA:
+"Canlıya Katıl"
+
+Live indicator:
+subtle pulse
+
+Do NOT use excessive blinking.
+
+
+====================================================================
+30. HEALTH DASHBOARD
+====================================================================
+
+Widgets:
+
+Adım
+Aktif Kalori
+Workout
+Mesafe
+Uyku
+Recovery
+Heart Rate where available
+
+Widget layout:
+2-column desktop
+2-column tablet
+2-column mobile when readable
+
+Primary metric:
+#F9FAFB
+
+Progress:
+#F97316 → #EC4899
+
+Small secondary:
+#6B7280
+
+
+====================================================================
+31. USER DASHBOARD
+====================================================================
+
+Desktop sidebar:
+
+Ana Sayfa
+Keşfet
+Programlarım
+Antrenmanlarım
+Challenge
+Topluluk
+Mesajlar
+Live
+Sağlık
+İlerleme
+Mağaza
+Abonelikler
+Satın Aldıklarım
+Profil
+Ayarlar
+
+Main dashboard:
+
+Greeting:
+"Merhaba 👋"
+
+Hero:
+"Bugün kendin için harika bir gün."
+
+Widgets:
+
+Bugünkü Antrenman
+Günlük Aktivite
+Haftalık Hedef
+Streak
+Challenge
+İlerleme
+Creator Updates
+Upcoming Live
+
+
+====================================================================
+32. CREATOR DASHBOARD
+====================================================================
+
+Sidebar:
+
+Dashboard
+Profil
+Üyeler
+İçerikler
+Videolar
+Egzersizler
+Workout
+Programlar
+Challenge
+Live
+Community
+Mesajlar
+Coaching
+Mağaza
+Kampanyalar
+Referral
+Analitik
+Finans
+Payout
+Ayarlar
+
+Top widgets:
+
+Aktif Üye
+Yeni Üye
+Aylık Gelir
+Churn
+Program Satışı
+Coaching Müşterisi
+
+Charts:
+- Revenue
+- Subscribers
+- Retention
+- Content views
+- Program completion
+
+
+====================================================================
+33. CREATOR COACHING WORKSPACE
+====================================================================
+
+Desktop-first.
+
+3 column:
+
+LEFT:
+Client list
+
+CENTER:
+Client program / workout / progress
+
+RIGHT:
+Check-in / messages / notes
+
+Client header:
+Avatar
+Name
+Goal
+Membership
+Coaching status
+
+Tabs:
+Overview
+Program
+Workout
+Progress
+Check-ins
+Messages
+
+Action:
+"Programı Güncelle"
+
+
+====================================================================
+34. COMMERCE / MAĞAZA TASARIMI
+====================================================================
+
+Mağaza kategori:
+
+Supplement
+Protein
+Creatine
+BCAA / EAA
+Protein Bar
+Vitamin / Mineral
+Sportswear
+Accessories
+Equipment
+
+Ürün kartı:
+
+Image
+Brand
+Product
+Rating
+Price
+Discount
+Creator recommendation badge
+
+CTA:
+"Sepete Ekle"
+
+Secondary:
+"İncele"
+
+Creator affiliate:
+"@AhmetFitness öneriyor"
+
+Affiliate code:
+AHMET10
+
+Commission information should be visible ONLY where appropriate.
+
+
+====================================================================
+35. PRODUCT DETAIL
+====================================================================
+
+Product image gallery
+
+Brand
+Product title
+Rating
+Price
+Discount
+Variant
+Quantity
+
+Creator recommendation:
+
+"Bu ürünü @AhmetFitness öneriyor."
+
+CTA:
+"Sepete Ekle"
+
+Secondary:
+"Hemen Al"
+
+Related:
+- Similar products
+- Creator picks
+- Frequently bought together
+
+
+====================================================================
+36. CART
+====================================================================
+
+Product list
+Quantity
+Price
+Discount
+Creator code
+Shipping info
+Total
+
+CTA:
+"Ödemeye Geç"
+
+
+====================================================================
+37. CHECKOUT
+====================================================================
+
+Steps:
+
+1. Sepet
+2. Teslimat
+3. Ödeme
+4. Onay
+
+Dark surface.
+
+Primary CTA:
+gradient orange → pink.
+
+Security information subtle.
+
+
+====================================================================
+38. MOBILE NAVIGATION
+====================================================================
+
+Bottom navigation:
+
+Ana Sayfa
+Keşfet
+Programlar
+Topluluk
+Profil
+
+Mağaza gerektiğinde Home/Keşfet içine veya ayrı commerce shortcut olarak
+erişilebilir.
+
+Height:
+72–80px
+
+Background:
+rgba(11,18,32,.92)
+
+Active icon:
+#F97316
+
+Active label:
+#FB7185 veya #F97316
+
+Inactive:
+#6B7280
+
+
+====================================================================
+39. MOBILE HOME
+====================================================================
+
+Top:
+
+Avatar
+"Merhaba 👋"
+
+Notification
+
+Hero:
+"Bugün kendin için harika bir gün."
+
+Quick cards:
+Workout
+Steps
+Calories
+Streak
+
+Then:
+
+Creator updates
+Today's workout
+Challenge
+Community
+Store
+
+
+====================================================================
+40. RESPONSIVE BREAKPOINTS
+====================================================================
+
+xs:
+< 480px
+
+sm:
+480–639px
+
+md:
+640–767px
+
+lg:
+768–1023px
+
+xl:
+1024–1279px
+
+2xl:
+1280–1535px
+
+3xl:
+1536+
+
+Desktop primary:
+1280+
+
+Tablet:
+768–1279
+
+Mobile:
+<768
+
+
+====================================================================
+41. RESPONSIVE DAVRANIŞ
+====================================================================
+
+Desktop:
+- Sidebar visible
+- Multi-column dashboards
+- Wide hero
+- 4–7 card grids
+- Large creator workspace
+
+Tablet:
+- Collapsible sidebar
+- 2–3 columns
+- Hero simplified
+- Cards remain spacious
+
+Mobile:
+- Bottom nav
+- 1-column main content
+- 2-column small metrics
+- Sticky CTA where useful
+- Full-width buttons when appropriate
+- Hero height reduced
+
+
+====================================================================
+42. ANIMATIONS
+====================================================================
+
+GLOBAL:
+150–220ms
+
+Hover:
+180ms
+
+Modal:
+220ms
+
+Page:
+250–350ms
+
+Easing:
+cubic-bezier(0.22,1,0.36,1)
+
+Hover:
+translateY(-2px)
+
+Card image:
+scale(1.03)
+
+CTA:
+translateY(-1px)
+
+Progress:
+animated on load
+
+Achievement:
+small scale + glow
+
+Avoid:
+- excessive parallax
+- constant movement
+- bouncing cards
+- aggressive transitions
+- blinking elements
+
+
+====================================================================
+43. HERO VISUAL MOTION
+====================================================================
+
+Desktop hero:
+
+Background:
+very slow 20–30 second horizontal/vertical cinematic movement.
+
+Sun glow:
+very subtle pulse.
+
+Floating dashboard cards:
+6–10 second slow movement.
+
+User must not feel motion sickness.
+
+prefers-reduced-motion:
+ALL decorative motion disabled.
+
+
+====================================================================
+44. ICON SYSTEM
+====================================================================
+
+Use:
+Lucide React
+
+Stroke:
+1.8–2px
+
+Default:
+20px
+
+Small:
+16px
+
+Large:
+24px
+
+Hero:
+28–32px
+
+Icon color:
+inherit
+
+Active:
+#F97316
+
+Achievement:
+#FDE047
+
+Community:
+#FB7185
+
+Premium:
+#EC4899
+
+
+====================================================================
+45. IMAGE STYLE
+====================================================================
+
+Photography:
+
+- cinematic
+- natural light
+- sunrise / golden hour
+- authentic athletes
+- realistic skin
+- premium editorial
+- modern wellness
+- diverse people
+- no fake stock-photo look
+
+Color grading:
+warm sunrise
+subtle orange
+subtle coral
+deep navy shadows
+
+Avoid:
+over-saturated orange
+artificial plastic skin
+generic gym stock images
+
+
+====================================================================
+46. IMAGE OVERLAY
+====================================================================
+
+Hero overlay:
+
+linear-gradient(
+90deg,
+rgba(11,18,32,.94) 0%,
+rgba(11,18,32,.68) 42%,
+rgba(11,18,32,.18) 75%,
+rgba(11,18,32,.45) 100%
+)
+
+Bottom:
+
+linear-gradient(
+0deg,
+#0B1220 0%,
+transparent 45%
+)
+
+
+====================================================================
+47. PAGE STRUCTURE
+====================================================================
+
+PUBLIC WEB:
+
+/
+Landing
+
+/explore
+Keşfet
+
+/coaches
+Koçlar
+
+/coaches/[username]
+Creator profile
+
+/programs
+Programlar
+
+/programs/[slug]
+Program detail
+
+/challenges
+Challenges
+
+/live
+Live
+
+/community
+Community discovery
+
+/store
+Mettlo Mağaza
+
+/store/[slug]
+Product detail
+
+/pricing
+Fiyatlar
+
+/login
+Giriş
+
+/register
+Kayıt
+
+
+MEMBER:
+
+/app
+Dashboard
+
+/app/discover
+Discover
+
+/app/programs
+My Programs
+
+/app/workouts
+Workouts
+
+/app/challenges
+Challenges
+
+/app/community
+Community
+
+/app/messages
+Messages
+
+/app/live
+Live
+
+/app/health
+Health
+
+/app/progress
+Progress
+
+/app/store
+Store
+
+/app/subscriptions
+Subscriptions
+
+/app/purchases
+Purchases
+
+/app/profile
+Profile
+
+/app/settings
+Settings
+
+
+CREATOR:
+
+/creator
+Dashboard
+
+/creator/profile
+Profile
+
+/creator/members
+Members
+
+/creator/content
+Content
+
+/creator/workouts
+Workouts
+
+/creator/programs
+Programs
+
+/creator/challenges
+Challenges
+
+/creator/live
+Live
+
+/creator/community
+Community
+
+/creator/messages
+Messages
+
+/creator/coaching
+1:1 Coaching
+
+/creator/store
+Products
+
+/creator/campaigns
+Campaigns
+
+/creator/referrals
+Referral
+
+/creator/analytics
+Analytics
+
+/creator/finance
+Finance
+
+/creator/payouts
+Payouts
+
+
+====================================================================
+48. DESIGN TOKENS — CSS VARIABLES
+====================================================================
+
+:root {
+
+  --color-primary: #F97316;
+  --color-primary-hover: #EA580C;
+  --color-primary-pressed: #C2410C;
+
+  --color-secondary: #FB7185;
+  --color-accent: #EC4899;
+  --color-highlight: #FDE047;
+
+  --color-bg: #0B1220;
+  --color-surface-1: #111827;
+  --color-surface-2: #1F2937;
+  --color-surface-3: #374151;
+
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: rgba(249,250,251,.72);
+  --color-text-tertiary: rgba(249,250,251,.50);
+  --color-text-muted: #6B7280;
+
+  --color-success: #34D399;
+  --color-warning: #FDE047;
+  --color-error: #F87171;
+
+  --border-subtle: rgba(255,255,255,.08);
+  --border-hover: rgba(249,115,22,.35);
+
+  --gradient-sunrise:
+    linear-gradient(135deg,#F97316 0%,#FB7185 55%,#EC4899 100%);
+
+  --gradient-sunrise-horizontal:
+    linear-gradient(90deg,#F97316 0%,#FB7185 50%,#EC4899 100%);
+
+  --gradient-sunrise-soft:
+    linear-gradient(135deg,
+      rgba(249,115,22,.18) 0%,
+      rgba(251,113,133,.12) 50%,
+      rgba(236,72,153,.18) 100%);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+
+  --shadow-sm: 0 4px 12px rgba(0,0,0,.18);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.24);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.30);
+
+  --transition-fast: 150ms cubic-bezier(.22,1,.36,1);
+  --transition-normal: 180ms cubic-bezier(.22,1,.36,1);
+  --transition-slow: 300ms cubic-bezier(.22,1,.36,1);
+}
+
+
+====================================================================
+49. COMPONENT STATE RULES
+====================================================================
+
+DEFAULT:
+Neutral dark.
+
+HOVER:
+Small lift + border warming.
+
+FOCUS:
+Orange focus ring.
+
+ACTIVE:
+Orange/pink.
+
+SELECTED:
+Gradient border or subtle gradient surface.
+
+SUCCESS:
+Green.
+
+WARNING:
+Yellow.
+
+ERROR:
+Red.
+
+DISABLED:
+30–40% opacity.
+
+LOADING:
+Skeleton #1F2937 → #374151.
+
+
+====================================================================
+50. ACCESSIBILITY
+====================================================================
+
+WCAG AA hedeflenmeli.
+
+Text/background contrast kontrol edilmeli.
+
+Orange/pink yalnızca renk ile anlam ifade etmemeli.
+
+Örneğin:
+Success = icon + text + color
+
+Error = icon + text + color
+
+Focus state kesinlikle görünür olmalı.
+
+Touch target:
+minimum 44×44px
+
+Mobile button:
+minimum 44px height.
+
+Keyboard navigation:
+tam destek.
+
+Screen reader:
+semantic labels.
+
+Images:
+alt text.
+
+Reduced motion:
+support.
+
+
+====================================================================
+51. DARK MODE / LIGHT MODE
+====================================================================
+
+METTLO'NUN ANA MARKA MODU:
+DARK.
+
+İlk tasarım Sunrise Vitality dark theme üzerine kuruludur.
+
+Light mode ileride tasarlanabilir fakat ana marka deneyimi dark mode'dur.
+
+Light mode geliştirilirse:
+Sunrise renkleri korunmalı,
+ancak background ve surface tonları ayrı accessibility testinden
+geçirilmelidir.
+
+
+====================================================================
+52. COMMERCE RENK KURALI
+====================================================================
+
+Mağaza bölümü diğer alanlardan biraz daha sıcak olabilir.
+
+Product CTA:
+#F97316
+
+Discount:
+#FB7185
+
+Premium product:
+#EC4899
+
+Best seller:
+#FDE047 + dark text
+
+Stock warning:
+#FDE047
+
+Out of stock:
+#6B7280
+
+Success:
+#34D399
+
+
+====================================================================
+53. GAMIFICATION RENK KURALI
+====================================================================
+
+XP:
+#FDE047
+
+Streak:
+#F97316
+
+Badge:
+#FDE047
+
+Leaderboard:
+#FB7185 / #EC4899
+
+Level:
+gradient orange → pink
+
+Achievement card:
+dark surface + subtle yellow glow
+
+
+====================================================================
+54. WELLNESS RENK KURALI
+====================================================================
+
+Wellness alanlarında turuncu/pembe daha düşük opacity ile kullanılmalı.
+
+Örneğin:
+
+Background:
+#111827
+
+Icon:
+#FB7185
+
+Glow:
+rgba(251,113,133,.10)
+
+Böylece wellness tarafı fitness tarafına göre daha sakin görünür.
+
+
+====================================================================
+55. COACHING RENK KURALI
+====================================================================
+
+Coaching:
+
+Primary:
+#F97316
+
+Premium:
+#EC4899
+
+Progress:
+#FB7185
+
+Success:
+#34D399
+
+Coaching workspace aşırı renkli olmamalı.
+
+Amaç:
+odaklanma.
+
+
+====================================================================
+56. MOBILE UX RULES
+====================================================================
+
+Mobile:
+- Header minimal
+- Bottom nav fixed
+- CTA reachable
+- Cards full width
+- Horizontal scroll sections where appropriate
+- No tiny text
+- No desktop table overflow
+- No hover-only interaction
+- Swipe gestures optional
+- Modal yerine bottom sheet tercih edilebilir
+
+
+====================================================================
+57. TABLET UX
+====================================================================
+
+Tablet:
+Desktop ile mobile arasında sıkıştırılmış tasarım yapılmamalı.
+
+Tablet:
+- 2 column dashboard
+- larger cards
+- split-view coaching
+- content preview
+- landscape optimization
+- keyboard support
+
+
+====================================================================
+58. DESKTOP COACHING EXPERIENCE
+====================================================================
+
+PC'de coaching özellikle güçlü olmalı.
+
+Üye:
+
+Sol:
+Program
+
+Orta:
+Workout / Video
+
+Sağ:
+Koç mesajları / Check-in
+
+Creator:
+
+Sol:
+Client list
+
+Orta:
+Client program
+
+Sağ:
+Progress / Notes / Messages
+
+Bu özellik Mettlo'nun "sadece mobil fitness app" olmadığını
+görsel olarak göstermelidir.
+
+
+====================================================================
+59. PERFORMANCE
+====================================================================
+
+Images:
+WebP / AVIF
+
+Lazy loading:
+yes
+
+Video:
+HLS / adaptive streaming
+
+Skeleton:
+yes
+
+Optimistic UI:
+likes
+reactions
+challenge actions
+
+Code splitting:
+yes
+
+Route-level loading:
+yes
+
+Avoid:
+huge hero video on mobile.
+
+Animation:
+GPU friendly.
+
+
+====================================================================
+60. COMPONENT ARCHITECTURE
+====================================================================
+
+Önerilen:
+
+components/
+  ui/
+  layout/
+  navigation/
+  cards/
+  buttons/
+  forms/
+  charts/
+  workout/
+  program/
+  challenge/
+  coaching/
+  community/
+  commerce/
+  creator/
+  health/
+  live/
+
+Her component design token kullanmalı.
+
+Hardcoded renk kullanılmamalı.
+
+ÖRNEK:
+
+YANLIŞ:
+background: #F97316
+
+DOĞRU:
+background: var(--color-primary)
+
+
+====================================================================
+61. DESIGN SYSTEM DOSYA YAPISI
+====================================================================
+
+styles/
+  tokens.css
+  colors.css
+  typography.css
+  spacing.css
+  shadows.css
+  animations.css
+  components.css
+
+components/
+  ui/
+  cards/
+  navigation/
+  commerce/
+  coaching/
+  community/
+  fitness/
+
+
+====================================================================
+62. CLAUDE CODE TALİMATI — UYGULAMA KURALI
+====================================================================
+
+Claude Code:
+
+1. Bu dokümandaki renkleri değiştirme.
+2. Yeni rastgele renk ekleme.
+3. Mavi / mor / yeşil ana marka rengi ekleme.
+4. Gold renk ekleme.
+5. Navy ana accent gibi kullanılmamalı; navy yalnızca dark surface olarak
+   kullanılmalı.
+6. Her component design token kullanmalı.
+7. Responsive tasarım zorunlu.
+8. Desktop + tablet + mobile birlikte geliştirilmelidir.
+9. Web ve mobilde aynı design language kullanılmalıdır.
+10. Commerce ayrı bir yabancı ürün gibi görünmemelidir.
+11. Creator, Member ve Admin panelleri aynı visual system'i kullanmalıdır.
+12. Gradient yalnızca vurgulanan alanlarda kullanılmalıdır.
+13. Glow sınırlı kullanılmalıdır.
+14. Animasyon 150–300ms aralığında tutulmalıdır.
+15. prefers-reduced-motion desteklenmelidir.
+16. Accessibility testleri yapılmalıdır.
+17. 44px minimum touch target korunmalıdır.
+18. Font scale dokümandaki değerlerden sapmamalıdır.
+19. Border radius sistem dışına çıkmamalıdır.
+20. Card sisteminde tutarlılık korunmalıdır.
+21. Desktop web birinci sınıf ürün olarak tasarlanmalıdır.
+22. Tablet birinci sınıf ürün olarak tasarlanmalıdır.
+23. Mobile birinci sınıf ürün olarak tasarlanmalıdır.
+24. Kullanıcı aynı hesapla tüm cihazlarda aynı verilere erişmelidir.
+25. Commerce, coaching, health, community ve fitness aynı ekosistem içinde
+    hissettirilmelidir.
+
+
+====================================================================
+63. ANA UI KELİME LİSTESİ
+====================================================================
+
+Türkçe:
+
+Keşfet
+Programlar
+Koçlar
+Topluluk
+Mağaza
+Fiyatlar
+Hemen Başla
+Giriş Yap
+Antrenmana Başla
+Programı Gör
+Programı İncele
+Koçluk Al
+Canlıya Katıl
+Challenge'a Katıl
+Sepete Ekle
+Hemen Al
+Ödeme
+İlerleme
+Sağlık
+Antrenman
+Bugünkü Antrenman
+Günlük Aktivite
+Haftalık Hedef
+Streak
+Mesajlar
+Profil
+Ayarlar
+Satın Aldıklarım
+Abonelikler
+
+
+====================================================================
+64. HERO COPY
+====================================================================
+
+OVERLINE:
+DAHA GÜÇLÜ BİR SEN
+
+H1:
+Sağlıklı Alışkanlıklar
+Daha Güzel Bir Yaşam
+
+BODY:
+Mettlo, fitness, wellness ve koçluk deneyimini tek bir platformda
+bir araya getirir. Hedeflerine ulaşman için ihtiyacın olan her şey
+tek bir yerde.
+
+PRIMARY CTA:
+Hemen Başla →
+
+SECONDARY:
+Mettlo'yu Keşfet
+
+
+====================================================================
+65. VISUAL HIERARCHY
+====================================================================
+
+1. Hero image
+2. H1
+3. Primary CTA
+4. Creator / program / coaching discovery
+5. Category cards
+6. Feature ecosystem
+7. Progress / health
+8. Community
+9. Commerce
+10. Footer
+
+Kullanıcı ilk 3 saniyede:
+METTLO NEDİR?
+NE İŞE YARAR?
+NE YAPABİLİRİM?
+
+sorularına cevap almalıdır.
+
+
+====================================================================
+66. FOOTER
+====================================================================
+
+Kolonlar:
+
+METTLO
+Hakkımızda
+Kariyer
+İletişim
+
+KEŞFET
+Koçlar
+Programlar
+Challenge
+Live
+
+ÜYELİK
+Fiyatlar
+Abonelikler
+SSS
+
+MAĞAZA
+Supplement
+Spor Giyim
+Ekipman
+Markalar
+
+DESTEK
+Yardım Merkezi
+İletişim
+Gizlilik
+KVKK
+Kullanım Koşulları
+
+Social:
+Instagram
+TikTok
+YouTube
+
+
+====================================================================
+67. SON TASARIM KURALI
+====================================================================
+
+METTLO'nun Sunrise Vitality tasarımı:
+
+DARK BASE
++
+SUNRISE ORANGE
++
+CORAL
++
+PINK
++
+SOFT YELLOW
+
+şeklinde çalışmalıdır.
+
+Ana renkler:
+#F97316
+#FB7185
+#EC4899
+#FDE047
+
+Ana yüzeyler:
+#0B1220
+#111827
+#1F2937
+#374151
+
+Ana text:
+#F9FAFB
+
+Bu kombinasyon METTLO'nun temel görsel imzasıdır.
+
+Tasarım:
+PREMIUM
+WARM
+DYNAMIC
+ENERGETIC
+CALM
+MODERN
+HUMAN
+
+olmalıdır.
+
+
+====================================================================
+68. CLAUDE CODE FINAL DIRECTIVE
+====================================================================
+
+Bu dokümanı METTLO'nun resmi Sunrise Vitality Design System'i kabul et.
+
+Tasarım kararlarını kendi varsayımlarınla değiştirme.
+
+Bir component tasarlarken önce:
+1. Token
+2. Typography
+3. Spacing
+4. Radius
+5. Surface
+6. Interaction
+7. Responsive
+8. Accessibility
+
+sırasıyla kontrol et.
+
+Yeni ekran üretirken mevcut design system'e uy.
+
+Yeni renk üretme.
+
+Yeni font üretme.
+
+Yeni spacing sistemi oluşturma.
+
+Yeni radius sistemi oluşturma.
+
+Yeni shadow sistemi oluşturma.
+
+Mevcut component varsa yeniden yazmak yerine reuse et.
+
+Tüm ekranlar:
+Desktop + Tablet + Mobile
+
+olarak test edilmelidir.
+
+Mettlo'nun tamamı:
+Fitness + Wellness + Coaching + Community + Health + Commerce +
+Creator Marketplace
+
+tek ürün gibi görünmelidir.
+
+SUNRISE VITALITY PALETİ:
+METTLO'NUN PREMIUM, SICAK, ENERJİK VE MODERN GÖRSEL KİMLİĞİDİR.

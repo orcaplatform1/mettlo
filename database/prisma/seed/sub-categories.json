@@ -1,0 +1,47 @@
+{
+  "fitness": [
+    "Vücut Geliştirme (Bodybuilding)", "Güç Antrenmanı (Powerlifting / 5x5)", "Hipertrofi (Kas Kütlesi Artırımı)", "Yağ Yakımı ve Kilo Verme (Fat Loss)",
+    "Vücut Rekompozisyonu (Aynı Anda Kas Yapıp Yağ Yakma)", "Fonksiyonel Fitness (Functional Training)", "Evde Ekipmansız / Ağırlıksız Fitness (Calisthenics)",
+    "Kuvvet ve Kondisyon (Strength & Conditioning)", "Atletik Performans Antrenmanları", "Postür ve Duruş Düzeltme Odaklı Fitness",
+    "İleri Düzey / Yarışmaya Hazırlık Fitness Koçluğu", "Medikal Fitness (Sakatlık Sonrası Ağırlık Antrenmanı)", "Kadınlara Özel Fitness ve Tonlama (Bikini Fitness)", "Gençler ve İleri Yaş Grubu İçin Fitness"
+  ],
+  "yoga-mobility": [
+    "Hatha Yoga", "Yin Yoga", "Restoratif Yoga", "Vinyasa Yoga", "Ashtanga Yoga", "Rocket Yoga", "Yoga Sculpt", "Kundalini Yoga", "Raja Yoga", "Yoga Nidra", "Hamile Yogası", "Çocuk Yogası", "Yüz Yogası"
+  ],
+  "pilates": [
+    "Mat Pilates (Minder Pilatesi)", "Klinik / Medikal Pilates (Sakatlık ve Bel-Boyun Ağrıları İçin)", "Hamile Pilatesi (Prenatal Pilates)", "Doğum Sonrası Pilates (Postnatal Pilates)",
+    "Duruş ve Postür Düzeltme Pilatesi", "Reformer Pilates (Evinde aleti veya Tower/Cadillac ekipmanı olanlar için teknik yönlendirme)", "Omurga Sağlığı ve Esneklik Pilatesi",
+    "Atletik ve Güç Odaklı Pilates (İleri Seviye)", "Yağ Yakımı ve Kilo Verme Odaklı Pilates (Cardio Pilates)", "Yaş Gruplarına Özel Pilates (Çocuk ve İleri Yaş / Senior Pilates)",
+    "Pilates Eğitmenlik Eğitimi (Teorik ve Pratik Sertifika Programları)"
+  ],
+  "hiit-cardio": [
+    "HIIT (Yüksek Yoğunluklu İnterval Antrenman)", "Tabata", "Sirkuit Antrenman (Circuit Training)", "Kardiyo ve Yağ Yakımı", "Evde Ekipmansız HIIT ve Kardiyo",
+    "Metabolik Kondisyon (MetCon)", "Bootcamp / Askeri Tarz Kondisyon", "Kettlebell ile Kardiyo ve Kondisyon", "Step ve Aerobik", "İp Atlama (Jump Rope) Antrenmanları",
+    "Düşük Etkili Kardiyo (Low Impact, Eklem Dostu)", "Ofis Çalışanları İçin Kısa Antrenmanlar (Mikro Antrenman)"
+  ],
+  "meditation": [
+    "Mindfulness (Bilinçli Farkındalık) Meditasyonu", "MBSR (Farkındalık Temelli Stres Azaltma) Programı", "Vipassana (İçgörü) Meditasyonu", "Vedik Meditasyon", "Transandantal Meditasyon (TM)",
+    "Çakra Dengeleme ve Şifa Meditasyonları", "Mantralı ve Müzikli Meditasyonlar", "Öz Şefkat ve Sevgi Dolu İyilik (Metta) Meditasyonu", "Yoga Nidra (Derin Gevşeme ve Uyku Meditasyonu)",
+    "Zen Meditasyonu (Zazen)", "Nefes Odaklı Meditasyonlar (Pranayama / Anapanasati)", "Rehberli (Yönlendirmeli) Görselleştirme Meditasyonları", "Dinamik ve Aktif Meditasyonlar (Osho vb.)"
+  ],
+  "boxing-kickboxing": [
+    "Temel Boks / Kick Boks Teknik Eğitimi (Sıfırdan Başlayanlar İçin)", "Gölge Boksu (Shadow Boxing - Evde Ekipmansız Teknik ve Açı Antrenmanı)",
+    "Lapa / Padwork Antrenmanı (Sanal veya Evdeki Bir Partnerle Uygulamalı Eğitim)", "Torba Antrenmanı Teknikleri (Evinde kum torbası olanlar için kombinasyon eğitimi)",
+    "Dövüş Kondisyonu ve Dayanıklılık (Cardio Boxing / Kickbox Fitness)", "Kick Boks Temelli Yağ Yakımı ve Kilo Verme", "Boks Ayak Oyunları (Footwork ve Ring İçi Yönlenme Eğitimi)",
+    "Savunma ve Kontra Atak Teknikleri (Slip, Roll, Parry Reaksiyon Eğitimi)", "Çocuklar İçin Boks / Kick Boks (Temel Koordinasyon Eğitimi)", "Evde Temassız Mücadele Sporu (Self Defense / Temel Kişisel Savunma)"
+  ],
+  "running": [
+    "Yol Koşusu (Road Running)", "Patika Koşusu (Trail Running)", "Dağ Koşusu (Mountain Running)", "Ultra Maraton Hazırlık (Ultra Running)", "5K / 10K Hız ve Performans Antrenmanları",
+    "Yarı Maraton ve Maraton Hazırlık (21K / 42K)", "Koşu Mekaniği ve Koşu Tekniği Eğitimi", "Koşucular İçin Kuvvet ve Güçlendirme (Strength for Runners)",
+    "Nabız ve Zone Odaklı Dayanıklılık Koçluğu (Kardiyo / VO2 Max)", "Yeni Başlayanlar İçin Koşuya Geçiş (Jogging / Base Building)", "Atletik Performans ve Koşu Kondisyonu",
+    "Koşucular İçin Beslenme ve Hidrasyon Danışmanlığı"
+  ],
+  "nutrition": [
+    "Kilo Yönetimi (Sağlıklı Kilo Verme / Kilo Alma)", "Sürdürülebilir ve Sezgisel Beslenme Danışmanlığı", "Sporcu Beslenmesi (Performans ve Kas Kütlesi Odaklı)",
+    "Hastalıklarda Tıbbi Beslenme Tedavisi (Diyabet, Tansiyon, Kolesterol vb.)", "Eliminasyon Diyeti ve Bağırsak Sağlığı (IBS, Geçirgen Bağırsak)",
+    "Kadın Sağlığı ve Hormonal Beslenme (PCOS, Hamilelik ve Emzirme Dönemi)", "Popüler Diyet Protokolleri (Keto, Aralıklı Oruç / IF, Akdeniz Diyeti)",
+    "Bitkisel Tabanlı Beslenme (Vejetaryen ve Vegan Beslenme)", "Fonksiyonel ve Anti-Aging (Yaşlanma Karşıtı) Beslenme", "Çocuk, Ergen ve İleri Yaş Beslenmesi",
+    "Yeme Bozukluklarında Beslenme Danışmanlığı (Anoreksiya, Bulimiya, Tıkınırcasına Yeme)", "Online Mutfak Atölyeleri ve Sağlıklı Tarif Koçluğu"
+  ],
+  "dance": ["Zumba", "Oryantal", "Modern Dans & Koreografi", "Direk Dansı (Pole Fitness)"]
+}

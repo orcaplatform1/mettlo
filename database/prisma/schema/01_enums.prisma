@@ -1,0 +1,390 @@
+// ---------- Kimlik / kullanıcı ----------
+enum UserRole {
+  MEMBER
+  CREATOR
+  ADMIN
+  MODERATOR
+  SUPPORT
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  PENDING_DELETION
+  DELETED
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  OTHER
+  UNSPECIFIED
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+enum CreatorStatus {
+  PENDING
+  REJECTED
+  ACTIVE
+  SUSPENDED
+  EXITING
+  EXITED
+  BANNED
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// ---------- İçerik ----------
+enum MediaKind {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+}
+
+enum ContentType {
+  VIDEO
+  PHOTO
+  PDF
+  EXERCISE
+  WORKOUT
+  PROGRAM
+  RECIPE
+  NUTRITION
+  LIVE
+  LIVE_REPLAY
+  POST
+  POLL
+  QUIZ
+  ANNOUNCEMENT
+}
+
+enum ContentAccessLevel {
+  FREE
+  MEMBERS_ONLY
+  PAID
+  COACHING_ONLY
+  PRIVATE
+}
+
+enum ContentStatus {
+  DRAFT
+  PROCESSING
+  PUBLISHED
+  HIDDEN
+  REMOVED
+}
+
+enum BlockType {
+  STRENGTH
+  TIMED_FLOW
+  CARDIO
+  FREE
+}
+
+enum ChallengeTaskType {
+  WORKOUT
+  STEPS
+  CALORIES
+  DURATION
+  HABIT
+  CUSTOM
+}
+
+// ---------- Koçluk / topluluk / mesajlaşma ----------
+enum CoachingStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum ConversationKind {
+  DIRECT
+  COACHING
+  GROUP
+  SUPPORT
+}
+
+// ---------- Canlı ----------
+enum LiveType {
+  MEMBER_LIVE
+  PAID_LIVE
+  COACHING_LIVE
+}
+
+enum LiveMode {
+  IN_PLATFORM
+  EXTERNAL_LINK
+}
+
+enum LiveFormat {
+  COACH_LIVE
+  INTERACTIVE_CLASS
+  ONE_TO_ONE
+}
+
+enum LiveStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+// ---------- Üyelik / yetkilendirme ----------
+enum BillingInterval {
+  MONTHLY
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum EntitlementSource {
+  PAYMENT_SUCCEEDED
+  STORE_RECEIPT
+  FREE
+  PROMO_TRIAL
+  CREATOR_INVITE_GRANT
+  ADMIN_GRANT
+  CREATOR_EXIT_GIFT
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  GRACE
+  EXPIRED
+  PAUSED
+  CANCELLED
+  REVOKED
+  SUSPENDED
+}
+
+// ---------- Ödeme / ticaret ----------
+enum PaymentChannel {
+  WEB_IYZICO
+  IOS_IAP
+  ANDROID_PLAY
+}
+
+enum PaymentKind {
+  SUBSCRIPTION
+  PROGRAM
+  COACHING
+  LIVE
+  PRODUCT
+  BUNDLE
+  LIVE_CREDIT
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  CHARGEBACK
+}
+
+enum PaymentTransactionType {
+  CHARGE
+  REFUND
+  CHARGEBACK
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum ShipmentStatus {
+  PREPARING
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+}
+
+enum RefundStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum ChargebackStatus {
+  OPEN
+  WON
+  LOST
+}
+
+enum EarningType {
+  SALE
+  REFUND_REVERSAL
+  LIVE_CREDIT
+  EXIT_GIFT
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum CampaignType {
+  PLATFORM
+  PRODUCT
+  CHALLENGE
+  BRAND
+  SPONSORED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  CANCELLED
+}
+
+// ---------- Rezervasyon / yorum ----------
+enum ClassSessionType {
+  GROUP_CLASS
+  ONE_TO_ONE
+  WORKSHOP
+  LIVE_EVENT
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED_BY_MEMBER
+  CANCELLED_BY_CREATOR
+  ATTENDED
+  NO_SHOW
+  WAITLISTED
+}
+
+enum ReviewTarget {
+  CREATOR
+  PROGRAM
+  CLASS_SESSION
+  PRODUCT
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+  REPORTED
+  REMOVED
+}
+
+// ---------- Sağlık ----------
+enum HealthMetric {
+  STEPS
+  DISTANCE
+  ACTIVE_CALORIES
+  EXERCISE_MINUTES
+  HEART_RATE
+  SLEEP
+  WEIGHT
+}
+
+// ---------- Platform / yasal ----------
+enum NotificationChannel {
+  PUSH
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum ConsentType {
+  TERMS
+  KVKK
+  HEALTH_SHARING
+  LIVE_SESSION
+  MARKETING
+  GUARDIAN
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  ACTIONED
+  DISMISSED
+}
+
+/// Destek bileti yaşam döngüsü: açık → yanıtlandı → kapatıldı; yanıttan sonra 48 sa dönüş yoksa zaman aşımı
+enum TicketStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+  TIMED_OUT
+}
+
+enum SanctionType {
+  WARNING
+  SUSPENSION
+  BAN
+}
+
+enum SanctionStatus {
+  ACTIVE
+  EXPIRED
+  LIFTED
+}
+
+enum DeletionStatus {
+  PENDING
+  CANCELLED
+  COMPLETED
+  BLOCKED_BY_EXIT
+}
+
+enum CreatorExitStatus {
+  NOTICE
+  IN_PROGRESS
+  CLOSED
+}
+
+enum ContactStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+enum ApplicationStatus {
+  NEW
+  REVIEWING
+  INTERVIEW
+  REJECTED
+  HIRED
+}

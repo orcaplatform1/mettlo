@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+.turbo
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+database/backups/*
+!database/backups/.gitkeep
+*.log
+.DS_Store
+# uploads / ozel dosyalar
+storage-data/

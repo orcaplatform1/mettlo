@@ -1,0 +1,381 @@
+// ============ TİCARET (Mettlo Mağaza) / ÖDEME / KOMİSYON / KAMPANYA ============
+// Ürünleri sadece Mettlo satar (bölüm 19). Koçlar ürün satmaz, affiliate yoktur.
+
+model Brand {
+  id          String   @id @default(cuid())
+  /// /brand/{slug}
+  slug        String   @unique
+  name        String
+  logoUrl     String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  products Product[]
+
+  @@map("brands")
+}
+
+model ProductCategory {
+  id        String            @id @default(cuid())
+  /// /store/category/{slug}
+  slug      String            @unique
+  name      String
+  parentId  String?
+  parent    ProductCategory?  @relation("ProductCategoryTree", fields: [parentId], references: [id])
+  children  ProductCategory[] @relation("ProductCategoryTree")
+  sortOrder Int               @default(0)
+
+  products Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id             String           @id @default(cuid())
+  brandId        String?
+  brand          Brand?           @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  categoryId     String?
+  category       ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  /// /product/{slug}
+  slug           String           @unique
+  name           String
+  description    String?
+  images         String[]
+  price          Decimal          @db.Decimal(12, 2)
+  compareAtPrice Decimal?         @db.Decimal(12, 2)
+  kdvRate        Decimal          @default(20) @db.Decimal(4, 2)
+  ratingAvg      Decimal          @default(0) @db.Decimal(3, 2)
+  ratingCount    Int              @default(0)
+  isPublished    Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  variants ProductVariant[]
+
+  @@index([categoryId, isPublished])
+  @@index([brandId])
+  @@map("products")
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku        String   @unique
+  name       String?
+  attributes Json?
+  price      Decimal? @db.Decimal(12, 2)
+  stock      Int      @default(0)
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model Cart {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  couponCode String?
+  updatedAt  DateTime @updatedAt
+
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int            @default(1)
+
+  @@unique([cartId, variantId])
+  @@map("cart_items")
+}
+
+model Order {
+  id                 String      @id @default(cuid())
+  number             String      @unique
+  userId             String
+  user               User        @relation(fields: [userId], references: [id])
+  status             OrderStatus @default(PENDING)
+  subtotal           Decimal     @db.Decimal(12, 2)
+  discount           Decimal     @default(0) @db.Decimal(12, 2)
+  shipping           Decimal     @default(0) @db.Decimal(12, 2)
+  kdv                Decimal     @default(0) @db.Decimal(12, 2)
+  total              Decimal     @db.Decimal(12, 2)
+  couponCode         String?
+  /// Teslimat adresi şifreli saklanır; sadece SUPER_ADMIN + kargo işleme görür
+  shippingAddressEnc String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  items     OrderItem[]
+  shipments Shipment[]
+  payments  Payment[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String         @id @default(cuid())
+  orderId   String
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  name      String
+  unitPrice Decimal        @db.Decimal(12, 2)
+  quantity  Int
+  kdvRate   Decimal        @db.Decimal(4, 2)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Shipment {
+  id          String         @id @default(cuid())
+  orderId     String
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier     String?
+  trackingNo  String?
+  status      ShipmentStatus @default(PREPARING)
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+
+  @@index([orderId])
+  @@map("shipments")
+}
+
+// ---------- Ödeme (iyzico standart üye işyeri; marketplace/split yok) ----------
+
+model Payment {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  kind           PaymentKind
+  channel        PaymentChannel
+  status         PaymentStatus  @default(PENDING)
+  amount         Decimal        @db.Decimal(12, 2)
+  currency       String         @default("TRY")
+  /// Mağaza kesintisi (IAP / Play), yalnızca mobil kanal
+  storeFee       Decimal?       @db.Decimal(12, 2)
+  creatorId      String?
+  orderId        String?
+  order          Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  subscriptionId String?
+  providerRef    String?        @unique
+  /// İyzico conversationId vb.
+  meta           Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  transactions     PaymentTransaction[]
+  refunds          Refund[]
+  chargebacks      Chargeback[]
+  earnings         CreatorEarning[]
+  acknowledgements CheckoutAcknowledgement[]
+
+  @@index([userId, createdAt])
+  @@index([creatorId, createdAt])
+  @@index([status])
+  @@map("payments")
+}
+
+model PaymentTransaction {
+  id          String                 @id @default(cuid())
+  paymentId   String
+  payment     Payment                @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  type        PaymentTransactionType
+  amount      Decimal                @db.Decimal(12, 2)
+  providerRef String?
+  rawPayload  Json?
+  createdAt   DateTime               @default(now())
+
+  @@index([paymentId])
+  @@map("payment_transactions")
+}
+
+model Refund {
+  id            String       @id @default(cuid())
+  paymentId     String
+  payment       Payment      @relation(fields: [paymentId], references: [id])
+  amount        Decimal      @db.Decimal(12, 2)
+  reason        String?
+  status        RefundStatus @default(REQUESTED)
+  /// ADMIN/SUPPORT talep eder, onay SUPER_ADMIN'de (bölüm 63)
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime     @default(now())
+  completedAt   DateTime?
+
+  @@index([paymentId])
+  @@index([status])
+  @@map("refunds")
+}
+
+model Chargeback {
+  id         String           @id @default(cuid())
+  paymentId  String
+  payment    Payment          @relation(fields: [paymentId], references: [id])
+  amount     Decimal          @db.Decimal(12, 2)
+  status     ChargebackStatus @default(OPEN)
+  reason     String?
+  openedAt   DateTime         @default(now())
+  resolvedAt DateTime?
+
+  @@map("chargebacks")
+}
+
+/// Dahili koç kazanç defteri: satışın %80'i (canlı kredide 1/3). IBAN/TCKN/vergi no toplanmaz; ödeme platform dışında.
+model CreatorEarning {
+  id            String      @id @default(cuid())
+  creatorId     String
+  creator       User        @relation(fields: [creatorId], references: [id])
+  paymentId     String?
+  payment       Payment?    @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  type          EarningType
+  gross         Decimal     @db.Decimal(12, 2)
+  storeFee      Decimal     @default(0) @db.Decimal(12, 2)
+  net           Decimal     @db.Decimal(12, 2)
+  platformShare Decimal     @db.Decimal(12, 2)
+  creatorShare  Decimal     @db.Decimal(12, 2)
+  period        String
+  createdAt     DateTime    @default(now())
+
+  @@index([creatorId, period])
+  @@map("creator_earnings")
+}
+
+/// Komisyon oranı ayarı: varsayılan sabit %20 (canlı kredi hariç)
+model Commission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  platformPct Decimal  @db.Decimal(5, 2)
+  creatorPct  Decimal  @db.Decimal(5, 2)
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("commissions")
+}
+
+// ---------- Kampanya / kupon / referral ----------
+
+model Campaign {
+  id          String       @id @default(cuid())
+  type        CampaignType
+  name        String
+  description String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+
+  coupons Coupon[]
+
+  @@map("campaigns")
+}
+
+model Coupon {
+  id             String       @id @default(cuid())
+  campaignId     String?
+  campaign       Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  code           String       @unique
+  discountType   DiscountType
+  value          Decimal      @db.Decimal(12, 2)
+  maxRedemptions Int?
+  perUserLimit   Int          @default(1)
+  creatorId      String?
+  minAmount      Decimal?     @db.Decimal(12, 2)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  isActive       Boolean      @default(true)
+
+  redemptions CouponRedemption[]
+
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id         String   @id @default(cuid())
+  couponId   String
+  coupon     Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  userId     String
+  paymentId  String?
+  amount     Decimal  @db.Decimal(12, 2)
+  redeemedAt DateTime @default(now())
+
+  @@index([couponId])
+  @@index([userId])
+  @@map("coupon_redemptions")
+}
+
+model Referral {
+  id          String    @id @default(cuid())
+  referrerId  String
+  referrer    User      @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId  String?   @unique
+  referred    User?     @relation("Referred", fields: [referredId], references: [id], onDelete: SetNull)
+  code        String    @unique
+  createdAt   DateTime  @default(now())
+  convertedAt DateTime?
+
+  rewards ReferralReward[]
+
+  @@index([referrerId])
+  @@map("referrals")
+}
+
+model ReferralReward {
+  id         String   @id @default(cuid())
+  referralId String
+  referral   Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  userId     String
+  kind       String
+  value      Decimal  @db.Decimal(12, 2)
+  grantedAt  DateTime @default(now())
+
+  @@map("referral_rewards")
+}
+
+// ---------- Mağaza faturalaması (Apple / Google) ----------
+
+model StoreReceipt {
+  id                    String         @id @default(cuid())
+  userId                String
+  channel               PaymentChannel
+  productId             String
+  originalTransactionId String         @unique
+  rawReceipt            Json?
+  validatedAt           DateTime?
+  expiresAt             DateTime?
+  createdAt             DateTime       @default(now())
+
+  transactions StoreTransaction[]
+
+  @@index([userId])
+  @@map("store_receipts")
+}
+
+model StoreTransaction {
+  id            String       @id @default(cuid())
+  receiptId     String
+  receipt       StoreReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  transactionId String       @unique
+  amount        Decimal      @db.Decimal(12, 2)
+  storeFee      Decimal?     @db.Decimal(12, 2)
+  currency      String       @default("TRY")
+  eventType     String
+  occurredAt    DateTime
+  createdAt     DateTime     @default(now())
+
+  @@index([receiptId])
+  @@map("store_transactions")
+}

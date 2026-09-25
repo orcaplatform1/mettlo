@@ -1,0 +1,112 @@
+// ============ PROFİLLER ============
+
+model MemberProfile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goals                String[]
+  fitnessLevel         Level?
+  preferredCategories  String[]
+  preferredCreatorIds  String[]
+  activityGoals        Json?
+  preferences          Json?
+  notificationSettings Json?
+  privacySettings      Json?
+  onboardingCompleted  Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("member_profiles")
+}
+
+model CreatorProfile {
+  id                  String        @id @default(cuid())
+  userId              String        @unique
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName         String
+  coverUrl            String?
+  bio                 String?
+  headline            String?
+  /// "Neden beni seçmelisiniz?" — herkese açık; dış bağlantı/iletişim bilgisi içeremez
+  whyChooseMe         String?
+  expertise           String[]
+  categories          String[]
+  /// Eğitmenliğe başladığı yıl → profilde "X yıldır eğitmen". Koçlar sosyal medya/dış bağlantı paylaşamaz (sütun kaldırıldı).
+  careerStartYear     Int?
+  status              CreatorStatus @default(PENDING)
+  isPublic            Boolean       @default(false)
+  verified            Boolean       @default(false)
+  verifiedAt          DateTime?
+  /// Profil ilk kez yayına alındığı tarih → "Mettlo'da ne zamandır" ve 6 ay / 1 yıl / 2 yıl rozetleri
+  activatedAt         DateTime?
+  /// Başvuruyu onaylayan ADMIN / SUPER_ADMIN (ilk onay); profilde yalnızca yönetime gösterilir
+  approvedById        String?
+  approvedBy          User?         @relation("CreatorApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt          DateTime?
+  /// Başvuruyu reddeden ADMIN / SUPER_ADMIN
+  rejectedById        String?
+  rejectedBy          User?         @relation("CreatorRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
+  rejectedAt          DateTime?
+  rejectionReason     String?
+  ratingAvg           Decimal       @default(0) @db.Decimal(3, 2)
+  ratingCount         Int           @default(0)
+  followersCount      Int           @default(0)
+  subscribersCount    Int           @default(0)
+  /// Onboarding'de beyan edilen "aktif öğrenci sayısı" = ömür boyu ücretsiz davet kotası (bölüm 23)
+  inviteQuotaDeclared Int           @default(0)
+  inviteQuotaUsed     Int           @default(0)
+  inMonthLiveMinutes  Int           @default(0)
+  seoTitle            String?
+  seoDescription      String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  branches      CreatorBranch[]
+  subCategories CoachSubCategory[]
+  verifications CreatorVerification[]
+
+  @@index([status, isPublic])
+  @@index([ratingAvg])
+  @@map("creator_profiles")
+}
+
+model CreatorVerification {
+  id          String             @id @default(cuid())
+  creatorId   String
+  creator     CreatorProfile     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  branchId    String?
+  credential  String
+  documentUrl String?
+  status      VerificationStatus @default(PENDING)
+  reviewerId  String?
+  reviewNote  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime           @default(now())
+
+  @@index([creatorId, status])
+  @@map("creator_verifications")
+}
+
+model Follow {
+  followerId String
+  creatorId  String
+  follower   User     @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  creator    User     @relation("CreatorFollowers", fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([followerId, creatorId])
+  @@index([creatorId])
+  @@map("follows")
+}
+
+/// Kullanıcı adı/slug değişince eski URL -> yeni URL 301 yönlendirmesi (SEO)
+model SlugRedirect {
+  id        String   @id @default(cuid())
+  entity    String
+  oldSlug   String
+  newSlug   String
+  createdAt DateTime @default(now())
+
+  @@unique([entity, oldSlug])
+  @@map("slug_redirects")
+}

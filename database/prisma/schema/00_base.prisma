@@ -1,0 +1,12 @@
+// METTLO — Prisma şeması (mimari bölüm 56 "DATABASE CORE")
+// Çok dosyalı şema: bu klasördeki tüm *.prisma dosyaları birlikte okunur.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../packages/database/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

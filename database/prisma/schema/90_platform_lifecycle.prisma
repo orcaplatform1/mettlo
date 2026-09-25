@@ -1,0 +1,456 @@
+// ============ PLATFORM / KVKK / GÜVENLİK / HESAP YAŞAM DÖNGÜSÜ ============
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   NotificationChannel @default(IN_APP)
+  type      String
+  title     String
+  body      String?
+  data      Json?
+  readAt    DateTime?
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id      String              @id @default(cuid())
+  userId  String
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel NotificationChannel
+  type    String
+  enabled Boolean             @default(true)
+
+  @@unique([userId, channel, type])
+  @@map("notification_preferences")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  sessionKey String?
+  name       String
+  props      Json?
+  path       String?
+  createdAt  DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+  @@map("analytics_events")
+}
+
+model CreatorAnalytics {
+  id                String   @id @default(cuid())
+  creatorId         String
+  date              DateTime @db.Date
+  revenue           Decimal  @default(0) @db.Decimal(12, 2)
+  activeSubscribers Int      @default(0)
+  newSubscribers    Int      @default(0)
+  churned           Int      @default(0)
+  views             Int      @default(0)
+  watchSeconds      BigInt   @default(0)
+  liveAttendance    Int      @default(0)
+  bookings          Int      @default(0)
+  noShows           Int      @default(0)
+
+  @@unique([creatorId, date])
+  @@map("creator_analytics")
+}
+
+model MemberAnalytics {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime @db.Date
+  workouts      Int      @default(0)
+  activeMinutes Int      @default(0)
+  xp            Int      @default(0)
+
+  @@unique([userId, date])
+  @@map("member_analytics")
+}
+
+model PlatformAnalytics {
+  id           String   @id @default(cuid())
+  date         DateTime @unique @db.Date
+  dau          Int      @default(0)
+  wau          Int      @default(0)
+  mau          Int      @default(0)
+  gmv          Decimal  @default(0) @db.Decimal(14, 2)
+  platformTake Decimal  @default(0) @db.Decimal(14, 2)
+  refunds      Decimal  @default(0) @db.Decimal(14, 2)
+  chargebacks  Decimal  @default(0) @db.Decimal(14, 2)
+  liveCostUsd  Decimal  @default(0) @db.Decimal(12, 4)
+
+  @@map("platform_analytics")
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  details    String?
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+
+  actions ModerationAction[]
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@map("reports")
+}
+
+model ModerationAction {
+  id         String   @id @default(cuid())
+  reportId   String?
+  report     Report?  @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  actorId    String
+  targetType String
+  targetId   String
+  action     String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@map("moderation_actions")
+}
+
+/// Her admin işlemi ve hassas veri erişimi (kişisel bilgi, koç mesaj kutusu, sağlık verisi) buraya yazılır.
+/// Yalnızca eklenir; güncellenmez/silinmez (uygulama katmanı + DB trigger, bkz. database/sql).
+model AuditLog {
+  id            String    @id @default(cuid())
+  actorId       String?
+  actorRole     UserRole?
+  action        String
+  targetType    String?
+  targetId      String?
+  /// Verinin sahibi (ör. mesaj kutusu görüntülenen koç)
+  subjectUserId String?
+  ip            String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([subjectUserId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model SupportTicket {
+  id               String       @id @default(cuid())
+  /// İnsan okunur bilet no (#1024)
+  number           Int          @unique @default(autoincrement())
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// account | payment | subscription | technical | content | live | coaching | other
+  category         String       @default("other")
+  subject          String
+  status           TicketStatus @default(OPEN)
+  assignedToId     String?
+  lastMessageAt    DateTime     @default(now())
+  lastStaffReplyAt DateTime?
+  lastUserReplyAt  DateTime     @default(now())
+  closedAt         DateTime?
+  /// resolved (destek çözdü) | user (kullanıcı kapattı) | timeout (48 saat yanıt yok)
+  closeReason      String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  messages SupportTicketMessage[]
+
+  @@index([status, createdAt])
+  @@index([status, lastStaffReplyAt])
+  @@index([userId, createdAt])
+  @@map("support_tickets")
+}
+
+model SupportTicketMessage {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String?
+  /// Destek ekibi yanıtı (kullanıcıya "Mettlo Destek" olarak gösterilir; ekip üyesinin kimliği açılmaz)
+  isStaff   Boolean       @default(false)
+  /// Sistem mesajı (ör. zaman aşımı bildirimi)
+  isSystem  Boolean       @default(false)
+  body      String
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
+  @@map("support_ticket_messages")
+}
+
+model KvkkConsent {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        ConsentType
+  /// Canlı ders rızası için ilgili oturum
+  refType     String?
+  refId       String?
+  textVersion String
+  accepted    Boolean     @default(true)
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId, type])
+  @@map("kvkk_consents")
+}
+
+model PrivacySetting {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileVisibility   String   @default("public")
+  showInLeaderboards  Boolean  @default(true)
+  allowDirectMessages Boolean  @default(true)
+  /// Çevrimiçi durumun (yeşil/kırmızı nokta) giriş yapmış kullanıcılara görünmesi. Ziyaretçiler ASLA görmez.
+  showOnlineStatus    Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
+
+  @@map("privacy_settings")
+}
+
+/// IYS (İleti Yönetim Sistemi) ticari ileti izinleri
+model IysConsent {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel       NotificationChannel
+  granted       Boolean
+  source        String?
+  syncedToIysAt DateTime?
+  createdAt     DateTime            @default(now())
+
+  @@index([userId, channel])
+  @@map("iys_consents")
+}
+
+// ---------- Onboarding / creator success ----------
+
+model CreatorOnboardingTask {
+  id          String    @id @default(cuid())
+  creatorId   String
+  key         String
+  title       String
+  completedAt DateTime?
+
+  @@unique([creatorId, key])
+  @@map("creator_onboarding_tasks")
+}
+
+model CreatorResource {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  body      String?
+  category  String?
+  createdAt DateTime @default(now())
+
+  @@map("creator_resources")
+}
+
+model CreatorSuccessNote {
+  id        String   @id @default(cuid())
+  creatorId String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([creatorId])
+  @@map("creator_success_notes")
+}
+
+// ---------- Hesap yaşam döngüsü ----------
+
+model AccountSanction {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation("SanctionedUser", fields: [userId], references: [id], onDelete: Cascade)
+  issuerId   String
+  type       SanctionType
+  status     SanctionStatus @default(ACTIVE)
+  reason     String
+  evidence   Json?
+  startsAt   DateTime       @default(now())
+  endsAt     DateTime?
+  liftedById String?
+  liftedAt   DateTime?
+  appealNote String?
+  createdAt  DateTime       @default(now())
+
+  @@index([userId, status])
+  @@map("account_sanctions")
+}
+
+model AccountDeletionRequest {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         DeletionStatus @default(PENDING)
+  requestedAt    DateTime       @default(now())
+  /// 30 gün bekleme süresi sonunda silinir
+  executeAfter   DateTime
+  cancelledAt    DateTime?
+  completedAt    DateTime?
+  dataExportedAt DateTime?
+
+  @@index([status, executeAfter])
+  @@map("account_deletion_requests")
+}
+
+/// Kalıcı banlı kullanıcıların hash'lenmiş e-posta/telefon/cihaz kimlikleri (yeniden kayıt engeli)
+model BannedIdentifier {
+  id        String   @id @default(cuid())
+  kind      String
+  valueHash String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([kind, valueHash])
+  @@map("banned_identifiers")
+}
+
+model GuardianLink {
+  id         String    @id @default(cuid())
+  guardianId String
+  guardian   User      @relation("GuardianOf", fields: [guardianId], references: [id], onDelete: Cascade)
+  minorId    String    @unique
+  minor      User      @relation("MinorOf", fields: [minorId], references: [id], onDelete: Cascade)
+  relation   String?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  consents GuardianConsent[]
+
+  @@index([guardianId])
+  @@map("guardian_links")
+}
+
+model GuardianConsent {
+  id          String       @id @default(cuid())
+  linkId      String
+  link        GuardianLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  type        ConsentType
+  refType     String?
+  refId       String?
+  textVersion String
+  grantedAt   DateTime     @default(now())
+  revokedAt   DateTime?
+
+  @@index([linkId])
+  @@map("guardian_consents")
+}
+
+model CreatorExit {
+  id              String            @id @default(cuid())
+  creatorId       String            @unique
+  creator         User              @relation(fields: [creatorId], references: [id])
+  status          CreatorExitStatus @default(NOTICE)
+  reason          String?
+  noticeGivenAt   DateTime          @default(now())
+  effectiveAt     DateTime
+  /// Tazmin: alınan ödemelerin tamamı (bölüm 59)
+  indemnityAmount Decimal?          @db.Decimal(14, 2)
+  indemnityPaidAt DateTime?
+  legalActionNote String?
+  closedAt        DateTime?
+
+  gifts CreatorExitGift[]
+
+  @@map("creator_exits")
+}
+
+model CreatorExitGift {
+  id              String      @id @default(cuid())
+  exitId          String
+  exit            CreatorExit @relation(fields: [exitId], references: [id], onDelete: Cascade)
+  memberId        String
+  member          User        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// Üyenin seçtiği yeni koç; seçim süresi 60 gün
+  chosenCreatorId String?
+  entitlementId   String?
+  expiresAt       DateTime
+  redeemedAt      DateTime?
+  createdAt       DateTime    @default(now())
+
+  @@index([memberId])
+  @@map("creator_exit_gifts")
+}
+
+/// Cayma hakkı yok onayı (dijital içerik anında başlar) — bölüm 60
+model CheckoutAcknowledgement {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  paymentId       String?
+  payment         Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  productRef      String
+  contractVersion String
+  textAccepted    String
+  ip              String?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@map("checkout_acknowledgements")
+}
+
+/// Herkese açık iletişim formu mesajları (SUPPORT / ADMIN / SUPER_ADMIN yönetir)
+model ContactMessage {
+  id          String        @id @default(cuid())
+  name        String
+  email       String
+  phoneEnc    String
+  company     String?
+  /// general | partnership | coach | press | legal | other
+  category    String
+  subject     String
+  message     String
+  status      ContactStatus @default(NEW)
+  note        String?
+  handledById String?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime      @default(now())
+  readAt      DateTime?
+
+  @@index([status, createdAt])
+  @@map("contact_messages")
+}
+
+/// Kariyer başvuruları — kişisel bilgiler içerir; yalnızca SUPER_ADMIN görür/yönetir (her görüntüleme denetlenir)
+model JobApplication {
+  id              String            @id @default(cuid())
+  /// moderator | pr-specialist
+  positionKey     String
+  fullName        String
+  email           String
+  phoneEnc        String
+  city            String
+  birthYear       Int
+  education       String
+  experienceYears Int
+  workModel       String
+  weeklyHours     Int?
+  availableFrom   String?
+  linkedinUrl     String?
+  /// Serbest metin cevaplar: deneyim, motivasyon, senaryo soruları
+  answers         Json
+  status          ApplicationStatus @default(NEW)
+  note            String?
+  ip              String?
+  consentAt       DateTime          @default(now())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([positionKey, status, createdAt])
+  @@index([email])
+  @@map("job_applications")
+}

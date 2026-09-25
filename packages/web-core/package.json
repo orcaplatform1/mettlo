@@ -1,0 +1,10 @@
+{
+  "name": "@mettlo/web-core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": { "@mettlo/types": "workspace:*", "@mettlo/utils": "workspace:*", "@mettlo/validation": "workspace:*" },
+  "peerDependencies": { "next": ">=16", "react": ">=19" },
+  "devDependencies": { "@types/react": "^19", "next": "16.3.6", "react": "19.2.8", "typescript": "^5.8.0" }
+}

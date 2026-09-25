@@ -1,0 +1,25 @@
+{
+  "name": "@mettlo/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./generated/client/index.js",
+  "types": "./generated/client/index.d.ts",
+  "scripts": {
+    "generate": "prisma generate --schema ../../database/prisma/schema",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev --schema ../../database/prisma/schema",
+    "deploy": "dotenv -e ../../.env -- prisma migrate deploy --schema ../../database/prisma/schema",
+    "studio": "dotenv -e ../../.env -- prisma studio --schema ../../database/prisma/schema",
+    "seed": "dotenv -e ../../.env -- tsx ../../database/prisma/seed/seed.ts",
+    "build": "prisma generate --schema ../../database/prisma/schema"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0",
+    "prisma": "6.19.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "@types/node": "^22.0.0"
+  }
+}

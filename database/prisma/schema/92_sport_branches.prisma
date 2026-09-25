@@ -1,0 +1,291 @@
+// ============ BRANŞA ÖZGÜ VERİLER: KOŞU + BOKS & KİCKBOKS ============
+// Branş kaydı `branches` tablosundadır (enum değil): running, boxing-kickboxing.
+// Sağlık niteliği taşıyan alanlar (nabız, kilo) koça yalnızca üyenin verdiği açık rıza ile döner.
+
+enum RunType {
+  EASY
+  TEMPO
+  INTERVAL
+  LONG
+  RACE
+}
+
+enum RunPlanType {
+  EASY
+  TEMPO
+  INTERVAL
+  LONG
+  RACE
+  REST
+}
+
+enum RaceDistance {
+  FIVE_K
+  TEN_K
+  HALF_MARATHON
+  MARATHON
+  OTHER
+}
+
+enum RaceGoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TrainingPhase {
+  BASE
+  BUILD
+  PEAK
+  TAPER
+}
+
+enum BoxingTechniqueCategory {
+  JAB
+  CROSS
+  HOOK
+  UPPERCUT
+  BODY_SHOT
+  COMBINATION
+  DEFENSE
+  FOOTWORK
+}
+
+enum TechniqueStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+}
+
+enum BoxingSessionType {
+  TECHNICAL
+  SPARRING
+  CONDITIONING
+  BAG_WORK
+}
+
+// ---------- Koşu ----------
+
+/// Pace zone hesabı girdileri (maksimum nabız, 5K pace) — üye veya koç tanımlar
+model RunningProfile {
+  id           String   @id @default(cuid())
+  memberId     String   @unique
+  member       User     @relation("RunningProfileMember", fields: [memberId], references: [id], onDelete: Cascade)
+  maxHeartRate Int?
+  fiveKPaceSec Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("running_profiles")
+}
+
+model RunningShoe {
+  id          String       @id @default(cuid())
+  memberId    String
+  member      User         @relation("RunningShoeMember", fields: [memberId], references: [id], onDelete: Cascade)
+  brand       String
+  model       String
+  purchasedAt DateTime?    @db.Date
+  /// Mettlo'ya eklemeden önce yapılmış km
+  initialKm   Decimal      @default(0) @db.Decimal(8, 1)
+  /// Koşu kayıtlarından türetilen toplam (başlangıç km dahil)
+  totalKm     Decimal      @default(0) @db.Decimal(8, 1)
+  retired     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  logs        RunningLog[]
+
+  @@index([memberId])
+  @@map("running_shoes")
+}
+
+model RunningLog {
+  id              String       @id @default(cuid())
+  memberId        String
+  member          User         @relation("RunningLogMember", fields: [memberId], references: [id], onDelete: Cascade)
+  date            DateTime     @db.Date
+  distanceKm      Decimal      @db.Decimal(6, 2)
+  durationSec     Int
+  avgPaceSecPerKm Int
+  avgHeartRate    Int?
+  runType         RunType      @default(EASY)
+  shoeId          String?
+  shoe            RunningShoe? @relation(fields: [shoeId], references: [id], onDelete: SetNull)
+  notes           String?
+  /// manual | strava | garmin
+  source          String       @default("manual")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([memberId, date])
+  @@map("running_logs")
+}
+
+model RunningInjuryLog {
+  id            String    @id @default(cuid())
+  memberId      String
+  member        User      @relation("RunningInjuryMember", fields: [memberId], references: [id], onDelete: Cascade)
+  startedOn     DateTime  @db.Date
+  endedOn       DateTime? @db.Date
+  area          String
+  severity      Int
+  pauseTraining Boolean   @default(false)
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([memberId, startedOn])
+  @@map("running_injury_logs")
+}
+
+model MemberRaceGoal {
+  id            String         @id @default(cuid())
+  memberId      String
+  member        User           @relation("RaceGoalMember", fields: [memberId], references: [id], onDelete: Cascade)
+  /// Hedefi koç tanımladıysa dolu
+  coachId       String?
+  coach         User?          @relation("RaceGoalCoach", fields: [coachId], references: [id], onDelete: SetNull)
+  name          String
+  distance      RaceDistance
+  raceDate      DateTime       @db.Date
+  targetTimeSec Int?
+  status        RaceGoalStatus @default(ACTIVE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([memberId, status])
+  @@index([coachId])
+  @@map("member_race_goals")
+}
+
+/// Koçun üyeye yazdığı haftalık koşu planı (periyodizasyon: Base → Build → Peak → Taper)
+model CoachRunningPlan {
+  id               String        @id @default(cuid())
+  coachId          String
+  coach            User          @relation("RunPlanCoach", fields: [coachId], references: [id], onDelete: Cascade)
+  memberId         String
+  member           User          @relation("RunPlanMember", fields: [memberId], references: [id], onDelete: Cascade)
+  weekNumber       Int
+  /// Haftanın pazartesisi
+  weekStart        DateTime      @db.Date
+  phase            TrainingPhase @default(BASE)
+  /// 1=Pazartesi .. 7=Pazar
+  dayOfWeek        Int
+  runType          RunPlanType
+  targetDistanceKm Decimal?      @db.Decimal(6, 2)
+  targetPaceZone   Int?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([coachId, memberId, weekStart, dayOfWeek])
+  @@index([memberId, weekStart])
+  @@map("coach_running_plans")
+}
+
+// ---------- Boks & Kickboks ----------
+
+model BoxingTechnique {
+  id          String                  @id @default(cuid())
+  coachId     String
+  coach       User                    @relation("BoxingTechniqueCoach", fields: [coachId], references: [id], onDelete: Cascade)
+  name        String
+  category    BoxingTechniqueCategory
+  /// Numaralı kombin gösterimi: "1-2", "1-2-3-Body"
+  notation    String?
+  description String?
+  /// Yalnızca Mettlo içi medya yolu (/media/...); dış bağlantı yasak
+  videoUrl    String?
+  sortOrder   Int                     @default(0)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  progress MemberTechniqueProgress[]
+
+  @@index([coachId, sortOrder])
+  @@map("boxing_techniques")
+}
+
+model MemberTechniqueProgress {
+  id          String          @id @default(cuid())
+  memberId    String
+  member      User            @relation("TechniqueProgressMember", fields: [memberId], references: [id], onDelete: Cascade)
+  techniqueId String
+  technique   BoxingTechnique @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+  coachId     String
+  coach       User            @relation("TechniqueProgressCoach", fields: [coachId], references: [id], onDelete: Cascade)
+  status      TechniqueStatus @default(NOT_STARTED)
+  coachNote   String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([memberId, techniqueId])
+  @@index([coachId, memberId])
+  @@map("member_technique_progress")
+}
+
+/// Tartı (weigh-in) kaydı + kilo kategorisi (MINI_FLYWEIGHT … HEAVYWEIGHT)
+model MemberWeightCategory {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    User     @relation("WeightCategoryMember", fields: [memberId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  weightKg  Decimal  @db.Decimal(5, 1)
+  category  String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId, date])
+  @@map("member_weight_categories")
+}
+
+model BoxingSessionLog {
+  id          String            @id @default(cuid())
+  memberId    String
+  member      User              @relation("BoxingSessionMember", fields: [memberId], references: [id], onDelete: Cascade)
+  date        DateTime          @db.Date
+  rounds      Int
+  roundSec    Int
+  restSec     Int
+  sessionType BoxingSessionType
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([memberId, date])
+  @@map("boxing_session_logs")
+}
+
+// ---------- Branş alt kategorileri (SUPER_ADMIN yönetir; yeni kategori migration gerektirmez) ----------
+
+model BranchSubCategory {
+  id        String   @id @default(cuid())
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  /// Görünen ad (ör. "Vücut Geliştirme")
+  name      String
+  /// Benzersiz adres parçası (ör. vucut-gelistirme)
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  coaches CoachSubCategory[]
+
+  @@index([branchId, isActive, sortOrder])
+  @@map("branch_sub_categories")
+}
+
+model CoachSubCategory {
+  creatorId     String
+  creator       CreatorProfile    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  subCategoryId String
+  subCategory   BranchSubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  createdAt     DateTime          @default(now())
+
+  @@id([creatorId, subCategoryId])
+  @@index([subCategoryId])
+  @@map("coach_sub_categories")
+}

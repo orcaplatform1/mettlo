@@ -1,0 +1,230 @@
+// ============ KİMLİK / OTURUM / RBAC ============
+
+model User {
+  id                 String     @id @default(cuid())
+  /// URL'de kullanılır: mettlo.tr/coach/{username}. Sadece [a-z0-9_], ASCII, küçük harf.
+  username           String     @unique
+  email              String     @unique
+  emailVerifiedAt    DateTime?
+  /// Argon2id hash
+  passwordHash       String?
+  name               String
+  avatarUrl          String?
+  role               UserRole   @default(MEMBER)
+  /// 18+ zorunlu; 18 altı yalnızca ebeveyn/vasi kaydı ile (bölüm 58)
+  birthDate          DateTime   @db.Date
+  status             UserStatus @default(ACTIVE)
+  statusReason       String?
+  /// Sadece reşit olmayan profiller için: bağlı ebeveyn hesabı
+  guardianId         String?
+  guardian           User?      @relation("GuardianMinors", fields: [guardianId], references: [id])
+  minors             User[]     @relation("GuardianMinors")
+  twoFactorEnabled   Boolean    @default(false)
+  /// AES-256-GCM ile şifreli TOTP secret (admin rolleri ve koçlar için zorunlu)
+  twoFactorSecretEnc String?
+  googleId           String?    @unique
+  appleId            String?    @unique
+  lastLoginAt        DateTime?
+  deletedAt          DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  personalInfo UserPersonalInfo?
+  sessions     Session[]
+  devices      Device[]
+
+  // Aynı model çiftinde iki ilişki olduğu için açıkça adlandırıldı
+  following                Follow[]                  @relation("UserFollows")
+  followers                Follow[]                  @relation("CreatorFollowers")
+  coachingClients          CoachingClient[]          @relation("CoachClients")
+  coachedBy                CoachingClient[]          @relation("MemberCoaches")
+  healthConsentsGiven      HealthShareConsent[]      @relation("HealthConsentMember")
+  healthConsentsReceived   HealthShareConsent[]      @relation("HealthConsentCoach")
+  subscriptions            Subscription[]            @relation("MemberSubscriptions")
+  subscribers              Subscription[]            @relation("CreatorSubscribers")
+  referralsMade            Referral[]                @relation("Referrer")
+  referredBy               Referral?                 @relation("Referred")
+  guardianLinks            GuardianLink[]            @relation("GuardianOf")
+  minorLink                GuardianLink?             @relation("MinorOf")
+  creatorInviteGrants      CreatorInviteGrant[]      @relation("InviteGrantCreator")
+  accountSanctions         AccountSanction[]         @relation("SanctionedUser")
+  memberProfile            MemberProfile?
+  creatorProfile           CreatorProfile?
+  medias                   Media[]
+  contents                 Content[]
+  workouts                 Workout[]
+  workoutLogs              WorkoutLog[]
+  programs                 Program[]
+  programEnrollments       ProgramEnrollment[]
+  challenges               Challenge[]
+  challengeParticipants    ChallengeParticipant[]
+  coachingPackages         CoachingPackage[]
+  communities              Community[]
+  communityMembers         CommunityMember[]
+  posts                    Post[]
+  comments                 Comment[]
+  reactions                Reaction[]
+  conversationParticipants ConversationParticipant[]
+  messages                 Message[]
+  liveSessions             LiveSession[]
+  liveParticipants         LiveParticipant[]
+  liveCreditBalances       LiveCreditBalance[]
+  healthConnections        HealthConnection[]
+  healthPermissions        HealthPermission[]
+  healthRecords            HealthRecord[]
+  activityRecords          ActivityRecord[]
+  sleepRecords             SleepRecord[]
+  progressRecords          ProgressRecord[]
+  measurements             Measurement[]
+  progressPhotos           ProgressPhoto[]
+  nutritionProfile         NutritionProfile?
+  nutritionLogs            NutritionLog[]
+  xpRecords                XpRecord[]
+  streak                   Streak?
+  achievements             Achievement[]
+  cart                     Cart?
+  orders                   Order[]
+  payments                 Payment[]
+  creatorEarnings          CreatorEarning[]
+  subscriptionPlans        SubscriptionPlan[]
+  entitlements             Entitlement[]
+  availabilitySlots        AvailabilitySlot[]
+  classSessions            ClassSession[]
+  bookings                 Booking[]
+  reviews                  Review[]
+  invoices                 Invoice[]
+  notifications            Notification[]
+  notificationPreferences  NotificationPreference[]
+  supportTickets           SupportTicket[]
+  kvkkConsents             KvkkConsent[]
+  privacySetting           PrivacySetting?
+  iysConsents              IysConsent[]
+  accountDeletionRequests  AccountDeletionRequest[]
+  creatorExit              CreatorExit?
+  creatorExitGifts         CreatorExitGift[]
+  checkoutAcknowledgements CheckoutAcknowledgement[]
+  creatorsApproved         CreatorProfile[]          @relation("CreatorApprovedBy")
+  creatorsRejected         CreatorProfile[]          @relation("CreatorRejectedBy")
+  runningProfile           RunningProfile?           @relation("RunningProfileMember")
+  runningShoes             RunningShoe[]             @relation("RunningShoeMember")
+  runningLogs              RunningLog[]              @relation("RunningLogMember")
+  runningInjuries          RunningInjuryLog[]        @relation("RunningInjuryMember")
+  raceGoals                MemberRaceGoal[]          @relation("RaceGoalMember")
+  raceGoalsSet             MemberRaceGoal[]          @relation("RaceGoalCoach")
+  runPlansWritten          CoachRunningPlan[]        @relation("RunPlanCoach")
+  runPlans                 CoachRunningPlan[]        @relation("RunPlanMember")
+  boxingTechniques         BoxingTechnique[]         @relation("BoxingTechniqueCoach")
+  techniqueProgress        MemberTechniqueProgress[] @relation("TechniqueProgressMember")
+  techniqueProgressMarked  MemberTechniqueProgress[] @relation("TechniqueProgressCoach")
+  weightCategories         MemberWeightCategory[]    @relation("WeightCategoryMember")
+  boxingSessions           BoxingSessionLog[]        @relation("BoxingSessionMember")
+
+  @@index([role, status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+/// KİŞİSEL BİLGİLER — yalnızca SUPER_ADMIN okuyabilir (uygulama katmanında zorunlu, her okuma audit_logs'a yazılır).
+/// Telefon/adres alanları AES-256-GCM ile şifreli saklanır (FIELD_ENCRYPTION_KEY).
+model UserPersonalInfo {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName              String?
+  phoneEnc              String?
+  /// Tekillik ve ban kontrolü için HMAC-SHA256
+  phoneHash             String?  @unique
+  addressEnc            String?
+  city                  String?
+  district              String?
+  postalCode            String?
+  gender                Gender   @default(UNSPECIFIED)
+  emergencyContactEnc   String?
+  registrationIp        String?
+  registrationUserAgent String?
+  updatedAt             DateTime @updatedAt
+  createdAt             DateTime @default(now())
+
+  @@map("user_personal_info")
+}
+
+model AppRole {
+  id                String           @id @default(cuid())
+  key               UserRole         @unique
+  name              String
+  description       String?
+  twoFactorRequired Boolean          @default(false)
+  permissions       RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         AppRole    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Session {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId         String?
+  device           Device?   @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  refreshTokenHash String    @unique
+  ip               String?
+  userAgent        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  lastUsedAt       DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Device {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform       DevicePlatform
+  /// Cihaz kimliğinin hash'i (ban evasion tespiti için)
+  identifierHash String?
+  pushToken      String?
+  model          String?
+  appVersion     String?
+  lastSeenAt     DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  sessions       Session[]
+
+  @@index([userId])
+  @@index([identifierHash])
+  @@map("devices")
+}
+
+model AuthToken {
+  id        String        @id @default(cuid())
+  userId    String
+  type      AuthTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+  @@map("auth_tokens")
+}

@@ -1,0 +1,25 @@
+{
+  "name": "mettlo",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @mettlo/database generate",
+    "db:migrate": "pnpm --filter @mettlo/database migrate",
+    "db:deploy": "pnpm --filter @mettlo/database deploy",
+    "db:seed": "pnpm --filter @mettlo/database seed"
+  },
+  "devDependencies": {
+    "@prisma/client": "6.19.3",
+    "prisma": "6.19.3",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,0 +1,1 @@
+export const CATEGORY_LABEL: Record<string, string> = { account: 'Hesap', payment: 'Ödeme', subscription: 'Abonelik', technical: 'Teknik sorun', content: 'İçerik', live: 'Canlı ders', coaching: 'Koçluk', other: 'Diğer' };
