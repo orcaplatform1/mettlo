@@ -50,7 +50,8 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
             </>
           ) : (
             <>
-              <Link className="btn btn-secondary btn-pill" href="/login">Giriş Yap</Link>
+              <Link className="btn btn-secondary btn-pill" href="/login">Üye / Abone Girişi</Link>
+              <Link className="btn btn-ghost btn-pill" href="/login/coach" style={{ fontSize: 13 }}>Koç Girişi</Link>
               <span className="btn-comet"><Link className="btn btn-primary btn-pill" href="/register">Hemen Başla <ArrowRight size={16} aria-hidden /></Link></span>
             </>
           )}
@@ -64,7 +65,8 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
         {NAV.map((n) => <Link key={n.href} href={n.href}>{n.label}</Link>)}
         {user && <Link href={panelHref ?? '/app'}>Panelim</Link>}
         {user && <Link href={`/profile/${user.username}`}>@{user.username}</Link>}
-        {!user && <Link href="/login">Giriş Yap</Link>}
+        {!user && <Link href="/login" className="btn btn-secondary btn-pill" style={{ textAlign: 'center', marginTop: 4 }}>Üye / Abone Girişi</Link>}
+        {!user && <Link href="/login/coach" className="btn btn-ghost btn-pill" style={{ textAlign: 'center' }}>Koç Girişi</Link>}
         {!user && <span className="btn-comet"><Link className="btn btn-primary btn-pill" href="/register">Hemen Başla <ArrowRight size={16} aria-hidden /></Link></span>}
       </div>
     </header>

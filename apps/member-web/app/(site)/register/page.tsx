@@ -18,8 +18,13 @@ export default async function RegisterPage() {
       <div className="card card-glass auth-card" style={{ maxWidth: 600 }}>
         <h1 className="h3">Mettlo&apos;ya katıl</h1>
         <p className="text-secondary body-sm" style={{ margin: '6px 0 24px' }}>Birkaç bilgiyle hesabını oluştur. Profil adresin kullanıcı adından oluşur.</p>
-        <div style={{ marginBottom: 18 }}><SocialButtons label="kayıt ol" /></div>
         <RegisterForm docs={{ terms: <LegalBody title="Kullanım Koşulları" sections={termsSections} />, kvkk: <LegalBody title="KVKK Aydınlatma Metni" sections={kvkkSections} /> }} />
+        <div className="row" style={{ alignItems: 'center', gap: 10, margin: '16px 0 4px' }}>
+          <hr style={{ flex: 1, border: 0, borderTop: '1px solid var(--border-soft)' }} />
+          <span className="caption text-tertiary">veya sosyal hesapla</span>
+          <hr style={{ flex: 1, border: 0, borderTop: '1px solid var(--border-soft)' }} />
+        </div>
+        <SocialButtons label="kayıt ol" />
       </div>
     </div>
   );

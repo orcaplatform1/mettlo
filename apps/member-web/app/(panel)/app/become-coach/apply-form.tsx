@@ -12,7 +12,7 @@ export function CoachApplyForm({ branches }: { branches: CoachBranch[] }) {
     <form onSubmit={noResetSubmit(action)} className="stack" style={{ ['--stack' as string]: '20px' }} noValidate>
       {state.error && <Alert kind="error">{state.error}</Alert>}
       <CoachFields branches={branches} state={state} />
-      <button className="btn btn-primary btn-pill" style={{ alignSelf: 'flex-start' }} type="submit" disabled={pending}>{pending ? 'Gönderiliyor…' : 'Başvuruyu Gönder'}</button>
+      <button className="btn btn-primary btn-pill" style={{ alignSelf: 'flex-start' }} type="submit" disabled={pending}>{pending ? 'Gönderiliyor…' : 'Başvuruyu Tamamla'}</button>
     </form>
   );
 }

@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { useActionState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Alert, noResetSubmit } from '@mettlo/ui';
@@ -19,8 +18,7 @@ export function CoachSignupForm({ branches, docs }: { branches: CoachBranch[]; d
       </section>
       <CoachFields branches={branches} state={state} startStep={1} />
       <section className="card"><ConsentFields state={state} docs={docs} /></section>
-      <button className="btn btn-primary btn-pill btn-block" type="submit" disabled={pending}>{pending ? 'Gönderiliyor…' : <>Üye Ol ve Koç Başvurusunu Gönder <ArrowRight size={16} aria-hidden /></>}</button>
-      <p className="body-sm text-secondary" style={{ textAlign: 'center' }}>Zaten hesabın var mı? <Link href="/login?next=/app/become-coach" className="text-coral">Giriş yap</Link> ve başvuruyu hesabından yap.</p>
+      <button className="btn btn-primary btn-pill btn-block" type="submit" disabled={pending}>{pending ? 'Gönderiliyor…' : <>Başvuruyu Tamamla <ArrowRight size={16} aria-hidden /></>}</button>
     </form>
   );
 }

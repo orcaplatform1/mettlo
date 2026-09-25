@@ -22,13 +22,17 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="auth-wrap">
       <div className="card card-glass auth-card">
-        <h1 className="h3">Üye girişi</h1>
-        <p className="text-secondary body-sm" style={{ margin: '6px 0 20px' }}>Google, Apple veya kullanıcı adın ve şifrenle giriş yap.</p>
+        <h1 className="h3">Üye / Abone Girişi</h1>
+        <p className="text-secondary body-sm" style={{ margin: '6px 0 20px' }}>Kullanıcı adın ve şifrenle giriş yap.</p>
         {notice && <div style={{ marginBottom: 16 }}><Alert kind="error">{notice}</Alert></div>}
-        <SocialButtons next={safe} />
-        <div style={{ height: 18 }} />
         <LoginForm next={safe} />
-        <p className="body-sm text-secondary" style={{ textAlign: 'center', marginTop: 20 }}>Koç veya yönetici misin? <Link href="/login/coach" className="text-coral">Koç / yönetim girişi</Link></p>
+        <div className="row" style={{ alignItems: 'center', gap: 10, margin: '16px 0 4px' }}>
+          <hr style={{ flex: 1, border: 0, borderTop: '1px solid var(--border-soft)' }} />
+          <span className="caption text-tertiary">veya</span>
+          <hr style={{ flex: 1, border: 0, borderTop: '1px solid var(--border-soft)' }} />
+        </div>
+        <SocialButtons next={safe} />
+        <p className="body-sm text-secondary" style={{ textAlign: 'center', marginTop: 20 }}>Koç veya yönetici misin? <Link href="/login/coach" className="text-coral">Koç / Yönetim Girişi →</Link></p>
       </div>
     </div>
   );
