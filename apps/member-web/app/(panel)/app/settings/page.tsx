@@ -23,7 +23,7 @@ export default async function SettingsPage() {
       {/* Profil bilgileri */}
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
         <h2 className="h4">Profil Bilgileri</h2>
-        <ProfileForm name={s.name} bio={meData?.creator?.bio ?? null} />
+        <ProfileForm name={s.name} bio={meData?.creator?.bio ?? null} headline={meData?.creator?.headline ?? null} isCoach={s.role === 'CREATOR'} />
       </section>
 
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>

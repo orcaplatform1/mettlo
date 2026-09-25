@@ -1,10 +1,12 @@
 'use client';
-import Link from 'next/link';
 import { useActionState } from 'react';
 import { CheckCircle2, Send } from 'lucide-react';
 import { Alert, PhoneInput, Select, noResetSubmit } from '@mettlo/ui';
 import { submitApplicationAction, type FormState } from '@/app/actions/forms';
 import { EDUCATION, WORK_MODELS, type Role } from '@/app/lib/careers-data';
+import { ConsentGate } from './consent-gate';
+import { LegalBody } from './legal-body';
+import { sections as kvkkSections } from '@/app/lib/legal-content/data-protection';
 
 const err = (s: FormState, k: string) => s.fieldErrors?.[k];
 const Err = ({ s, k }: { s: FormState; k: string }) => (err(s, k) ? <p className="field-error" role="alert">{err(s, k)}</p> : null);
@@ -68,8 +70,14 @@ export function ApplyForm({ role }: { role: Role }) {
       </fieldset>
 
       <div aria-hidden style={{ position: 'absolute', left: -9999, height: 0, overflow: 'hidden' }}><label>Web sitesi<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
-      <label className="check"><input type="checkbox" name="acceptKvkk" required /><span><Link href="/data-protection" target="_blank" className="text-coral">KVKK Aydınlatma Metni</Link>’ni okudum; başvurumun değerlendirilmesi amacıyla kişisel verilerimin işlenmesini kabul ediyorum.</span></label>
-      <Err s={state} k="acceptKvkk" />
+      <ConsentGate
+        name="acceptKvkk"
+        title="KVKK Aydınlatma Metni"
+        doc={<LegalBody title="KVKK Aydınlatma Metni" sections={kvkkSections} />}
+        error={err(state, "acceptKvkk")}
+        label={<><b>KVKK Aydınlatma Metni</b>&apos;ni okudum; başvurumun değerlendirilmesi amacıyla kişisel verilerimin işlenmesini kabul ediyorum.</>}
+      />
+      <p className="field-hint">Kutucuk elle işaretlenemez. Metni açın, en alta kadar okuyup "Okudum, anladım, kabul ediyorum" düğmesine basın; otomatik işaretlenecektir.</p>
       <button className="btn btn-primary btn-pill" style={{ alignSelf: 'flex-start' }} type="submit" disabled={pending}>{pending ? 'Gönderiliyor…' : <>Başvuruyu Gönder <Send size={16} aria-hidden /></>}</button>
     </form>
   );

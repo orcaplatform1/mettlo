@@ -52,18 +52,24 @@ export class MessagingController {
     });
   }
 
-  /** Üye ↔ koç: yalnızca aktif abonelik/erişim varsa konuşma başlatılabilir. */
+  /** Üye ↔ koç: yalnızca aktif abonelik/erişim varsa konuşma başlatılabilir. SUPER_ADMIN herkese mesaj atabilir. */
   @Post('conversations')
   async start(@CurrentUser() u: AuthUser, @Body(new ZodPipe(startSchema)) b: z.infer<typeof startSchema>) {
     const other = await this.prisma.user.findUnique({ where: { username: b.toUsername }, select: { id: true, role: true, status: true } });
     if (!other || other.status !== 'ACTIVE' || other.id === u.id) throw new NotFoundException('Kullanıcı bulunamadı');
 
-    const meIsCoach = u.role === 'CREATOR';
-    const otherIsCoach = other.role === 'CREATOR';
-    if (meIsCoach === otherIsCoach) throw new ForbiddenException('Mesajlaşma yalnızca üye ile koç arasında yapılabilir');
-    const memberId = meIsCoach ? other.id : u.id;
-    const coachId = meIsCoach ? u.id : other.id;
-    if (!(await this.hasActiveAccess(memberId, coachId))) throw new ForbiddenException('Mesajlaşmak için koçun aktif üyeliği gerekli');
+    const isStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(u.role);
+    const otherIsStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(other.role);
+
+    if (!isStaff && !otherIsStaff) {
+      // Üye ↔ koç kısıtlaması
+      const meIsCoach = u.role === 'CREATOR';
+      const otherIsCoach = other.role === 'CREATOR';
+      if (meIsCoach === otherIsCoach) throw new ForbiddenException('Mesajlaşma yalnızca üye ile koç arasında yapılabilir');
+      const memberId = meIsCoach ? other.id : u.id;
+      const coachId = meIsCoach ? u.id : other.id;
+      if (!(await this.hasActiveAccess(memberId, coachId))) throw new ForbiddenException('Mesajlaşmak için koçun aktif üyeliği gerekli');
+    }
 
     const existing = await this.prisma.conversation.findFirst({
       where: { kind: 'DIRECT', AND: [{ participants: { some: { userId: u.id } } }, { participants: { some: { userId: other.id } } }] },
@@ -96,10 +102,14 @@ export class MessagingController {
   async send(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(sendSchema)) b: z.infer<typeof sendSchema>) {
     await this.assertParticipant(id, u.id);
     const others = await this.prisma.conversationParticipant.findMany({ where: { conversationId: id, userId: { not: u.id } }, include: { user: { select: { id: true, role: true, status: true } } } });
-    // Abonelik bitmişse yeni mesaj gönderilemez (geçmiş okunabilir)
+    // SUPER_ADMIN/staff abonelik kontrolünden muaf
+    const meIsStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(u.role);
     const meIsCoach = u.role === 'CREATOR';
     for (const o of others) {
       if (o.user.status !== 'ACTIVE') throw new BadRequestException('Karşı taraf mesaj alamıyor');
+      if (meIsStaff) continue;
+      const otherIsStaff = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(o.user.role);
+      if (otherIsStaff) continue;
       const memberId = meIsCoach ? o.user.id : u.id;
       const coachId = meIsCoach ? u.id : o.user.id;
       if (!(await this.hasActiveAccess(memberId, coachId))) throw new ForbiddenException('Aktif üyelik olmadığı için mesaj gönderilemez');

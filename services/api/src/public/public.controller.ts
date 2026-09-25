@@ -173,6 +173,22 @@ export class PublicController {
     return { type: 'staff', username: u.username, avatarUrl: u.avatarUrl, staffRole: u.role === 'SUPER_ADMIN' ? 'founder' : 'team' };
   }
 
+  /** Halka açık ekip listesi — rol/e-posta dönmez */
+  @Get('team')
+  async team() {
+    const staff = await this.prisma.user.findMany({
+      where: { role: { in: ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'] }, status: 'ACTIVE' },
+      select: { username: true, name: true, avatarUrl: true, role: true, createdAt: true },
+      orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+    });
+    return staff.map((u) => ({
+      username: u.username,
+      name: u.name,
+      avatarUrl: u.avatarUrl,
+      staffRole: u.role === 'SUPER_ADMIN' ? 'founder' : u.role === 'ADMIN' ? 'admin' : u.role === 'MODERATOR' ? 'moderator' : 'support',
+    }));
+  }
+
   /** Tekil abonelik planı detayı — checkout sayfası için */
   @Get('plans/:planId')
   async plan(@Param('planId') planId: string) {

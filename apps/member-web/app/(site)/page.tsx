@@ -9,7 +9,7 @@ import { BranchCard, CoachCard, ProductCard, ProgramCard } from '@/app/component
 import { DEFAULT_BRANCHES, getAllBranches, getCreators, getProducts, getPrograms } from '@/app/lib/data';
 
 export const metadata: Metadata = {
-  title: { absolute: `Mettlo — Sağlıklı Alışkanlıklar, Daha Güzel Bir Yaşam` },
+  title: { absolute: `Mettlo — Bugün Başla. Kendini Yeniden Keşfet.` },
   description: SITE.description,
   alternates: { canonical: '/' },
 };
@@ -49,8 +49,8 @@ export default async function HomePage() {
         <div className="container">
           <div className="hero-grid">
             <div className="hero-copy">
-              <h1 id="hero-title" className="display gradient-text">Sağlıklı Alışkanlıklar<br />Daha Güzel Bir Yaşam</h1>
-              <p className="lead">Mettlo, fitness, wellness ve koçluk deneyimini tek bir platformda bir araya getirir. Hedeflerine ulaşman için ihtiyacın olan her şey tek bir yerde.</p>
+              <h1 id="hero-title" className="display gradient-text">Bugün Başla.<br />Kendini Yeniden Keşfet.</h1>
+              <p className="lead">Sana özel programlar, uzman koçlar, gelişim takibi ve günlük alışkanlıklar. İhtiyacın olan her şey, hedefinin etrafında şekillensin.</p>
             </div>
             <div className="hero-cta hero-cta-row">
                 <span className="btn-comet"><Link href="/register" className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 30 }}>Hemen Başla <ArrowRight size={18} aria-hidden /></Link></span>

@@ -37,7 +37,7 @@ export default function About() {
         <div className="container">
           <span className="overline text-coral">HAKKIMIZDA</span>
           <h1 className="display" style={{ margin: '14px 0 20px', maxWidth: 880 }}>Sağlıklı yaşamı <span className="text-gradient">koçlarla</span> daha erişilebilir kılıyoruz.</h1>
-          <p className="text-secondary body-lg" style={{ maxWidth: 720 }}>Mettlo; fitness, wellness ve koçluğu tek platformda buluşturan, koç (PT) odaklı bir yaşam platformudur. Uzman koçları, onlardan öğrenmek isteyen insanlarla güvenli, şeffaf ve adil bir ortamda bir araya getiriyoruz.</p>
+          <p className="text-secondary body-lg" style={{ maxWidth: 720 }}>Mettlo; insanların sağlıklı yaşam yolculuklarını uzman koçlarla birlikte, kendi tempolarında sürdürebilecekleri bir platform. Koçlar burada bağımsızca çalışır, üyeler ise gerçekten kendilerine uygun desteği bulur. Takip, program, topluluk ve birebir koçluk — hepsi tek çatı altında, insan odaklı.</p>
           <div className="hero-cta"><Link href="/coaches" className="btn btn-primary btn-pill">Koçları keşfet <ArrowRight size={16} aria-hidden /></Link><Link href="/register" className="btn btn-secondary btn-pill">Ücretsiz üye ol</Link></div>
         </div>
       </section>

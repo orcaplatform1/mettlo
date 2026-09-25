@@ -17,6 +17,7 @@ export const getProducts = (qs = '') => apiTry<Page<any>>(`/public/products${qs}
 export const getBrands = () => apiTry<any[]>('/public/brands', pub);
 export const getProductCategories = () => apiTry<any[]>('/public/product-categories', pub);
 export const getSitemap = () => apiTry<Array<{ path: string; lastModified?: string; priority: number; changeFrequency: string }>>('/public/sitemap', pub);
+export const getTeam = () => apiTry<Array<{ username: string; name: string; avatarUrl: string | null; staffRole: string }>>('/public/team', pub);
 
 /** Marka renk paletinden türetilen branş görselleri (fotoğraf gelene kadar) */
 export const BRANCH_STYLE: Record<string, { icon: string; bg: string }> = {
