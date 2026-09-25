@@ -554,6 +554,9 @@ importers:
       '@mettlo/health':
         specifier: workspace:*
         version: link:../../packages/health
+      '@mettlo/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@mettlo/types':
         specifier: workspace:*
         version: link:../../packages/types

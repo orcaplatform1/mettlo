@@ -89,7 +89,10 @@ export default async function ProfilePage({ params }: Props) {
   const overview = token ? await apiTry<any>('/me/overview', { token }) : null;
   const isSubscriber = !!overview?.subscriptions?.some((x: any) => x.coach?.username === p.username);
   const classes = (await apiTry<any[]>(`/public/creators/${p.username}/classes`)) ?? [];
-  const subscribeHref = session ? '#plans' : `/login?next=${encodeURIComponent(`/profile/${p.username}`)}`;
+  const subscribeHref = (planId?: string) =>
+    session
+      ? planId ? `/checkout/${planId}` : '#plans'
+      : `/login?next=${encodeURIComponent(`/profile/${p.username}`)}`;
   const ld = [
     breadcrumbLd([{ name: 'Ana Sayfa', path: '/' }, { name: 'Koçlar', path: '/coaches' }, { name: p.displayName, path: `/profile/${p.username}` }]),
     {
@@ -133,7 +136,7 @@ export default async function ProfilePage({ params }: Props) {
             </div>
             <div className="row row-wrap" style={{ paddingBottom: 8 }}>
               <CoachInboxButton username={p.username} data={admin} />
-              <a href={subscribeHref} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a>
+              <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a>
             </div>
           </div>
         </div>
@@ -171,7 +174,7 @@ export default async function ProfilePage({ params }: Props) {
                   <div className="row between"><h3 className="h5">{pl.name}</h3>{pl.isPremiumLive && <span className="badge badge-premium">Premium Live</span>}</div>
                   <p className="h3" style={{ margin: '12px 0' }}>{formatTRY(pl.priceWeb)} <span className="body-sm text-tertiary">/ {pl.interval === 'ANNUAL' ? 'yıl' : 'ay'}</span></p>
                   {pl.description && <p className="body-sm text-secondary">{pl.description}</p>}
-                  <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 16 }} disabled>Abone Ol (yakında)</button>
+                  <a href={subscribeHref(pl.id)} className="btn btn-primary btn-block" style={{ marginTop: 16 }}>{isSubscriber ? '✓ Aktif Abonelik' : 'Abone Ol'}</a>
                 </div>
               ))}
             </div>
@@ -204,7 +207,7 @@ export default async function ProfilePage({ params }: Props) {
                 <div key={c.id} className="card stack" style={{ ['--stack' as string]: '8px' }}><span className="badge">{c.type === 'ONE_TO_ONE' ? '1:1' : c.type === 'WORKSHOP' ? 'Atölye' : 'Grup dersi'}</span><h3 className="h5">{c.title}</h3>
                   <p className="body-sm text-secondary row" style={{ gap: 6 }}><CalendarClock size={14} aria-hidden /> {new Date(c.startsAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}</p>
                   <p className="caption text-tertiary">{Math.max(c.capacity - c.bookedCount, 0)} / {c.capacity} yer boş</p>
-                  {isSubscriber ? <BookButton classId={c.id} path={`/profile/${p.username}`} full={c.bookedCount >= c.capacity} /> : <a href={subscribeHref} className="btn btn-secondary btn-sm">Rezervasyon için abone ol</a>}
+                  {isSubscriber ? <BookButton classId={c.id} path={`/profile/${p.username}`} full={c.bookedCount >= c.capacity} /> : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-secondary btn-sm">Rezervasyon için abone ol</a>}
                 </div>))}
             </div>
           </section>
@@ -214,7 +217,7 @@ export default async function ProfilePage({ params }: Props) {
           <section aria-labelledby="comm-h" style={{ marginTop: 48 }}>
             <h2 id="comm-h" className="h4">Topluluk</h2>
             <div className="card row between row-wrap" style={{ marginTop: 16 }}><div><b>{p.community.name}</b><p className="caption text-tertiary">{p.community.members} üye{p.community.subscribersOnly ? ' · yalnızca abonelere özel' : ''}</p></div>
-              {isSubscriber || !p.community.subscribersOnly ? <Link href={`/app/community/${p.community.slug}`} className="btn btn-primary btn-sm">Topluluğa Git</Link> : <a href={subscribeHref} className="btn btn-secondary btn-sm">Katılmak için abone ol</a>}</div>
+              {isSubscriber || !p.community.subscribersOnly ? <Link href={`/app/community/${p.community.slug}`} className="btn btn-primary btn-sm">Topluluğa Git</Link> : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-secondary btn-sm">Katılmak için abone ol</a>}</div>
           </section>
         )}
 
@@ -235,8 +238,8 @@ export default async function ProfilePage({ params }: Props) {
             </div>
             <div className="card">
               <h3 className="h5" style={{ marginBottom: 10 }}>Sen de değerlendir</h3>
-              {!session && <p className="body-sm text-secondary">Değerlendirme, yorum ve puan yalnızca koçun abonelerine özeldir. <Link href={subscribeHref} className="text-coral">Giriş yap</Link> ve abone ol.</p>}
-              {session && elig?.reason === 'not_subscriber' && <p className="body-sm text-secondary">Değerlendirme, yorum ve puan yalnızca koçun abonelerine özeldir. <a href="#plans" className="text-coral">Abone ol</a> ve deneyimini paylaş.</p>}
+              {!session && <p className="body-sm text-secondary">Değerlendirme, yorum ve puan yalnızca koçun abonelerine özeldir. <Link href={subscribeHref()} className="text-coral">Giriş yap</Link> ve abone ol.</p>}
+              {session && elig?.reason === 'not_subscriber' && <p className="body-sm text-secondary">Değerlendirme, yorum ve puan yalnızca koçun abonelerine özeldir. <a href={subscribeHref(p.plans[0]?.id)} className="text-coral">Abone ol</a> ve deneyimini paylaş.</p>}
               {session && elig?.reason === 'own_profile' && <p className="body-sm text-secondary">Kendi profilini değerlendiremezsin.</p>}
               {session && elig?.reason === 'already_reviewed' && <p className="body-sm text-secondary">Bu koçu değerlendirdin: <b>{elig.myReview?.rating} / 5</b>. Teşekkürler!</p>}
               {session && elig?.canReview && <ReviewForm username={p.username} />}
@@ -256,14 +259,14 @@ export default async function ProfilePage({ params }: Props) {
             <h2 className="h3">{p.displayName} ile hedeflerine ulaş</h2>
             <p className="text-secondary" style={{ marginTop: 8 }}>Abone ol; tüm programlara, içeriklere ve canlı derslere eriş, koçunla mesajlaş.</p>
           </div>
-          <div className="row" style={{ position: 'relative', zIndex: 1, justifyContent: 'flex-end' }}><a href={subscribeHref} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a></div>
+          <div className="row" style={{ position: 'relative', zIndex: 1, justifyContent: 'flex-end' }}><a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a></div>
         </div>
       </div>
 
       <SuperAdminPanel username={p.username} data={admin} />
       <StaffPanel username={p.username} />
 
-      <div className="sticky-cta"><span className="row" style={{ gap: 8, minWidth: 0 }}><b style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.displayName}</b>{p.verified && <VerifiedBadge size={18} />}</span><a href={subscribeHref} className="btn btn-primary btn-pill btn-sm">Abone Ol</a></div>
+      <div className="sticky-cta"><span className="row" style={{ gap: 8, minWidth: 0 }}><b style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.displayName}</b>{p.verified && <VerifiedBadge size={18} />}</span><a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill btn-sm">Abone Ol</a></div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </>
   );

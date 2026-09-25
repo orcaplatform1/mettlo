@@ -27,6 +27,10 @@ const schema = z.object({
   APPLE_KEY_ID: z.string().optional(),
   /** Apple .p8 özel anahtarı (satır sonları \n ile) */
   APPLE_PRIVATE_KEY: z.string().optional(),
+  /** iyzico ödeme altyapısı */
+  IYZICO_API_KEY: z.string().optional(),
+  IYZICO_SECRET_KEY: z.string().optional(),
+  IYZICO_BASE_URL: z.string().url().default('https://sandbox-api.iyzipay.com'),
 });
 
 export type Env = z.infer<typeof schema>;

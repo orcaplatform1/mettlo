@@ -173,6 +173,20 @@ export class PublicController {
     return { type: 'staff', username: u.username, avatarUrl: u.avatarUrl };
   }
 
+  /** Tekil abonelik planı detayı — checkout sayfası için */
+  @Get('plans/:planId')
+  async plan(@Param('planId') planId: string) {
+    const p = await this.prisma.subscriptionPlan.findFirst({
+      where: { id: planId, isActive: true },
+      select: {
+        id: true, name: true, description: true, priceWeb: true, interval: true, features: true, isPremiumLive: true,
+        creator: { select: { username: true, avatarUrl: true, creatorProfile: { select: { displayName: true, verified: true } } } },
+      },
+    });
+    if (!p) throw new NotFoundException('Plan bulunamadı');
+    return p;
+  }
+
   /** Koçun yaklaşan dersleri/sınıfları (rezervasyon için üyelik gerekir; burada yalnızca takvim bilgisi) */
   @Get('creators/:username/classes')
   classes(@Param('username') username: string) {

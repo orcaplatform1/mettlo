@@ -27,6 +27,9 @@ import { PublicController } from './public/public.controller';
 import { ReviewsController } from './reviews/reviews.controller';
 import { AdminTicketsController, SupportController } from './support/support.controller';
 import { SupportService } from './support/support.service';
+import { CheckoutController } from './checkout/checkout.controller';
+import { CheckoutService } from './checkout/checkout.service';
+import { IyzicoService } from './checkout/iyzico.service';
 
 @Module({
   imports: [
@@ -46,12 +49,14 @@ import { SupportService } from './support/support.service';
       },
     }),
   ],
-  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController],
+  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController],
   providers: [
     SupportService,
     PresenceService,
     RunningService,
     MaintenanceService,
+    CheckoutService,
+    IyzicoService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },
