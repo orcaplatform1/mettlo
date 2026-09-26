@@ -9,7 +9,6 @@ import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
 
-final privacyProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/me/privacy') as Map<String, dynamic>);
 final healthSharingProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/me/health-sharing') as List<dynamic>);
 final blocksProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/blocks') as List<dynamic>);
 
@@ -21,7 +20,6 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    final privacy = ref.watch(privacyProvider);
     final sharing = ref.watch(healthSharingProvider);
     final api = ref.read(apiClientProvider);
     final isCoach = user?.role == 'CREATOR';
@@ -33,20 +31,6 @@ class SettingsPage extends ConsumerWidget {
       ]),
       const SizedBox(height: 8),
       Text('Profil adresin: mettlo.tr/profile/${user?.username}', style: const TextStyle(color: MettloColors.textSecondary, fontSize: 12.5)),
-      const SectionTitle('Profil gizliliği'),
-      AsyncBody(
-        value: privacy,
-        builder: (p) => SwitchListTile(
-          value: p['profileVisibility'] == 'public',
-          activeThumbColor: MettloColors.primary,
-          title: const Text('Profilim herkese açık'),
-          subtitle: const Text('Kapalıyken yalnızca kullanıcı adın ve fotoğrafın görünür.', style: TextStyle(fontSize: 12.5)),
-          onChanged: (v) async {
-            await api.patch('/me/privacy', body: {'profileVisibility': v ? 'public' : 'private'});
-            ref.invalidate(privacyProvider);
-          },
-        ),
-      ),
       const SectionTitle('Sağlık verisi paylaşımı'),
       const Text('Verilerini yalnızca izin verdiğin koçla paylaşırsın; izni istediğin an geri alabilirsin.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13)),
       AsyncBody(

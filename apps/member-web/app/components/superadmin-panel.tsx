@@ -51,30 +51,32 @@ export function SuperAdminPanel({ username, data }: { username: string; data: an
   return (
     <section className="container" style={{ paddingBlock: 40 }} aria-label="Süper admin görünümü">
       <div className="staff-panel stack" style={{ ['--stack' as string]: '20px' }}>
-        <div className="title"><ShieldAlert size={18} aria-hidden /> Süper Admin Görünümü — yalnızca sizin oturumunuzda görünür · Her görüntüleme denetim kaydına yazılır</div>
+        <div className="title"><ShieldAlert size={18} aria-hidden /> SÜPER ADMIN GÖRÜNÜMÜ</div>
 
         <div className="row row-wrap">
           <CoachInboxButton username={username} data={data} />
           <Link href={`/profile/${username}/health`} className="btn btn-secondary btn-pill"><HeartPulse size={18} aria-hidden /> Sağlık Verileri</Link>
         </div>
 
-        <h2 className="h4">Kişisel Bilgiler</h2>
-        <dl className="kv">
-          <dt>Ad Soyad</dt><dd>{fmt(p.fullName ?? data.name)}</dd>
-          <dt>Kullanıcı adı</dt><dd>@{data.username}</dd>
-          <dt>E-posta</dt><dd>{fmt(data.email)} {data.emailVerifiedAt ? <span className="badge badge-ok">doğrulanmış</span> : <span className="badge">doğrulanmamış</span>}</dd>
-          <dt>Telefon</dt><dd>{fmt(p.phone)}</dd>
-          <dt>Adres</dt><dd>{fmt(p.address)}</dd>
-          <dt>Şehir / İlçe / Posta kodu</dt><dd>{fmt([p.city, p.district, p.postalCode].filter(Boolean).join(' / '))}</dd>
-          <dt>Doğum tarihi</dt><dd>{data.birthDate ? new Date(data.birthDate).toLocaleDateString('tr-TR') : '—'}</dd>
-          <dt>Cinsiyet</dt><dd>{fmt(p.gender)}</dd>
-          <dt>Acil durum kişisi</dt><dd>{fmt(p.emergencyContact)}</dd>
-          <dt>Rol / Durum</dt><dd><span className="badge">{data.role}</span> <span className={`badge ${data.status === 'ACTIVE' ? 'badge-ok' : 'badge-danger'}`}>{data.status}</span> {data.statusReason && <span className="text-tertiary">({data.statusReason})</span>}</dd>
-          <dt>2FA</dt><dd>{fmt(data.twoFactorEnabled)}</dd>
-          <dt>Kayıt tarihi / Son giriş</dt><dd>{fmt(data.createdAt)} · {fmt(data.lastLoginAt)}</dd>
-          <dt>Kayıt IP / cihaz</dt><dd>{fmt(p.registrationIp)} · <span className="caption text-tertiary">{p.registrationUserAgent}</span></dd>
-          {data.deletionRequest && (<><dt>Silme talebi</dt><dd><span className="badge badge-danger">{data.deletionRequest.status}</span> · uygulanma: {fmt(data.deletionRequest.executeAfter)}</dd></>)}
-        </dl>
+        <details>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, paddingBlock: 4 }}>Kişisel Bilgiler</summary>
+          <dl className="kv" style={{ marginTop: 12 }}>
+            <dt>Ad Soyad</dt><dd>{fmt(p.fullName ?? data.name)}</dd>
+            <dt>Kullanıcı adı</dt><dd>@{data.username}</dd>
+            <dt>E-posta</dt><dd>{fmt(data.email)} {data.emailVerifiedAt ? <span className="badge badge-ok">doğrulanmış</span> : <span className="badge">doğrulanmamış</span>}</dd>
+            <dt>Telefon</dt><dd>{fmt(p.phone)}</dd>
+            <dt>Adres</dt><dd>{fmt(p.address)}</dd>
+            <dt>Şehir / İlçe / Posta kodu</dt><dd>{fmt([p.city, p.district, p.postalCode].filter(Boolean).join(' / '))}</dd>
+            <dt>Doğum tarihi</dt><dd>{data.birthDate ? new Date(data.birthDate).toLocaleDateString('tr-TR') : '—'}</dd>
+            <dt>Cinsiyet</dt><dd>{fmt(p.gender)}</dd>
+            <dt>Acil durum kişisi</dt><dd>{fmt(p.emergencyContact)}</dd>
+            <dt>Rol / Durum</dt><dd><span className="badge">{data.role}</span> <span className={`badge ${data.status === 'ACTIVE' ? 'badge-ok' : 'badge-danger'}`}>{data.status}</span> {data.statusReason && <span className="text-tertiary">({data.statusReason})</span>}</dd>
+            <dt>2FA</dt><dd>{fmt(data.twoFactorEnabled)}</dd>
+            <dt>Kayıt tarihi / Son giriş</dt><dd>{fmt(data.createdAt)} · {fmt(data.lastLoginAt)}</dd>
+            <dt>Kayıt IP / cihaz</dt><dd>{fmt(p.registrationIp)} · <span className="caption text-tertiary">{p.registrationUserAgent}</span></dd>
+            {data.deletionRequest && (<><dt>Silme talebi</dt><dd><span className="badge badge-danger">{data.deletionRequest.status}</span> · uygulanma: {fmt(data.deletionRequest.executeAfter)}</dd></>)}
+          </dl>
+        </details>
 
         {data.creatorProfile && (
           <>

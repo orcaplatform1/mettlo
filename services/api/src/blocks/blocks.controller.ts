@@ -44,7 +44,7 @@ export class BlocksController {
     const target = await this.prisma.user.findFirst({ where: { username: b.username, status: 'ACTIVE' }, select: { id: true, role: true } });
     if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
     if (target.id === me.id) throw new BadRequestException('Kendinizi engelleyemezsiniz');
-    if (['SUPER_ADMIN', 'ADMIN'].includes(target.role)) throw new ForbiddenException('Bu kullanıcı engellenemez');
+    if (['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(target.role)) throw new ForbiddenException('Platform personeli engellenemez');
     await this.prisma.block.upsert({
       where: { blockerId_blockedId: { blockerId: me.id, blockedId: target.id } },
       update: { reason: b.reason },

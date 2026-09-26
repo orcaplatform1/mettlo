@@ -187,7 +187,7 @@ export class AdminController {
     const u = await this.prisma.user.findUnique({
       where: { username: username.toLowerCase() },
       select: {
-        id: true, username: true, name: true, role: true, status: true, statusReason: true,
+        id: true, username: true, name: true, role: true, status: true, statusReason: true, staffBio: true, staffHeadline: true,
         accountSanctions: { where: { status: 'ACTIVE' }, orderBy: { createdAt: 'desc' }, take: 3, select: { id: true, type: true, reason: true, endsAt: true, createdAt: true, issuerId: true } },
         creatorProfile: { select: { status: true, displayName: true, headline: true, bio: true, whyChooseMe: true, expertise: true, careerStartYear: true, verified: true, approvedAt: true, approvedBy: { select: { username: true, role: true } }, rejectedAt: true, rejectionReason: true, rejectedBy: { select: { username: true, role: true } } } },
       },
@@ -494,8 +494,21 @@ export class AdminController {
   // ---------- Profil düzenleme (staff kendi profilini düzenler) ----------
   @RequirePermission('users:edit')
   @Patch('staff/profile')
-  async editStaffProfile(@CurrentUser() me: AuthUser, @Body(new ZodPipe(z.object({ name: z.string().min(2).max(60).optional(), bio: z.string().max(500).optional() }))) body: { name?: string; bio?: string }) {
-    await this.prisma.user.update({ where: { id: me.id }, data: { ...(body.name ? { name: body.name } : {}), ...(body.bio !== undefined ? { bio: body.bio } : {}) } });
+  async editStaffProfile(@CurrentUser() me: AuthUser, @Body(new ZodPipe(z.object({ name: z.string().min(2).max(60).optional(), staffHeadline: z.string().max(120).optional(), staffBio: z.string().max(1000).optional() }))) body: { name?: string; staffHeadline?: string; staffBio?: string }) {
+    await this.prisma.user.update({ where: { id: me.id }, data: { ...(body.name ? { name: body.name } : {}), ...(body.staffHeadline !== undefined ? { staffHeadline: body.staffHeadline } : {}), ...(body.staffBio !== undefined ? { staffBio: body.staffBio } : {}) } });
+    return { ok: true };
+  }
+
+  // ---------- Profil düzenleme (superadmin başka bir staff'ın profilini düzenler) ----------
+  @RequirePermission('users:edit')
+  @Patch('staff/:id/profile')
+  async editOtherStaffProfile(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(z.object({ name: z.string().min(2).max(60).optional(), staffHeadline: z.string().max(120).optional(), staffBio: z.string().max(1000).optional() }))) body: { name?: string; staffHeadline?: string; staffBio?: string }, @Req() req: AuthedRequest) {
+    if (id === me.id) throw new ForbiddenException('Kendi profilinizi /admin/staff/profile üzerinden düzenleyin');
+    const target = await this.prisma.user.findUnique({ where: { id }, select: { id: true, username: true, role: true } });
+    if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
+    if (!['ADMIN', 'MODERATOR', 'SUPPORT', 'SUPER_ADMIN'].includes(target.role)) throw new ForbiddenException('Bu endpoint yalnızca yönetim hesapları için');
+    await this.prisma.user.update({ where: { id }, data: { ...(body.name ? { name: body.name } : {}), ...(body.staffHeadline !== undefined ? { staffHeadline: body.staffHeadline } : {}), ...(body.staffBio !== undefined ? { staffBio: body.staffBio } : {}) } });
+    await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'user.edit', targetType: 'user', targetId: id, subjectUserId: id, metadata: { fields: Object.keys(body) }, ...this.meta(req) });
     return { ok: true };
   }
 }

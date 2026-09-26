@@ -17,7 +17,7 @@ export async function StaffPanel({ username }: { username: string }) {
   return (
     <section className="container" style={{ paddingBlock: 32 }} aria-label="Yönetim paneli">
       <div className="staff-panel stack" style={{ ['--stack' as string]: '16px' }}>
-        <div className="title"><UserCog size={18} aria-hidden /> Yönetim — yalnızca admin ve süper admine görünür · Her işlem denetim kaydına yazılır</div>
+        <div className="title"><UserCog size={18} aria-hidden /> SÜPER ADMIN / ADMIN GÖRÜNÜMÜ</div>
         <div className="row row-wrap" style={{ gap: 10 }}>
           <span className="badge">{u.role === 'CREATOR' ? 'Koç' : c ? 'Koç adayı' : 'Üye / abone'}</span><StatusBadge status={u.status} />
           {c && <StatusBadge status={c.status} />}

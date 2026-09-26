@@ -44,3 +44,24 @@ export async function staffCoachDecisionAction(userId: string, username: string,
   try { await authed(`/admin/creators/${userId}/status`, { method: 'PATCH', body: { status, reason: str(fd, 'reason') || undefined } }); } catch (e) { return fail(e); }
   return done(username, status === 'ACTIVE' ? 'Başvuru onaylandı; adınız onaylayan olarak kaydedildi.' : status === 'REJECTED' ? 'Başvuru reddedildi.' : 'Koç askıya alındı.');
 }
+
+/** Staff kendi profilini düzenler (bio/başlık/ad) */
+export async function staffSelfEditAction(username: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const body: Record<string, string> = {};
+  const name = str(fd, 'name'); if (name) body.name = name;
+  body.staffHeadline = str(fd, 'staffHeadline');
+  body.staffBio = str(fd, 'staffBio');
+  try { await authed('/admin/staff/profile', { method: 'PATCH', body }); } catch (e) { return fail(e); }
+  revalidatePath(`/profile/${username}`);
+  return { ok: 'Profil güncellendi.' };
+}
+
+/** Superadmin başka bir staff'ın profilini düzenler */
+export async function staffAdminEditStaffAction(userId: string, username: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const body: Record<string, string> = {};
+  const name = str(fd, 'name'); if (name) body.name = name;
+  const staffHeadline = str(fd, 'staffHeadline'); body.staffHeadline = staffHeadline;
+  const staffBio = str(fd, 'staffBio'); body.staffBio = staffBio;
+  try { await authed(`/admin/staff/${userId}/profile`, { method: 'PATCH', body }); } catch (e) { return fail(e); }
+  return done(username, 'Staff profili güncellendi.');
+}

@@ -3,13 +3,15 @@ import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { Activity, Award, CalendarClock, Camera, ClipboardList, Film, GraduationCap, Library, Lock, Radio, ShieldCheck, Star, Timer, Trophy, Users, Video } from 'lucide-react';
 import { Avatar, EmptyState, OnlineStatus, TenureBadge, VerifiedBadge } from '@mettlo/ui';
+import { AvatarPopup } from '@/app/components/avatar-popup';
 import { formatTRY } from '@mettlo/utils';
 import { absoluteUrl, apiTry, breadcrumbLd, getAccessToken, getSession, jsonLd } from '@mettlo/web-core';
 import { ProgramCard, Rating } from '@/app/components/cards';
 import { CoachInboxButton, SuperAdminPanel } from '@/app/components/superadmin-panel';
 import { MessageButton } from '@/app/components/message-button';
 import { StaffPanel } from '@/app/components/staff-panel';
-import { getAdminProfile } from '@/app/lib/admin';
+import { StaffAdminEditStaffForm, StaffSelfEditForm } from '@/app/components/staff-forms';
+import { getAdminProfile, getStaffEditData } from '@/app/lib/admin';
 import { ReviewForm } from '@/app/components/review-form';
 import { BookButton } from '@/app/components/book-button';
 import { ReportButton } from '@/app/components/report-button';
@@ -63,9 +65,9 @@ export default async function ProfilePage({ params }: Props) {
   const isOwn = session?.username === p.username;
   const isStaff = !!session?.role && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(session.role);
 
-  // Engel durumu: oturum varsa ve kendi profili değilse kontrol et
   const token = session ? await getAccessToken() : undefined;
-  const blockStatus = (!isOwn && token) ? await apiTry<any>(`/blocks/status/${encodeURIComponent(p.username)}`, { token }) : null;
+  // Engel durumu: yalnızca üye/koç profillerinde kontrol et; staff engellenemez
+  const blockStatus = (!isOwn && token && p.type !== 'staff') ? await apiTry<any>(`/blocks/status/${encodeURIComponent(p.username)}`, { token }) : null;
   if (blockStatus?.blocked || blockStatus?.blockedByThem) notFound();
 
   if (p.type === 'staff') {
@@ -75,6 +77,7 @@ export default async function ProfilePage({ params }: Props) {
     const roleLabel = STAFF_LABEL[p.staffRole] ?? 'Mettlo Ekibi';
     const roleColor = STAFF_COLOR[p.staffRole] ?? '#6b7280';
     const roleTagline: Record<string, string> = { founder: "Mettlo'nun kurucusu ve ürün mimarı", admin: 'Mettlo yönetici ekibi', moderator: 'Topluluk moderasyon ve yönetimi', support: 'Müşteri ilişkileri ve destek ekibi' };
+    const staffEditData = isOwn ? null : await getStaffEditData(p.username);
     return (
       <>
         {/* ---- KAPAK ---- */}
@@ -86,82 +89,59 @@ export default async function ProfilePage({ params }: Props) {
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, background: 'linear-gradient(to top, var(--color-bg), transparent)' }} />
         </div>
 
-        {/* ---- PROFIL HEAD ---- */}
+        {/* ---- PROFİL HEAD ---- */}
         <div className="container" style={{ position: 'relative', paddingTop: 0 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: 20, marginTop: -60 }}>
+          <div className="profile-head" style={{ marginTop: -60, alignItems: 'flex-end' }}>
             <div style={{ flexShrink: 0, borderRadius: '50%', padding: 4, background: 'var(--color-bg)', boxShadow: '0 0 0 2px var(--border-hover), 0 8px 32px rgba(0,0,0,.5)' }}>
-              <Avatar name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
+              <AvatarPopup name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
             </div>
             <div style={{ flex: 1, minWidth: 200, paddingBottom: 8 }}>
               <div className="row row-wrap" style={{ gap: 8, alignItems: 'center' }}>
                 <h1 className="h2">{p.name ?? p.username}</h1>
                 <span className="badge" style={{ flexShrink: 0, color: roleColor, borderColor: `${roleColor}44`, background: `${roleColor}12` }}><ShieldCheck size={12} aria-hidden /> {roleLabel}</span>
               </div>
-              <p className="text-tertiary">@{p.username}</p>
-              <p className="body-sm text-secondary" style={{ marginTop: 6 }}>{roleTagline[p.staffRole] ?? 'Mettlo ekip üyesi'}</p>
+              <p className="text-tertiary" style={{ marginTop: 2 }}>@{p.username}</p>
+              {p.staffHeadline
+                ? <p className="body-sm text-secondary" style={{ marginTop: 6 }}>{p.staffHeadline}</p>
+                : <p className="body-sm text-secondary" style={{ marginTop: 6 }}>{roleTagline[p.staffRole] ?? 'Mettlo ekip üyesi'}</p>
+              }
             </div>
-            {isOwn && (
-              <Link href="/app/settings" className="btn btn-secondary btn-pill" style={{ height: 44, paddingInline: 24, flexShrink: 0, marginBottom: 8 }}>Profili Düzenle</Link>
-            )}
-            {!isOwn && session && (
-              <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} style={{ marginBottom: 8 }} />
-            )}
+            <div className="row row-wrap" style={{ paddingBottom: 8, gap: 10 }}>
+              {!isOwn && session && (
+                <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} />
+              )}
+            </div>
           </div>
         </div>
 
         {/* ---- İÇERİK ---- */}
         <div className="container" style={{ paddingBlock: '32px 64px', maxWidth: 860 }}>
-          {isFounder && (
-            <>
-              <section className="card" style={{ marginBottom: 24 }}>
-                <h2 className="h4" style={{ marginBottom: 12 }}>Mettlo Hakkında</h2>
-                <p className="text-secondary" style={{ lineHeight: 1.7 }}>
-                  Mettlo, Türkiye'nin fitness ve online koçluk platformudur. Koçlar; program, içerik, topluluk ve canlı ders gibi tüm araçları tek çatı altında bulur — üyeler ise güvenilir koçlara kolayca erişir ve hedeflerine ulaşır.
-                </p>
-                <p className="text-secondary" style={{ lineHeight: 1.7, marginTop: 10 }}>
-                  Platform, koç ile üye arasındaki ilişkiyi dijital ortama taşımak ve sürdürülebilir bir fitness deneyimi sunmak amacıyla tasarlandı. Abonelik modeli sayesinde koçlar düzenli gelir elde ederken, üyeler içeriklere, programlara ve birebir koçluğa kesintisiz erişim sağlar.
-                </p>
-              </section>
 
-              <div className="grid grid-3" style={{ gap: 16, marginBottom: 24 }}>
-                <div className="card" style={{ textAlign: 'center' }}>
-                  <Activity size={28} style={{ color: 'var(--color-primary)', margin: '0 auto 8px' }} />
-                  <p className="h4">Fitness & Koçluk</p>
-                  <p className="caption text-tertiary" style={{ marginTop: 4 }}>10+ branş, yüzlerce alt kategori</p>
-                </div>
-                <div className="card" style={{ textAlign: 'center' }}>
-                  <Users size={28} style={{ color: 'var(--color-primary)', margin: '0 auto 8px' }} />
-                  <p className="h4">Koç & Üye</p>
-                  <p className="caption text-tertiary" style={{ marginTop: 4 }}>Güvenilir koçlar, gerçek sonuçlar</p>
-                </div>
-                <div className="card" style={{ textAlign: 'center' }}>
-                  <Radio size={28} style={{ color: 'var(--color-primary)', margin: '0 auto 8px' }} />
-                  <p className="h4">Canlı Dersler</p>
-                  <p className="caption text-tertiary" style={{ marginTop: 4 }}>Gerçek zamanlı etkileşim</p>
-                </div>
-              </div>
+          {/* Profili düzenle (kendi profili) */}
+          {isOwn && <StaffSelfEditForm username={p.username} u={{ name: p.name ?? p.username, staffHeadline: p.staffHeadline, staffBio: p.staffBio }} />}
 
-              <div className="cta-band">
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                  <h2 className="h3">Koçunu bul, hedefine ulaş</h2>
-                  <p className="text-secondary" style={{ marginTop: 8 }}>Alanında uzman koçlar seni bekliyor.</p>
-                </div>
-                <div className="row" style={{ position: 'relative', zIndex: 1, justifyContent: 'flex-end' }}>
-                  <Link href="/coaches" className="btn btn-primary btn-pill" style={{ height: 48, paddingInline: 28 }}>Koçları Keşfet</Link>
-                </div>
+          {/* Hakkında — card-featured stili (koçun "Neden Beni Seçmelisiniz?" kartı gibi) */}
+          {p.staffBio && (
+            <section aria-labelledby="staff-about" style={{ marginTop: isOwn ? 32 : 0, maxWidth: 820 }}>
+              <div className="card card-featured">
+                <h2 id="staff-about" className="h4">Hakkında</h2>
+                <p className="text-secondary" style={{ marginTop: 10, whiteSpace: 'pre-line', lineHeight: 1.75 }}>{p.staffBio}</p>
               </div>
-            </>
+            </section>
           )}
 
-          {!isFounder && (
-            <div className="card" style={{ textAlign: 'center', padding: '40px 24px' }}>
-              <ShieldCheck size={36} style={{ color: roleColor, margin: '0 auto 12px' }} aria-hidden />
-              <p className="h4">{roleLabel}</p>
-              <p className="body-sm text-secondary" style={{ marginTop: 8 }}>{roleTagline[p.staffRole] ?? 'Bu hesap Mettlo platformu ekibine aittir.'}</p>
-              <div style={{ marginTop: 20 }}>
-                <Link href="/coaches" className="btn btn-primary btn-pill btn-sm">Koçları Keşfet</Link>
+          {/* Superadmin: diğer staff profilini düzenle */}
+          {staffEditData && (
+            <section className="staff-panel stack" style={{ ['--stack' as string]: '16px', marginTop: 40, padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
+              <div className="title" style={{ color: 'var(--color-primary)' }}>
+                <ShieldCheck size={16} aria-hidden /> Süper Admin — Staff Profil Düzenle
               </div>
-            </div>
+              <StaffAdminEditStaffForm
+                userId={staffEditData.id}
+                username={staffEditData.username}
+                u={{ name: staffEditData.name, staffHeadline: staffEditData.staffHeadline, staffBio: staffEditData.staffBio }}
+              />
+            </section>
           )}
         </div>
 
@@ -173,19 +153,23 @@ export default async function ProfilePage({ params }: Props) {
   if (p.type === 'member') {
     return (
       <>
-        <div className="container section-sm" style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <Avatar name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
-          <h1 className="h3" style={{ marginTop: 16 }}>{p.isPrivate ? `@${p.username}` : p.name}</h1>
-          {!p.isPrivate && <p className="text-tertiary">@{p.username}</p>}
+        {/* Kapak — yalnızca abone üyelerde */}
+        {p.coverUrl && (
+          <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(to top, var(--color-bg), transparent)' }} />
+          </div>
+        )}
+        <div className="container section-sm" style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', paddingTop: p.coverUrl ? 0 : undefined }}>
+          <div style={p.coverUrl ? { marginTop: -56 } : {}}><AvatarPopup name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" /></div>
+          <h1 className="h3" style={{ marginTop: 16 }}>{p.name}</h1>
+          <p className="text-tertiary">@{p.username}</p>
           <div style={{ marginTop: 8 }}><OnlineStatus username={p.username} label /></div>
-          {p.isPrivate ? (
-            <p className="body-sm text-secondary row" style={{ justifyContent: 'center', marginTop: 12 }}><Lock size={14} aria-hidden /> Bu profil gizli.</p>
-          ) : (
-            <div className="row row-wrap" style={{ justifyContent: 'center', marginTop: 16 }}>
-              <span className="badge">Üyelik: {new Date(p.memberSince).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</span>
-              {p.streak && <span className="badge badge-gold">Seri: {p.streak.current} gün</span>}
-            </div>
-          )}
+          <div className="row row-wrap" style={{ justifyContent: 'center', marginTop: 16 }}>
+            <span className="badge">Üyelik: {new Date(p.memberSince).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</span>
+            {p.streak && <span className="badge badge-gold">Seri: {p.streak.current} gün</span>}
+          </div>
           {isOwn && <Link href="/app/settings" className="btn btn-secondary btn-sm btn-pill" style={{ marginTop: 20 }}>Profili Düzenle</Link>}
           {!isOwn && session && <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} style={{ marginTop: 20 }} />}
           {!isOwn && session && (
@@ -250,7 +234,10 @@ export default async function ProfilePage({ params }: Props) {
         </div>
         <div className="container">
           <div className="profile-head">
-            <Avatar name={p.displayName} src={p.avatarUrl} size={112} className="avatar-lg" verified={!!p.verified} />
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <AvatarPopup name={p.displayName} src={p.avatarUrl} size={112} className="avatar-lg" />
+              {p.verified && <span style={{ position: 'absolute', bottom: 4, right: 4 }}><VerifiedBadge size={22} /></span>}
+            </div>
             <div style={{ flex: 1, minWidth: 240, paddingBottom: 8 }}>
               <h1 className="h2 row" style={{ gap: 8 }}>{p.displayName}{p.verified && <VerifiedBadge size={26} />}<OnlineStatus username={p.username} label size={11} /></h1>
               <p className="text-tertiary">@{p.username}</p>

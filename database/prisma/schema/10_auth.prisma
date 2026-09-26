@@ -10,6 +10,10 @@ model User {
   passwordHash       String?
   name               String
   avatarUrl          String?
+  /// Yalnızca yönetim (staff) hesapları için profil başlığı
+  staffHeadline      String?    @db.VarChar(120)
+  /// Yalnızca yönetim (staff) hesapları için profil biyografisi
+  staffBio           String?    @db.VarChar(1000)
   role               UserRole   @default(MEMBER)
   /// 18+ zorunlu; 18 altı yalnızca ebeveyn/vasi kaydı ile (bölüm 58)
   birthDate          DateTime   @db.Date

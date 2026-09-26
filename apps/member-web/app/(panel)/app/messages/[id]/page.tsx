@@ -15,7 +15,15 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
   return (
     <div className="stack" style={{ ['--stack' as string]: '16px', maxWidth: 760 }}>
       <Link href="/app/messages" className="body-sm text-secondary row" style={{ gap: 6 }}><ArrowLeft size={16} aria-hidden /> Mesajlar</Link>
-      <h1 className="h3 row row-wrap" style={{ gap: 12 }}>{other ? `${other.name} (@${other.username})` : 'Konuşma'}{other && <OnlineStatus username={other.username} label />}</h1>
+      {other ? (
+        <div className="row" style={{ gap: 12, alignItems: 'center' }}>
+          <div>
+            <div className="h3">{other.name}</div>
+            <div className="caption text-tertiary" style={{ marginTop: 2 }}>@{other.username}</div>
+          </div>
+          <OnlineStatus username={other.username} label={false} size={12} />
+        </div>
+      ) : null}
       <MessageThread msgs={msgs} />
       <MessageForm id={id} />
     </div>

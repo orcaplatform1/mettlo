@@ -306,6 +306,13 @@ export class ReportsController {
   async create(@CurrentUser() me: AuthUser, @Body(new ZodPipe(reportCreate)) b: z.infer<typeof reportCreate>) {
     const recent = await this.prisma.report.count({ where: { reporterId: me.id, createdAt: { gte: new Date(Date.now() - 3600_000) } } });
     if (recent >= 20) throw new BadRequestException('Çok fazla şikâyet gönderdin, lütfen daha sonra tekrar dene');
+    // Platform personeli şikâyet edilemez
+    if (b.targetType === 'user') {
+      const target = await this.prisma.user.findFirst({ where: { username: b.targetId.toLowerCase() }, select: { role: true } });
+      if (target && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'].includes(target.role)) {
+        throw new ForbiddenException('Platform personeli şikâyet edilemez');
+      }
+    }
     const r = await this.prisma.report.create({ data: { reporterId: me.id, ...b }, select: { id: true } });
     return r;
   }

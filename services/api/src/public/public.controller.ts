@@ -70,8 +70,10 @@ export class PublicController {
     const u = await this.prisma.user.findFirst({
       where: { username: uname, status: { in: ['ACTIVE', 'PENDING_DELETION'] } },
       select: {
-        id: true, username: true, name: true, avatarUrl: true, role: true, createdAt: true,
+        id: true, username: true, name: true, avatarUrl: true, role: true, createdAt: true, staffBio: true, staffHeadline: true,
         privacySetting: { select: { profileVisibility: true } },
+        memberProfile: { select: { coverUrl: true } },
+        subscriptions: { where: { status: 'ACTIVE' }, select: { id: true }, take: 1 },
         streak: { select: { current: true, longest: true } },
         achievements: { select: { key: true, earnedAt: true }, take: 12, orderBy: { earnedAt: 'desc' } },
         creatorProfile: {
@@ -163,16 +165,19 @@ export class PublicController {
       };
     }
 
-    if (u.role === 'MEMBER' || u.role === 'CREATOR') {
-      const visible = (u.privacySetting?.profileVisibility ?? 'private') === 'public';
-      if (!visible) return { type: 'member', username: u.username, avatarUrl: u.avatarUrl, isPrivate: true };
-      return { type: 'member', username: u.username, name: u.name.split(' ')[0], avatarUrl: u.avatarUrl, memberSince: u.createdAt, streak: u.streak, achievements: u.achievements, isPrivate: false };
+    if (u.role === 'MEMBER') {
+      const hasSubscription = (u.subscriptions?.length ?? 0) > 0;
+      return {
+        type: 'member', username: u.username, name: u.name, avatarUrl: u.avatarUrl,
+        coverUrl: hasSubscription ? (u.memberProfile?.coverUrl ?? null) : null,
+        hasSubscription, memberSince: u.createdAt, streak: u.streak, achievements: u.achievements,
+      };
     }
 
     // ADMIN / MODERATOR / SUPPORT / SUPER_ADMIN: gerçek rol açılmaz; sadece işlev unvanı döner
     const firstName = u.name?.split(' ')[0] ?? u.username;
     const staffRole = u.role === 'SUPER_ADMIN' ? 'founder' : u.role === 'ADMIN' ? 'admin' : u.role === 'MODERATOR' ? 'moderator' : 'support';
-    return { type: 'staff', username: u.username, name: firstName, avatarUrl: u.avatarUrl, staffRole };
+    return { type: 'staff', username: u.username, name: u.name, avatarUrl: u.avatarUrl, staffRole, staffBio: u.staffBio ?? null, staffHeadline: u.staffHeadline ?? null };
   }
 
   /** Halka açık ekip listesi — rol/e-posta dönmez */
@@ -180,7 +185,7 @@ export class PublicController {
   async team() {
     const staff = await this.prisma.user.findMany({
       where: { role: { in: ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'] }, status: 'ACTIVE' },
-      select: { username: true, name: true, avatarUrl: true, role: true, createdAt: true },
+      select: { username: true, name: true, avatarUrl: true, role: true, createdAt: true, staffHeadline: true },
       orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
     });
     return staff.map((u) => ({

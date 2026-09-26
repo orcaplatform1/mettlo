@@ -109,16 +109,21 @@ export class MessagingController {
   }
 
   @Get('conversations')
-  async list(@CurrentUser() u: AuthUser) {
-    const rows = await this.prisma.conversation.findMany({
-      where: { participants: { some: { userId: u.id } } },
-      orderBy: { lastMessageAt: 'desc' }, take: 100,
-      include: {
-        participants: { include: { user: PEOPLE } },
-        messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { body: true, createdAt: true, senderId: true, deletedAt: true } },
-      },
-    });
-    return rows.map((c) => {
+  async list(@CurrentUser() u: AuthUser, @Query('page') pageStr = '1') {
+    const page = Math.max(1, parseInt(pageStr, 10) || 1);
+    const limit = 15;
+    const where = { participants: { some: { userId: u.id } } };
+    const [rows, total] = await Promise.all([
+      this.prisma.conversation.findMany({
+        where, orderBy: { lastMessageAt: 'desc' }, skip: (page - 1) * limit, take: limit,
+        include: {
+          participants: { include: { user: PEOPLE } },
+          messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { body: true, createdAt: true, senderId: true, deletedAt: true } },
+        },
+      }),
+      this.prisma.conversation.count({ where }),
+    ]);
+    const items = rows.map((c) => {
       const me = c.participants.find((p) => p.userId === u.id);
       const last = c.messages[0];
       return {
@@ -128,6 +133,7 @@ export class MessagingController {
         unread: !!last && last.senderId !== u.id && (!me?.lastReadAt || me.lastReadAt < last.createdAt),
       };
     });
+    return { items, total, page, totalPages: Math.ceil(total / limit) };
   }
 
   @Get('can-message/:username')

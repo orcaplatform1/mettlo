@@ -34,3 +34,19 @@ export const getStaffSummary = cache(async (username: string) => {
     throw e;
   }
 });
+
+/** Yalnızca SUPER_ADMIN oturumunda: başka bir staff üyesinin profil verisini döner (düzenleme paneli için). */
+export const getStaffEditData = cache(async (username: string) => {
+  const session = await getSession();
+  if (session?.role !== 'SUPER_ADMIN') return null;
+  const token = await getAccessToken();
+  try {
+    const u = await apiFetch<any>(`/admin/profiles/${encodeURIComponent(username)}/staff`, { token });
+    if (!['ADMIN', 'MODERATOR', 'SUPPORT', 'SUPER_ADMIN'].includes(u.role)) return null;
+    if (u.id === session.id) return null; // kendi profili StaffSelfEditForm ile düzenlenir
+    return u;
+  } catch (e) {
+    if (e instanceof ApiError) return null;
+    throw e;
+  }
+});

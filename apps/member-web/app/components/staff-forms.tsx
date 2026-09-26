@@ -1,7 +1,7 @@
 'use client';
 import { useActionState, useState, type ReactNode } from 'react';
 import { Alert, noResetSubmit } from '@mettlo/ui';
-import { staffCoachDecisionAction, staffDeleteAction, staffEditAction, staffSanctionAction, type FormState } from '@/app/actions/staff';
+import { staffAdminEditStaffAction, staffCoachDecisionAction, staffDeleteAction, staffEditAction, staffSanctionAction, staffSelfEditAction, type FormState } from '@/app/actions/staff';
 
 function Shell({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return <details className="staff-details"><summary>{title}</summary><div className="stack" style={{ ['--stack' as string]: '12px', paddingTop: 12 }}>{hint && <p className="body-sm text-secondary">{hint}</p>}{children}</div></details>;
@@ -66,6 +66,41 @@ export function DeleteForm({ userId }: { userId: string }) {
         <Msg state={state} /><Reason />
         <label className="check"><input type="checkbox" name="confirm" /><span>Bu hesabın kalıcı olarak silineceğini anlıyorum.</span></label>
         <button className="btn btn-danger btn-sm" style={{ alignSelf: 'flex-start' }} type="submit" disabled={pending}>{pending ? 'Siliniyor…' : 'Hesabı kalıcı sil'}</button>
+      </form>
+    </Shell>
+  );
+}
+
+/** Staff kendi profilini düzenler — profil sayfasında isOwn ise görünür */
+export function StaffSelfEditForm({ username, u }: { username: string; u: { name: string; staffHeadline?: string | null; staffBio?: string | null } }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(staffSelfEditAction.bind(null, username), {});
+  const [open, setOpen] = useState(false);
+  if (!open) return <button className="btn btn-secondary btn-pill" style={{ height: 44, paddingInline: 24 }} onClick={() => setOpen(true)}>Profili Düzenle</button>;
+  return (
+    <div className="card stack" style={{ ['--stack' as string]: '14px', marginTop: 20, maxWidth: 560 }}>
+      <div className="row between"><h3 className="h5">Profili Düzenle</h3><button className="btn btn-ghost btn-sm" type="button" onClick={() => setOpen(false)}>✕</button></div>
+      <form onSubmit={noResetSubmit(action)} className="stack" style={{ ['--stack' as string]: '12px' }}>
+        <Msg state={state} />
+        <div className="field"><label>Ad soyad</label><input name="name" className="input" defaultValue={u.name} maxLength={60} /></div>
+        <div className="field"><label>Kısa başlık</label><input name="staffHeadline" className="input" defaultValue={u.staffHeadline ?? ''} maxLength={120} placeholder="Örn: Topluluk Moderatörü" /></div>
+        <div className="field"><label>Hakkında</label><textarea name="staffBio" className="textarea" rows={4} defaultValue={u.staffBio ?? ''} maxLength={1000} placeholder="Kendinizi kısaca tanıtın…" /></div>
+        <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} type="submit" disabled={pending}>{pending ? 'Kaydediliyor…' : 'Kaydet'}</button>
+      </form>
+    </div>
+  );
+}
+
+/** Superadmin başka bir staff'ın profilini düzenler */
+export function StaffAdminEditStaffForm({ userId, username, u }: { userId: string; username: string; u: { name: string; staffHeadline?: string | null; staffBio?: string | null } }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(staffAdminEditStaffAction.bind(null, userId, username), {});
+  return (
+    <Shell title="Staff profilini düzenle">
+      <form onSubmit={noResetSubmit(action)} className="stack" style={{ ['--stack' as string]: '12px' }}>
+        <Msg state={state} />
+        <div className="field"><label>Ad soyad</label><input name="name" className="input" defaultValue={u.name} maxLength={60} /></div>
+        <div className="field"><label>Kısa başlık</label><input name="staffHeadline" className="input" defaultValue={u.staffHeadline ?? ''} maxLength={120} /></div>
+        <div className="field"><label>Hakkında</label><textarea name="staffBio" className="textarea" rows={4} defaultValue={u.staffBio ?? ''} maxLength={1000} /></div>
+        <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} type="submit" disabled={pending}>{pending ? 'Kaydediliyor…' : 'Kaydet'}</button>
       </form>
     </Shell>
   );
