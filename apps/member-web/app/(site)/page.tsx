@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
-  Activity, ArrowRight, BrainCircuit, Briefcase, Building2, CalendarDays, ClipboardList, Crown, Handshake, HeartPulse, Play, Radio, ShoppingBag, Trophy, UserRound, Users, Video, MessageSquare,
+  Activity, ArrowRight, BrainCircuit, Briefcase, Building2, CalendarDays, ClipboardList, Crown, Handshake, HeartPulse, Play, Radio, Salad, ShoppingBag, Trophy, UserRound, Users, Video, MessageSquare,
 } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { SITE } from '@mettlo/types';
@@ -261,6 +261,36 @@ export default async function HomePage() {
               Spor salonları, yoga stüdyoları, sağlıklı restoranlar ve daha fazlası Mettlo&apos;da.
             </EmptyState>
           )}
+        </div>
+      </section>
+
+      {/* ---------- RESTORANLAR ---------- */}
+      <section className="section-sm" aria-labelledby="restaurants-title">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <span className="overline">SAĞLIKLI BESLENME</span>
+              <h2 id="restaurants-title" className="h2">Restoranlar &amp; Kafeler</h2>
+            </div>
+            <Link href="/isletme?category=HEALTHY_FOOD" className="btn btn-secondary btn-pill btn-sm">Tüm Restoranlar <ArrowRight size={16} aria-hidden /></Link>
+          </div>
+          <div className="grid grid-4">
+            {([
+              ['/isletme?category=HEALTHY_FOOD', 'Sağlıklı Restoran'],
+              ['/isletme?category=HEALTHY_CAFE', 'Sağlıklı Kafe'],
+              ['/isletme?category=SMOOTHIE_BAR', 'Smoothie Bar'],
+              ['/isletme?category=VEGAN', 'Vegan'],
+              ['/isletme?category=MEAL_PREP', 'Meal Prep'],
+              ['/isletme?category=PROTEIN_BAR', 'Protein Bar'],
+              ['/isletme?category=VEGETARIAN', 'Vejetaryen'],
+              ['/isletme?category=GLUTEN_FREE', 'Glütensiz'],
+            ] as [string, string][]).map(([href, label]) => (
+              <Link key={label} href={href} className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px' }}>
+                <Salad size={20} className="text-primary-c" aria-hidden style={{ flexShrink: 0 }} />
+                <span className="body-sm" style={{ fontWeight: 600 }}>{label}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

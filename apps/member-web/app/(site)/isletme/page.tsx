@@ -7,10 +7,24 @@ import { getBusinesses, getCities } from '@/app/lib/data';
 import { AdBanner } from '@/app/components/ad-banner';
 
 const CATEGORY_TR: Record<string, string> = {
+  // Fitness & spor
   FITNESS_GYM: 'Spor Salonu', PILATES_STUDIO: 'Pilates', YOGA_STUDIO: 'Yoga', DANCE_STUDIO: 'Dans',
   HIIT_STUDIO: 'HIIT', BOXING_GYM: 'Boks', RUNNING_CLUB: 'Koşu', WELLNESS_CENTER: 'Wellness',
-  NUTRITION_CLINIC: 'Beslenme', RECOVERY_STUDIO: 'Recovery', SPORTS_CLUB: 'Spor Kulübü', OTHER: 'Diğer',
+  NUTRITION_CLINIC: 'Beslenme Kliniği', RECOVERY_STUDIO: 'Recovery', SPORTS_CLUB: 'Spor Kulübü',
+  // Sağlıklı beslenme & restoran
+  HEALTHY_FOOD: 'Sağlıklı Restoran', SMOOTHIE_BAR: 'Smoothie Bar', MEAL_PREP: 'Meal Prep',
+  PROTEIN_BAR: 'Protein Bar', HEALTHY_CAFE: 'Sağlıklı Kafe', SPORTS_NUTRITION: 'Spor Beslenme',
+  VEGAN: 'Vegan', VEGETARIAN: 'Vejetaryen', GLUTEN_FREE: 'Glütensiz',
+  RAW_FOOD: 'Ham Gıda', FUNCTIONAL_NUTRITION: 'Fonksiyonel Beslenme',
+  FUNCTIONAL_BEVERAGES: 'Fonksiyonel İçecek', SPECIAL_DIET: 'Özel Diyet',
+  OTHER: 'Diğer',
 };
+
+const FOOD_CATEGORIES = new Set([
+  'HEALTHY_FOOD', 'SMOOTHIE_BAR', 'MEAL_PREP', 'PROTEIN_BAR', 'HEALTHY_CAFE',
+  'SPORTS_NUTRITION', 'VEGAN', 'VEGETARIAN', 'GLUTEN_FREE', 'RAW_FOOD',
+  'FUNCTIONAL_NUTRITION', 'FUNCTIONAL_BEVERAGES', 'SPECIAL_DIET',
+]);
 
 type Props = { searchParams: Promise<{ q?: string; category?: string; cityId?: string; page?: string }> };
 
@@ -78,20 +92,19 @@ export default async function BusinessListPage({ searchParams }: Props) {
         </div>
 
         {/* Kategori chip'leri */}
-        <div className="row row-wrap" style={{ gap: 6, marginBottom: 24 }}>
-          <Link href={`/isletme${qs({ q: sp.q, cityId: sp.cityId })}`} className="chip" aria-current={!sp.category ? 'page' : undefined}>
-            Tümü
-          </Link>
-          {categories.map(([key, label]) => (
-            <Link
-              key={key}
-              href={`/isletme${qs({ q: sp.q, cityId: sp.cityId, category: key })}`}
-              className="chip"
-              aria-current={sp.category === key ? 'page' : undefined}
-            >
-              {label}
-            </Link>
-          ))}
+        <div style={{ marginBottom: 24 }}>
+          <div className="row row-wrap" style={{ gap: 6, marginBottom: 8 }}>
+            <Link href={`/isletme${qs({ q: sp.q, cityId: sp.cityId })}`} className="chip" aria-current={!sp.category ? 'page' : undefined}>Tümü</Link>
+            {categories.filter(([key]) => !FOOD_CATEGORIES.has(key)).map(([key, label]) => (
+              <Link key={key} href={`/isletme${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
+            ))}
+          </div>
+          <p className="caption text-tertiary" style={{ margin: '10px 0 6px', fontWeight: 600 }}>Sağlıklı Beslenme &amp; Restoranlar</p>
+          <div className="row row-wrap" style={{ gap: 6 }}>
+            {categories.filter(([key]) => FOOD_CATEGORIES.has(key)).map(([key, label]) => (
+              <Link key={key} href={`/isletme${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
+            ))}
+          </div>
         </div>
 
         {/* Aktif filtre özeti */}
