@@ -7,7 +7,8 @@ import { ProfileForm } from './profile-form';
 
 export default async function SettingsPage() {
   const s = await requireSession('/app/settings');
-  const [privacy, sharing, meData] = await Promise.all([authed<any>('/me/privacy').catch(() => null), authed<any[]>('/me/health-sharing').catch(() => []), authed<any>('/auth/me').catch(() => null)]);
+  const isMember = s.role === 'MEMBER';
+  const [privacy, sharing, meData] = await Promise.all([authed<any>('/me/privacy').catch(() => null), isMember ? authed<any[]>('/me/health-sharing').catch(() => []) : Promise.resolve([]), authed<any>('/auth/me').catch(() => null)]);
   const pendingDeletion = s.status === 'PENDING_DELETION';
   return (
     <div className="stack" style={{ ['--stack' as string]: '28px', maxWidth: 760 }}>
@@ -27,20 +28,21 @@ export default async function SettingsPage() {
       </section>
 
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
-        <h2 className="h4">Profil gizliliği</h2>
-        <p className="body-sm text-secondary">Profil adresin: <b>mettlo.tr/profile/{s.username}</b>. Varsayılan olarak profilin gizlidir; yalnızca kullanıcı adın ve fotoğrafın görünür.</p>
-        <PrivacyForm current={privacy?.profileVisibility ?? 'private'} showOnline={privacy?.showOnlineStatus !== false} />
+        <h2 className="h4">Çevrimiçi durumum</h2>
+        <PrivacyForm showOnline={privacy?.showOnlineStatus !== false} />
       </section>
-      <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
-        <h2 className="h4 row" style={{ gap: 8 }}><HeartPulse size={20} className="text-primary-c" aria-hidden /> Sağlık verisi paylaşımı</h2>
-        <p className="body-sm text-secondary">Sağlık verilerini (adım, uyku, nabız, kilo, ölçüler) yalnızca izin verdiğin koçla paylaşırsın. İzni istediğin an geri alabilirsin. Verilerin hiçbir zaman reklam amacıyla kullanılmaz.</p>
-        {(sharing ?? []).length === 0 ? <p className="body-sm text-muted">Paylaşım için önce bir koça abone olmalısın.</p> : (sharing ?? []).map((c) => (
-          <div key={c.username} className="row between" style={{ padding: '10px 0', borderTop: '1px solid var(--border-soft)' }}>
-            <div><b>{c.displayName}</b> <span className="text-tertiary">@{c.username}</span><br /><span className="caption text-tertiary">{c.sharing ? 'Verilerini bu koçla paylaşıyorsun' : 'Paylaşılmıyor'}</span></div>
-            <form action={toggleHealthShareAction.bind(null, c.username, !c.sharing)}><button className={`btn btn-sm ${c.sharing ? 'btn-secondary' : 'btn-primary'}`} type="submit">{c.sharing ? 'Paylaşımı Durdur' : 'Paylaşmaya İzin Ver'}</button></form>
-          </div>
-        ))}
-      </section>
+      {isMember && (
+        <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
+          <h2 className="h4 row" style={{ gap: 8 }}><HeartPulse size={20} className="text-primary-c" aria-hidden /> Sağlık verisi paylaşımı</h2>
+          <p className="body-sm text-secondary">Sağlık verilerini (adım, uyku, nabız, kilo, ölçüler) yalnızca izin verdiğin koçla paylaşırsın. İzni istediğin an geri alabilirsin. Verilerin hiçbir zaman reklam amacıyla kullanılmaz.</p>
+          {(sharing ?? []).length === 0 ? <p className="body-sm text-muted">Paylaşım için önce bir koça abone olmalısın.</p> : (sharing ?? []).map((c) => (
+            <div key={c.username} className="row between" style={{ padding: '10px 0', borderTop: '1px solid var(--border-soft)' }}>
+              <div><b>{c.displayName}</b> <span className="text-tertiary">@{c.username}</span><br /><span className="caption text-tertiary">{c.sharing ? 'Verilerini bu koçla paylaşıyorsun' : 'Paylaşılmıyor'}</span></div>
+              <form action={toggleHealthShareAction.bind(null, c.username, !c.sharing)}><button className={`btn btn-sm ${c.sharing ? 'btn-secondary' : 'btn-primary'}`} type="submit">{c.sharing ? 'Paylaşımı Durdur' : 'Paylaşmaya İzin Ver'}</button></form>
+            </div>
+          ))}
+        </section>
+      )}
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
         <h2 className="h4 row" style={{ gap: 8 }}><Download size={20} className="text-primary-c" aria-hidden /> Verilerimi indir (KVKK)</h2>
         <p className="body-sm text-secondary">Hesabına ait verilerin bir kopyasını JSON olarak indirebilirsin.</p>

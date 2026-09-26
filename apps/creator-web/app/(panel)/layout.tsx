@@ -17,7 +17,7 @@ export default async function CreatorLayout({ children }: { children: React.Reac
     ...(slugs.includes('dance') ? [{ href: '/creator/dance', label: 'Dans Koçluğu' }] : []),
     { href: '/creator/plans', label: 'Abonelik Planları' }, { href: '/creator/programs', label: 'Programlar' }, { href: '/creator/workouts', label: 'Antrenmanlar' }, { href: '/creator/exercises', label: 'Egzersizler' },
     { href: '/creator/challenges', label: 'Challenge’lar' }, { href: '/creator/classes', label: 'Ders Takvimi' }, { href: '/creator/live', label: 'Canlı Dersler' }, { href: '/creator/community', label: 'Topluluk' },
-    { href: '/creator/invites', label: 'Ücretsiz Davetler' }, { href: '/app/messages', label: 'Mesajlar' }, { href: '/app/support', label: 'Destek Merkezi' }, { href: '/creator/settings', label: 'Ayarlar' },
+    { href: '/creator/invites', label: 'Ücretsiz Davetler' }, { href: '/app/support', label: 'Destek Merkezi' }, { href: '/creator/settings', label: 'Ayarlar' },
   ];
   return <PanelShell title="Koç Paneli" user={s} links={links} logoutAction="/creator/logout" basePath="/creator">{children}</PanelShell>;
 }

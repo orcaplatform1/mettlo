@@ -34,14 +34,10 @@ export function NewAdForm({ role, businessId, ownerType }: Props) {
     setError(null);
     const fd = new FormData(e.currentTarget);
 
-    const budgetRaw = String(fd.get('budget') ?? '').replace(',', '.');
-    const budgetKurus = Math.round(parseFloat(budgetRaw) * 100);
-
     const body: any = {
       ownerType,
       placement: placements,
       title: String(fd.get('title') ?? '').trim() || undefined,
-      budget: budgetKurus,
       startAt: fd.get('startAt') || undefined,
       endAt: fd.get('endAt') || undefined,
       creative: {
@@ -98,21 +94,6 @@ export function NewAdForm({ role, businessId, ownerType }: Props) {
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="field">
-        <label className="label">Bütçe (₺) <span style={{ color: 'var(--error)' }}>*</span></label>
-        <input
-          className="input"
-          name="budget"
-          type="number"
-          min="10"
-          step="0.01"
-          required
-          placeholder="Örn: 500"
-          style={{ maxWidth: '200px' }}
-        />
-        <p className="caption text-secondary" style={{ marginTop: '4px' }}>Bütçen tükenince reklam duraklatılır.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

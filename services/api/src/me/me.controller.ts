@@ -57,6 +57,22 @@ export class MeController {
     return { updated: r.count };
   }
 
+  @Get('badge-counts')
+  async badgeCounts(@CurrentUser() me: AuthUser) {
+    const [notifCount, unreadConvs] = await Promise.all([
+      this.prisma.notification.count({ where: { userId: me.id, readAt: null } }),
+      this.prisma.conversationParticipant.findMany({
+        where: { userId: me.id },
+        select: { lastReadAt: true, conversation: { select: { messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { senderId: true, createdAt: true, deletedAt: true } } } } },
+      }),
+    ]);
+    const unreadMessages = unreadConvs.filter((p) => {
+      const last = p.conversation.messages[0];
+      return last && !last.deletedAt && last.senderId !== me.id && (!p.lastReadAt || p.lastReadAt < last.createdAt);
+    }).length;
+    return { unreadMessages, unreadNotifications: notifCount };
+  }
+
   @Get('privacy')
   async privacy(@CurrentUser() me: AuthUser) {
     const p = await this.prisma.privacySetting.findUnique({ where: { userId: me.id } });

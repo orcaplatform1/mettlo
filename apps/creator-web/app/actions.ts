@@ -24,12 +24,21 @@ export async function saveProfileAction(_p: FormState, fd: FormData): Promise<Fo
 }
 
 export async function createPlanAction(_p: FormState, fd: FormData): Promise<FormState> {
-  try { await authed('/creators/me/plans', { method: 'POST', body: { name: str(fd, 'name'), description: str(fd, 'description') || undefined, priceWeb: num(fd, 'priceWeb'), priceMobile: num(fd, 'priceMobile'), interval: str(fd, 'interval') || 'MONTHLY', isPremiumLive: fd.get('isPremiumLive') === 'on', features: str(fd, 'features').split('\n').map((x) => x.trim()).filter(Boolean) } }); }
+  const webPrice = num(fd, 'priceWeb');
+  try { await authed('/creators/me/plans', { method: 'POST', body: { name: str(fd, 'name'), description: str(fd, 'description') || undefined, priceWeb: webPrice, priceMobile: webPrice != null ? Math.round(webPrice * 1.15 * 100) / 100 : undefined, interval: str(fd, 'interval') || 'MONTHLY', isPremiumLive: fd.get('isPremiumLive') === 'on', features: str(fd, 'features').split('\n').map((x) => x.trim()).filter(Boolean) } }); }
   catch (e) { return fail(e); }
   revalidatePath('/creator/plans');
   return { ok: 'Plan oluşturuldu.' };
 }
 export async function togglePlanAction(id: string, isActive: boolean) { await authed(`/creators/me/plans/${id}`, { method: 'PATCH', body: { isActive } }); revalidatePath('/creator/plans'); }
+export async function deletePlanAction(id: string) { await authed(`/creators/me/plans/${id}`, { method: 'DELETE' }); revalidatePath('/creator/plans'); }
+export async function updatePlanAction(id: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const webPrice = num(fd, 'priceWeb');
+  try { await authed(`/creators/me/plans/${id}`, { method: 'PATCH', body: { name: str(fd, 'name'), description: str(fd, 'description') || undefined, priceWeb: webPrice, priceMobile: webPrice != null ? Math.round(webPrice * 1.15 * 100) / 100 : undefined, features: str(fd, 'features').split('\n').map((x) => x.trim()).filter(Boolean) } }); }
+  catch (e) { return fail(e); }
+  revalidatePath('/creator/plans');
+  return { ok: 'Plan güncellendi.' };
+}
 
 export async function createProgramAction(_p: FormState, fd: FormData): Promise<FormState> {
   try { await authed('/creators/me/programs', { method: 'POST', body: { title: str(fd, 'title'), description: str(fd, 'description') || undefined, durationDays: num(fd, 'durationDays'), level: str(fd, 'level') || undefined, goal: str(fd, 'goal') || undefined, branchSlug: str(fd, 'branchSlug') || undefined, access: str(fd, 'access') === 'FREE' ? 'FREE' : 'MEMBERS_ONLY', priceWeb: num(fd, 'priceWeb') ?? null, status: str(fd, 'status') === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT' } }); }

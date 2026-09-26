@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { Briefcase, MapPin, Monitor } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { getJobs, getCities } from '@/app/lib/data';
-import { PageHead, Pagination, pageOf, LIMIT } from '@/app/components/list';
+import { PageHead, Pagination, pageOf } from '@/app/components/list';
 import { AdBanner } from '@/app/components/ad-banner';
+import { JobFilters } from './job-filters';
 
 export const metadata: Metadata = {
   title: 'Koç İş İlanları — Fitness ve Spor Sektörü',
@@ -15,7 +16,6 @@ export const metadata: Metadata = {
 const WORK_MODE_TR: Record<string, string> = {
   ONLINE: 'Online', BUSINESS: 'İşletmede', HYBRID: 'Hibrit', OUTDOOR: 'Açık Hava',
 };
-
 const dtFmt = (s: string) =>
   new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(s));
 
@@ -38,19 +38,6 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
 
-  const workModes = ['', 'ONLINE', 'BUSINESS', 'HYBRID', 'OUTDOOR'];
-
-  const filterLink = (patch: Record<string, string | undefined>) => {
-    const p: Record<string, string> = {};
-    if (sp.cityId) p.cityId = sp.cityId;
-    if (sp.workMode) p.workMode = sp.workMode;
-    if (sp.branch) p.branch = sp.branch;
-    Object.assign(p, patch);
-    Object.keys(p).forEach((k) => { if (!p[k]) delete p[k]; });
-    const q = new URLSearchParams(p).toString();
-    return `/is-ilanlari${q ? `?${q}` : ''}`;
-  };
-
   return (
     <>
       <PageHead overline="İŞ İLANLARI" title="Koçluk iş fırsatları">
@@ -58,47 +45,7 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
       </PageHead>
 
       <div className="container section-sm">
-        {/* Filtreler */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
-          {/* Çalışma şekli */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {workModes.map((wm) => (
-              <Link
-                key={wm}
-                href={filterLink({ workMode: wm || undefined, page: '1' })}
-                style={{
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '12px', textDecoration: 'none',
-                  background: (sp.workMode || '') === wm ? 'var(--accent)' : 'var(--surface-2)',
-                  color: (sp.workMode || '') === wm ? '#fff' : 'inherit',
-                }}
-              >
-                {wm ? WORK_MODE_TR[wm] : 'Tüm Modlar'}
-              </Link>
-            ))}
-          </div>
-
-          {/* Şehir */}
-          {cities && (
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <Link href={filterLink({ cityId: undefined, page: '1' })} style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', textDecoration: 'none', background: !sp.cityId ? 'var(--surface-3, var(--surface-2))' : 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                Tüm Şehirler
-              </Link>
-              {cities.slice(0, 10).map((c: any) => (
-                <Link
-                  key={c.id}
-                  href={filterLink({ cityId: String(c.id), page: '1' })}
-                  style={{
-                    padding: '4px 12px', borderRadius: '20px', fontSize: '12px', textDecoration: 'none',
-                    background: sp.cityId === String(c.id) ? 'var(--surface-3, var(--surface-2))' : 'var(--surface-2)',
-                    border: `1px solid ${sp.cityId === String(c.id) ? 'var(--accent)' : 'var(--border)'}`,
-                  }}
-                >
-                  {c.name}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        <JobFilters cities={cities ?? []} cityId={sp.cityId} workMode={sp.workMode} />
 
         <p className="text-secondary" style={{ fontSize: '13px', marginBottom: '16px' }}>
           <strong>{total}</strong> ilan bulundu

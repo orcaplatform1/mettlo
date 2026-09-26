@@ -239,7 +239,7 @@ export default async function ProfilePage({ params }: Props) {
               {p.verified && <span style={{ position: 'absolute', bottom: 4, right: 4 }}><VerifiedBadge size={22} /></span>}
             </div>
             <div style={{ flex: 1, minWidth: 240, paddingBottom: 8 }}>
-              <h1 className="h2 row" style={{ gap: 8 }}>{p.displayName}{p.verified && <VerifiedBadge size={26} />}<OnlineStatus username={p.username} label size={11} /></h1>
+              <h1 className="h2 row" style={{ gap: 8 }}>{p.displayName}<OnlineStatus username={p.username} label size={11} /></h1>
               <p className="text-tertiary">@{p.username}</p>
               {p.headline && <p className="text-secondary" style={{ marginTop: 6 }}>{p.headline}</p>}
               {p.subCategories?.length > 0 && <div className="row row-wrap" style={{ marginTop: 10, gap: 6 }}>{p.subCategories.map((x: any) => <Link key={x.slug} href={`/coaches?branch=${p.branches?.[0]?.slug ?? ''}&sub=${x.slug}`} prefetch={false} className="badge badge-premium">{x.name}</Link>)}</div>}

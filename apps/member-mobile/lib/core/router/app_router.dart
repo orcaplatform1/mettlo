@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'badge_counts_provider.dart';
 
 import '../../features/admin/moderation_page.dart';
 import '../../features/advertising/advertising_page.dart';
@@ -67,6 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/discover', builder: (_, _) => const DiscoverPage()),
           GoRoute(path: '/programs', builder: (_, _) => const ProgramsPage()),
           GoRoute(path: '/messages', builder: (_, _) => const MessagesPage()),
+          GoRoute(path: '/notifications', builder: (_, _) => const NotificationsPage()),
           GoRoute(path: '/settings', builder: (_, _) => const SettingsPage()),
         ],
       ),
@@ -77,9 +79,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/support/new', builder: (_, _) => const NewTicketPage()),
       GoRoute(path: '/support/:id', builder: (_, s) => TicketPage(id: s.pathParameters['id']!)),
       GoRoute(path: '/health', builder: (_, _) => const HealthPage()),
-      GoRoute(path: '/notifications', builder: (_, _) => const NotificationsPage()),
       GoRoute(path: '/bookings', builder: (_, _) => const BookingsPage()),
       GoRoute(path: '/challenges', builder: (_, _) => const ChallengesPage()),
+      // /notifications artık ShellRoute içinde (bottom nav)
+
       GoRoute(path: '/challenges/:slug', builder: (_, s) => ChallengeDetailPage(slug: s.pathParameters['slug']!)),
       GoRoute(path: '/sports/running', builder: (_, _) => const RunningPage()),
       GoRoute(path: '/sports/boxing', builder: (_, _) => const BoxingPage()),
@@ -124,7 +127,7 @@ class _Splash extends StatelessWidget {
       );
 }
 
-class _Shell extends StatelessWidget {
+class _Shell extends ConsumerWidget {
   const _Shell({required this.location, required this.child});
   final String location;
   final Widget child;
@@ -134,18 +137,37 @@ class _Shell extends StatelessWidget {
     ('/discover', 'Keşfet', Icons.explore_outlined, Icons.explore),
     ('/programs', 'Programlarım', Icons.fitness_center_outlined, Icons.fitness_center),
     ('/messages', 'Mesajlar', Icons.chat_bubble_outline, Icons.chat_bubble),
+    ('/notifications', 'Bildirimler', Icons.notifications_outlined, Icons.notifications),
     ('/settings', 'Profil', Icons.person_outline, Icons.person),
   ];
 
+  Widget _badgeIcon(Widget icon, int count) {
+    if (count == 0) return icon;
+    return Badge(
+      label: Text(count > 99 ? '99+' : '$count', style: const TextStyle(fontSize: 10, color: Colors.white)),
+      backgroundColor: MettloColors.primary,
+      child: icon,
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final idx = _tabs.indexWhere((t) => location.startsWith(t.$1));
+    final counts = ref.watch(badgeCountsProvider).valueOrNull ?? const BadgeCounts();
+
     return Scaffold(
       body: SafeArea(bottom: false, child: child),
       bottomNavigationBar: NavigationBar(
         selectedIndex: idx < 0 ? 0 : idx,
         onDestinationSelected: (i) => context.go(_tabs[i].$1),
-        destinations: [for (final t in _tabs) NavigationDestination(icon: Icon(t.$3), selectedIcon: Icon(t.$4, color: MettloColors.primary), label: t.$2)],
+        destinations: _tabs.map((t) {
+          final badge = t.$1 == '/messages' ? counts.unreadMessages : t.$1 == '/notifications' ? counts.unreadNotifications : 0;
+          return NavigationDestination(
+            icon: _badgeIcon(Icon(t.$3), badge),
+            selectedIcon: _badgeIcon(Icon(t.$4, color: MettloColors.primary), badge),
+            label: t.$2,
+          );
+        }).toList(),
       ),
     );
   }
