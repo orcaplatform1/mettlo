@@ -20,14 +20,14 @@ export function ApplyJobForm({ jobId }: { jobId: string }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ coverLetter: coverLetter.trim() || undefined }),
       });
-      if (res.status === 401) { router.push('/login?next=/app/is-basvurulari'); return; }
+      if (res.status === 401) { router.push('/login?next=/app/job-applications'); return; }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.message || 'Başvuru gönderilemedi.');
         return;
       }
       setDone(true);
-      router.replace('/app/is-basvurulari');
+      router.replace('/app/job-applications');
     } catch {
       setError('Bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
@@ -59,7 +59,7 @@ export function ApplyJobForm({ jobId }: { jobId: string }) {
         <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '8px 20px' }}>
           {loading ? 'Gönderiliyor…' : 'Başvur'}
         </button>
-        <a href="/app/is-basvurulari" className="btn btn-ghost" style={{ padding: '8px 16px' }}>İptal</a>
+        <a href="/app/job-applications" className="btn btn-ghost" style={{ padding: '8px 16px' }}>İptal</a>
       </div>
     </form>
   );

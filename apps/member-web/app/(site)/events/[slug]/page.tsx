@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${ev.title} — Mettlo Etkinlikleri`,
     description: ev.description?.slice(0, 160) || `${ev.title} etkinliğine katıl.`,
-    alternates: { canonical: `/etkinlikler/${slug}` },
+    alternates: { canonical: `/events/${slug}` },
   };
 }
 

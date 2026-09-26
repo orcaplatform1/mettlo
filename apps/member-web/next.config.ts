@@ -27,6 +27,19 @@ const nextConfig: NextConfig = {
     return [
       { source: '/coach/:username', destination: '/profile/:username', permanent: true },
       { source: '/member/:username', destination: '/profile/:username', permanent: true },
+      // Eski Türkçe URL'ler → yeni İngilizce URL'ler
+      { source: '/etkinlikler', destination: '/events', permanent: true },
+      { source: '/etkinlikler/:slug', destination: '/events/:slug', permanent: true },
+      { source: '/is-ilanlari', destination: '/jobs', permanent: true },
+      { source: '/isletme', destination: '/businesses', permanent: true },
+      { source: '/isletme/:slug', destination: '/businesses/:slug', permanent: true },
+      { source: '/isletme/:slug/menu', destination: '/businesses/:slug/menu', permanent: true },
+      { source: '/sponsor/isletme', destination: '/sponsor/business', permanent: true },
+      { source: '/sponsor/koc', destination: '/sponsor/coach', permanent: true },
+      { source: '/app/ai-eslestirme', destination: '/app/ai-matching', permanent: true },
+      { source: '/app/is-basvurulari', destination: '/app/job-applications', permanent: true },
+      { source: '/app/kazanclar/banka-hesabi', destination: '/app/earnings/bank-account', permanent: true },
+      { source: '/app/kazanclar', destination: '/app/earnings', permanent: true },
       { source: '/kvkk', destination: '/data-protection', permanent: true },
       // Branş adı/slug değişiklikleri (SEO için kalıcı yönlendirme)
       { source: '/category/outdoor', destination: '/category/running', permanent: true },

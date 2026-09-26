@@ -5,7 +5,7 @@ import { ArrowRight, BarChart2, MapPin, Users, TrendingUp, Star, CheckCircle } f
 export const metadata: Metadata = {
   title: "Mettlo Reklam — Koçlar için Reklam",
   description: "Koçluk markanızı büyütün. Doğru bölgelerde daha görünür olun, yeni danışanlara ulaşın.",
-  alternates: { canonical: '/sponsor/koc' },
+  alternates: { canonical: '/sponsor/coach' },
 };
 
 const STATS = [
@@ -129,7 +129,7 @@ export default function CoachSponsorPage() {
           Koç Profilimi Öne Çıkar <ArrowRight size={18} aria-hidden />
         </Link>
         <div style={{ marginTop: 16 }}>
-          <Link href="/sponsor/isletme" className="body-sm text-secondary" style={{ textDecoration: 'underline' }}>
+          <Link href="/sponsor/businesses" className="body-sm text-secondary" style={{ textDecoration: 'underline' }}>
             İşletme reklamına mı bakıyorsunuz? →
           </Link>
         </div>

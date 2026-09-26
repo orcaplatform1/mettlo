@@ -9,7 +9,7 @@ import { AdBanner } from '@/app/components/ad-banner';
 export const metadata: Metadata = {
   title: 'Etkinlikler — Fitness, Yoga ve Spor Etkinlikleri',
   description: 'Mettlo üzerinden fitness, yoga, boks ve daha fazla spor etkinliğini keşfet. Online ve yüz yüze etkinliklere katıl.',
-  alternates: { canonical: '/etkinlikler' },
+  alternates: { canonical: '/events' },
 };
 
 const dtFmt = (s: string) =>
@@ -48,7 +48,7 @@ export default async function EtkinliklerPage({ searchParams }: Props) {
         {cities && cities.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
             <Link
-              href="/etkinlikler"
+              href="/events"
               style={{
                 padding: '4px 14px', borderRadius: '20px', fontSize: '13px', textDecoration: 'none',
                 background: !sp.cityId ? 'var(--accent)' : 'var(--surface-2)',
@@ -60,7 +60,7 @@ export default async function EtkinliklerPage({ searchParams }: Props) {
             {cities.slice(0, 12).map((c: any) => (
               <Link
                 key={c.id}
-                href={`/etkinlikler?cityId=${c.id}`}
+                href={`/events?cityId=${c.id}`}
                 style={{
                   padding: '4px 14px', borderRadius: '20px', fontSize: '13px', textDecoration: 'none',
                   background: sp.cityId === String(c.id) ? 'var(--accent)' : 'var(--surface-2)',
@@ -80,7 +80,7 @@ export default async function EtkinliklerPage({ searchParams }: Props) {
         ) : (
           <div className="grid grid-3">
             {items.map((ev: any) => (
-              <Link key={ev.id} href={`/etkinlikler/${ev.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link key={ev.id} href={`/events/${ev.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div style={{
                   background: 'var(--surface-2)', borderRadius: '12px', overflow: 'hidden',
                   border: '1px solid var(--border)', transition: 'border-color 0.2s',
@@ -125,7 +125,7 @@ export default async function EtkinliklerPage({ searchParams }: Props) {
         )}
 
         <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
-        <Pagination base="/etkinlikler" page={page} total={total} params={{ cityId: sp.cityId }} />
+        <Pagination base="/events" page={page} total={total} params={{ cityId: sp.cityId }} />
       </div>
     </>
   );

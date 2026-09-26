@@ -2,7 +2,7 @@ import { requireSession } from '@mettlo/web-core';
 import { AddBankAccountForm } from './add-bank-form';
 
 export default async function BankaHesabiPage() {
-  await requireSession('/app/kazanclar/banka-hesabi');
+  await requireSession('/app/earnings/bank-account');
   return (
     <div className="stack" style={{ ['--stack' as string]: '20px', maxWidth: 520 }}>
       <h1 className="h2">Banka Hesabı Ekle</h1>

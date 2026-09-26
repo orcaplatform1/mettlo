@@ -29,7 +29,7 @@ export function EventRegisterButton({ eventId, slug, isFree, priceKurus }: Props
     try {
       const res = await fetch(`/api/events/${eventId}/register`, { method: 'POST' });
       if (res.status === 401) {
-        router.push(`/login?next=/etkinlikler`);
+        router.push(`/login?next=/events`);
         return;
       }
       if (!res.ok) {

@@ -6,7 +6,7 @@ const fmt = (kurus: number) =>
   (kurus / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
 
 export default async function KazanclarPage() {
-  const s = await requireSession('/app/kazanclar');
+  const s = await requireSession('/app/earnings');
   if (s.role !== 'CREATOR') {
     return (
       <div className="stack">
@@ -49,7 +49,7 @@ export default async function KazanclarPage() {
         {!activeAccount ? (
           <div className="stack" style={{ ['--stack' as string]: '8px' }}>
             <p className="text-secondary body-sm">Para çekebilmek için doğrulanmış bir banka hesabı eklemeniz gerekiyor.</p>
-            <Link href="/app/kazanclar/banka-hesabi" className="btn btn-primary btn-sm">Banka Hesabı Ekle</Link>
+            <Link href="/app/earnings/bank-account" className="btn btn-primary btn-sm">Banka Hesabı Ekle</Link>
           </div>
         ) : (
           <PayoutRequestForm
@@ -63,7 +63,7 @@ export default async function KazanclarPage() {
       <section className="card stack" style={{ ['--stack' as string]: '12px', padding: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 className="h4">Banka Hesaplarım</h2>
-          <Link href="/app/kazanclar/banka-hesabi" className="btn btn-sm">+ Yeni Hesap</Link>
+          <Link href="/app/earnings/bank-account" className="btn btn-sm">+ Yeni Hesap</Link>
         </div>
         {(accounts ?? []).length === 0 ? (
           <p className="text-secondary body-sm">Henüz banka hesabı eklenmedi.</p>
@@ -106,7 +106,7 @@ export default async function KazanclarPage() {
           ))
         )}
         {history?.total > 10 && (
-          <Link href="/app/kazanclar/gecmis" className="body-sm text-secondary">Tümünü gör ({history.total})</Link>
+          <Link href="/app/earnings/gecmis" className="body-sm text-secondary">Tümünü gör ({history.total})</Link>
         )}
       </section>
     </div>

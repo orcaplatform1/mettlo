@@ -20,7 +20,7 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
       <div className="row row-wrap" style={{ justifyContent: 'center', marginTop: 28, gap: 12 }}>
         {isEvent ? (
           <>
-            <Link href="/etkinlikler" className="btn btn-primary btn-pill">Etkinliklere dön</Link>
+            <Link href="/events" className="btn btn-primary btn-pill">Etkinliklere dön</Link>
             <Link href="/app" className="btn btn-secondary btn-pill">Panelime git</Link>
           </>
         ) : (

@@ -14,7 +14,7 @@ const dtFmt = (s: string) =>
   new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(s));
 
 export default async function IsBasvurulariPage({ searchParams }: { searchParams: Promise<{ apply?: string }> }) {
-  const s = await requireSession('/app/is-basvurulari');
+  const s = await requireSession('/app/job-applications');
   const { apply } = await searchParams;
 
   const [applications, offers] = await Promise.all([
@@ -27,7 +27,7 @@ export default async function IsBasvurulariPage({ searchParams }: { searchParams
       <div>
         <h1 className="h2">İş Başvurularım</h1>
         <p className="text-secondary" style={{ fontSize: '14px', marginTop: '4px' }}>
-          <Link href="/is-ilanlari" style={{ color: 'var(--accent)' }}>İş ilanlarına göz at →</Link>
+          <Link href="/jobs" style={{ color: 'var(--accent)' }}>İş ilanlarına göz at →</Link>
         </p>
       </div>
 
@@ -64,7 +64,7 @@ export default async function IsBasvurulariPage({ searchParams }: { searchParams
         </h2>
         {applications.length === 0 ? (
           <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', background: 'var(--surface-2)', borderRadius: '12px' }}>
-            Henüz bir iş ilanına başvurmadınız. <Link href="/is-ilanlari" style={{ color: 'var(--accent)' }}>İlanları incele</Link>
+            Henüz bir iş ilanına başvurmadınız. <Link href="/jobs" style={{ color: 'var(--accent)' }}>İlanları incele</Link>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

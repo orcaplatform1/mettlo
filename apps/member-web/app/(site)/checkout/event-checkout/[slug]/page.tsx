@@ -20,7 +20,7 @@ export default async function EventCheckoutPage({ params }: Props) {
 
   const ev = await apiTry<any>(`/events/${encodeURIComponent(slug)}`).catch(() => null);
   if (!ev) notFound();
-  if (ev.ticketPriceKurus === 0) redirect(`/etkinlikler/${ev.slug}`);
+  if (ev.ticketPriceKurus === 0) redirect(`/events/${ev.slug}`);
 
   await requireSession(`/checkout/event/${slug}`);
 
@@ -42,7 +42,7 @@ export default async function EventCheckoutPage({ params }: Props) {
 
   return (
     <div className="container section-sm" style={{ maxWidth: 600, margin: '0 auto' }}>
-      <Link href={`/etkinlikler/${ev.slug}`} className="row" style={{ gap: '6px', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', textDecoration: 'none' }}>
+      <Link href={`/events/${ev.slug}`} className="row" style={{ gap: '6px', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', textDecoration: 'none' }}>
         <ArrowLeft size={16} aria-hidden /> Etkinliğe dön
       </Link>
 

@@ -31,7 +31,7 @@ type Props = { searchParams: Promise<{ q?: string; category?: string; cityId?: s
 export const metadata: Metadata = {
   title: 'İşletmeler — Fitness ve Wellness Mekanları | Mettlo',
   description: 'Spor salonları, pilates stüdyoları, yoga merkezleri ve daha fazlasını Mettlo\'da keşfet. Doğrulanmış işletmeleri filtrele, konuma göre ara.',
-  alternates: { canonical: '/isletme' },
+  alternates: { canonical: '/businesses' },
 };
 
 export default async function BusinessListPage({ searchParams }: Props) {
@@ -63,7 +63,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
         {/* Filtreler */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24, alignItems: 'flex-start' }}>
           {/* Arama */}
-          <form method="get" action="/isletme" style={{ display: 'flex', gap: 8, flex: '1 1 240px', minWidth: 200 }}>
+          <form method="get" action="/businesses" style={{ display: 'flex', gap: 8, flex: '1 1 240px', minWidth: 200 }}>
             {sp.category && <input type="hidden" name="category" value={sp.category} />}
             {sp.cityId && <input type="hidden" name="cityId" value={sp.cityId} />}
             <div style={{ position: 'relative', flex: 1 }}>
@@ -80,7 +80,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
           </form>
 
           {/* İl filtresi */}
-          <form method="get" action="/isletme">
+          <form method="get" action="/businesses">
             {sp.q && <input type="hidden" name="q" value={sp.q} />}
             {sp.category && <input type="hidden" name="category" value={sp.category} />}
             <select name="cityId" className="input" style={{ minWidth: 140 }} onChange={() => {}} defaultValue={sp.cityId ?? ''}>
@@ -94,15 +94,15 @@ export default async function BusinessListPage({ searchParams }: Props) {
         {/* Kategori chip'leri */}
         <div style={{ marginBottom: 24 }}>
           <div className="row row-wrap" style={{ gap: 6, marginBottom: 8 }}>
-            <Link href={`/isletme${qs({ q: sp.q, cityId: sp.cityId })}`} className="chip" aria-current={!sp.category ? 'page' : undefined}>Tümü</Link>
+            <Link href={`/businesses${qs({ q: sp.q, cityId: sp.cityId })}`} className="chip" aria-current={!sp.category ? 'page' : undefined}>Tümü</Link>
             {categories.filter(([key]) => !FOOD_CATEGORIES.has(key)).map(([key, label]) => (
-              <Link key={key} href={`/isletme${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
+              <Link key={key} href={`/businesses${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
             ))}
           </div>
           <p className="caption text-tertiary" style={{ margin: '10px 0 6px', fontWeight: 600 }}>Sağlıklı Beslenme &amp; Restoranlar</p>
           <div className="row row-wrap" style={{ gap: 6 }}>
             {categories.filter(([key]) => FOOD_CATEGORIES.has(key)).map(([key, label]) => (
-              <Link key={key} href={`/isletme${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
+              <Link key={key} href={`/businesses${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
             ))}
           </div>
         </div>
@@ -114,7 +114,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
             {sp.q && <> "{sp.q}"</>}
             {sp.category && <> · {CATEGORY_TR[sp.category]}</>}
             {activeCity && <> · {activeCity.name}</>}
-            {' '}<Link href="/isletme" className="text-tertiary" style={{ textDecoration: 'underline' }}>Filtreleri temizle</Link>
+            {' '}<Link href="/businesses" className="text-tertiary" style={{ textDecoration: 'underline' }}>Filtreleri temizle</Link>
           </p>
         )}
 
@@ -130,7 +130,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
         )}
 
         <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
-        <Pagination base="/isletme" page={page} total={total} params={{ q: sp.q, category: sp.category, cityId: sp.cityId }} />
+        <Pagination base="/businesses" page={page} total={total} params={{ q: sp.q, category: sp.category, cityId: sp.cityId }} />
       </div>
     </>
   );
@@ -143,7 +143,7 @@ function BusinessCard({ b }: { b: any }) {
   const location = [city, district].filter(Boolean).join(', ');
 
   return (
-    <Link href={`/isletme/${b.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
+    <Link href={`/businesses/${b.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
       <div className="card" style={{ height: '100%', padding: 0, overflow: 'hidden' }}>
         {/* Cover / Logo alanı */}
         <div style={{ height: 120, background: b.coverUrl ? `url(${b.coverUrl}) center/cover` : 'var(--gradient-sunrise-soft)', position: 'relative' }}>

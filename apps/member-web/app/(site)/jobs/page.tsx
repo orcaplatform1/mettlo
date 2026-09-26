@@ -10,7 +10,7 @@ import { JobFilters } from './job-filters';
 export const metadata: Metadata = {
   title: 'Koç İş İlanları — Fitness ve Spor Sektörü',
   description: 'Fitness, yoga, pilates ve spor sektöründe koçluk iş ilanlarını keşfet. Yüz yüze ve online çalışma fırsatları.',
-  alternates: { canonical: '/is-ilanlari' },
+  alternates: { canonical: '/jobs' },
 };
 
 const WORK_MODE_TR: Record<string, string> = {
@@ -98,7 +98,7 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
                 )}
                 <div style={{ marginTop: '14px', display: 'flex', gap: '8px' }}>
                   <Link
-                    href={`/app/is-basvurulari?apply=${job.id}`}
+                    href={`/app/job-applications?apply=${job.id}`}
                     className="btn btn-primary"
                     style={{ padding: '8px 18px', fontSize: '13px' }}
                   >
@@ -106,7 +106,7 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
                   </Link>
                   {job.business?.slug && (
                     <Link
-                      href={`/isletme/${job.business.slug}`}
+                      href={`/businesses/${job.business.slug}`}
                       className="btn btn-ghost"
                       style={{ padding: '8px 18px', fontSize: '13px' }}
                     >
@@ -120,7 +120,7 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
         )}
 
         <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
-        <Pagination base="/is-ilanlari" page={page} total={total} params={{ cityId: sp.cityId, workMode: sp.workMode, branch: sp.branch }} />
+        <Pagination base="/jobs" page={page} total={total} params={{ cityId: sp.cityId, workMode: sp.workMode, branch: sp.branch }} />
       </div>
     </>
   );

@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${ba.name} | Mettlo`,
     description: ba.shortDesc ?? ba.description?.slice(0, 155) ?? `${ba.name} — Mettlo'da fitness ve wellness işletmesi.`,
-    alternates: { canonical: `/isletme/${slug}` },
+    alternates: { canonical: `/businesses/${slug}` },
   };
 }
 
@@ -115,11 +115,11 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
 
         {/* Menü linki (yemek kategorileri için) */}
         {['NUTRITION_CLINIC', 'WELLNESS_CENTER'].includes(ba.category) || ba.category.includes('FOOD') ? (
-          <Link href={`/isletme/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'var(--accent)', color: '#fff', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 600, marginBottom: '24px' }}>
+          <Link href={`/businesses/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'var(--accent)', color: '#fff', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 600, marginBottom: '24px' }}>
             <Utensils size={16} /> Menüyü Görüntüle
           </Link>
         ) : (
-          <Link href={`/isletme/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'inherit', borderRadius: '10px', textDecoration: 'none', fontSize: '13px', marginBottom: '20px' }}>
+          <Link href={`/businesses/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'inherit', borderRadius: '10px', textDecoration: 'none', fontSize: '13px', marginBottom: '20px' }}>
             <Utensils size={14} /> Yemek Menüsü
           </Link>
         )}

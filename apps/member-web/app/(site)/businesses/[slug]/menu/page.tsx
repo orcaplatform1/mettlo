@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${ba.name} — Menü | Mettlo`,
     description: `${ba.name} yemek menüsünü keşfet ve online sipariş ver.`,
-    alternates: { canonical: `/isletme/${slug}/menu` },
+    alternates: { canonical: `/businesses/${slug}/menu` },
   };
 }
 
@@ -27,7 +27,7 @@ export default async function BusinessMenuPage({ params }: Props) {
   if (!menuData) {
     return (
       <div className="container section-sm" style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <Link href={`/isletme/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none', marginBottom: '24px' }}>
+        <Link href={`/businesses/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none', marginBottom: '24px' }}>
           <ArrowLeft size={14} /> {ba.name}
         </Link>
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>
@@ -40,7 +40,7 @@ export default async function BusinessMenuPage({ params }: Props) {
 
   return (
     <div className="container section-sm" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <Link href={`/isletme/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none', marginBottom: '24px' }}>
+      <Link href={`/businesses/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '14px', textDecoration: 'none', marginBottom: '24px' }}>
         <ArrowLeft size={14} /> {ba.name}
       </Link>
 

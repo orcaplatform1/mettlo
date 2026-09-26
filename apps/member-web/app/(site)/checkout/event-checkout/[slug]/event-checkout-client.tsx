@@ -119,7 +119,7 @@ export function EventCheckoutClient({ event, initCheckout }: Props) {
         <p className="body-sm text-secondary" style={{ marginTop: '8px' }}>
           Bilet bilgileri e-posta adresinize gönderildi. İyi eğlenceler!
         </p>
-        <a href={`/etkinlikler/${event.slug}`} className="btn btn-primary" style={{ marginTop: '20px', display: 'inline-block' }}>
+        <a href={`/events/${event.slug}`} className="btn btn-primary" style={{ marginTop: '20px', display: 'inline-block' }}>
           Etkinliğe Dön
         </a>
       </div>

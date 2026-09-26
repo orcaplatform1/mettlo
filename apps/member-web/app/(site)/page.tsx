@@ -21,9 +21,9 @@ const QUICK = [
   { href: '/programs', label: 'Programlar', Icon: ClipboardList },
   { href: '/coaches', label: '1:1 Koçluk', Icon: Handshake },
   { href: '/live', label: 'Canlı Dersler', Icon: Video },
-  { href: '/etkinlikler', label: 'Etkinlikler', Icon: CalendarDays },
-  { href: '/isletme', label: 'İşletmeler', Icon: Building2 },
-  { href: '/is-ilanlari', label: 'İş İlanları', Icon: Briefcase },
+  { href: '/events', label: 'Etkinlikler', Icon: CalendarDays },
+  { href: '/businesses', label: 'İşletmeler', Icon: Building2 },
+  { href: '/jobs', label: 'İş İlanları', Icon: Briefcase },
   { href: '/community', label: 'Topluluk', Icon: Users },
   { href: '/store', label: 'Mağaza', Icon: ShoppingBag },
 ];
@@ -210,12 +210,12 @@ export default async function HomePage() {
         <div className="container">
           <div className="section-head">
             <div><span className="overline">ETKİNLİKLER</span><h2 id="events-title" className="h2">Yaklaşan Etkinlikler</h2></div>
-            <Link href="/etkinlikler" className="btn btn-secondary btn-pill btn-sm">Tüm Etkinlikler <ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/events" className="btn btn-secondary btn-pill btn-sm">Tüm Etkinlikler <ArrowRight size={16} aria-hidden /></Link>
           </div>
           {events.length > 0 ? (
             <div className="grid grid-3">
               {events.map((e: any) => (
-                <Link key={e.slug ?? e.id} href={`/etkinlikler/${e.slug ?? e.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
+                <Link key={e.slug ?? e.id} href={`/events/${e.slug ?? e.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
                   {e.coverUrl && <img src={e.coverUrl} alt={e.title} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }} />}
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
                     <CalendarDays size={15} className="text-primary-c" aria-hidden />
@@ -227,7 +227,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <EmptyState icon={<CalendarDays size={36} aria-hidden />} title="Yaklaşan etkinlik yok" action={<Link href="/etkinlikler" className="btn btn-secondary btn-pill btn-sm">Etkinlikleri Keşfet <ArrowRight size={16} aria-hidden /></Link>}>
+            <EmptyState icon={<CalendarDays size={36} aria-hidden />} title="Yaklaşan etkinlik yok" action={<Link href="/events" className="btn btn-secondary btn-pill btn-sm">Etkinlikleri Keşfet <ArrowRight size={16} aria-hidden /></Link>}>
               Fitness, yoga, koşu ve wellness etkinlikleri burada listelenir.
             </EmptyState>
           )}
@@ -239,12 +239,12 @@ export default async function HomePage() {
         <div className="container">
           <div className="section-head">
             <div><span className="overline">İŞLETMELER</span><h2 id="businesses-title" className="h2">Fitness &amp; Wellness İşletmeleri</h2></div>
-            <Link href="/isletme" className="btn btn-secondary btn-pill btn-sm">Tüm İşletmeler <ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/businesses" className="btn btn-secondary btn-pill btn-sm">Tüm İşletmeler <ArrowRight size={16} aria-hidden /></Link>
           </div>
           {businesses.length > 0 ? (
             <div className="grid grid-3">
               {businesses.map((b: any) => (
-                <Link key={b.slug ?? b.id} href={`/isletme/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
+                <Link key={b.slug ?? b.id} href={`/businesses/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
                     {b.logoUrl ? <img src={b.logoUrl} alt={b.name} style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--color-surface-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={22} className="text-secondary" /></div>}
                     <div style={{ minWidth: 0 }}>
@@ -257,7 +257,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <EmptyState icon={<Building2 size={36} aria-hidden />} title="İşletmeler çok yakında" action={<Link href="/isletme" className="btn btn-secondary btn-pill btn-sm">İşletmeleri Gör <ArrowRight size={16} aria-hidden /></Link>}>
+            <EmptyState icon={<Building2 size={36} aria-hidden />} title="İşletmeler çok yakında" action={<Link href="/businesses" className="btn btn-secondary btn-pill btn-sm">İşletmeleri Gör <ArrowRight size={16} aria-hidden /></Link>}>
               Spor salonları, yoga stüdyoları, sağlıklı restoranlar ve daha fazlası Mettlo&apos;da.
             </EmptyState>
           )}
@@ -272,18 +272,18 @@ export default async function HomePage() {
               <span className="overline">SAĞLIKLI BESLENME</span>
               <h2 id="restaurants-title" className="h2">Restoranlar &amp; Kafeler</h2>
             </div>
-            <Link href="/isletme?category=HEALTHY_FOOD" className="btn btn-secondary btn-pill btn-sm">Tüm Restoranlar <ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/businesses?category=HEALTHY_FOOD" className="btn btn-secondary btn-pill btn-sm">Tüm Restoranlar <ArrowRight size={16} aria-hidden /></Link>
           </div>
           <div className="grid grid-4">
             {([
-              ['/isletme?category=HEALTHY_FOOD', 'Sağlıklı Restoran'],
-              ['/isletme?category=HEALTHY_CAFE', 'Sağlıklı Kafe'],
-              ['/isletme?category=SMOOTHIE_BAR', 'Smoothie Bar'],
-              ['/isletme?category=VEGAN', 'Vegan'],
-              ['/isletme?category=MEAL_PREP', 'Meal Prep'],
-              ['/isletme?category=PROTEIN_BAR', 'Protein Bar'],
-              ['/isletme?category=VEGETARIAN', 'Vejetaryen'],
-              ['/isletme?category=GLUTEN_FREE', 'Glütensiz'],
+              ['/businesses?category=HEALTHY_FOOD', 'Sağlıklı Restoran'],
+              ['/businesses?category=HEALTHY_CAFE', 'Sağlıklı Kafe'],
+              ['/businesses?category=SMOOTHIE_BAR', 'Smoothie Bar'],
+              ['/businesses?category=VEGAN', 'Vegan'],
+              ['/businesses?category=MEAL_PREP', 'Meal Prep'],
+              ['/businesses?category=PROTEIN_BAR', 'Protein Bar'],
+              ['/businesses?category=VEGETARIAN', 'Vejetaryen'],
+              ['/businesses?category=GLUTEN_FREE', 'Glütensiz'],
             ] as [string, string][]).map(([href, label]) => (
               <Link key={label} href={href} className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px' }}>
                 <Salad size={20} className="text-primary-c" aria-hidden style={{ flexShrink: 0 }} />
@@ -304,7 +304,7 @@ export default async function HomePage() {
               <p className="text-secondary">Spor salonları, koçlar ve fitness işletmeleri için iş ilanlarını gör. Kariyer fırsatlarını kaçırma.</p>
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
-              <Link href="/is-ilanlari" className="btn btn-primary btn-pill">İş İlanlarını Gör <ArrowRight size={16} aria-hidden /></Link>
+              <Link href="/jobs" className="btn btn-primary btn-pill">İş İlanlarını Gör <ArrowRight size={16} aria-hidden /></Link>
             </div>
           </div>
         </div>

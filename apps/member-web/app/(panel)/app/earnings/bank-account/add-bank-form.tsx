@@ -39,7 +39,7 @@ export function AddBankAccountForm() {
         });
         const d = await res.json().catch(() => ({}));
         if (!res.ok) { setError(d.message || 'Hesap eklenemedi.'); return; }
-        router.push('/app/kazanclar');
+        router.push('/app/earnings');
       } catch {
         setError('Bağlantı hatası. Lütfen tekrar deneyin.');
       }
