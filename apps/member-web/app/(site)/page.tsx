@@ -5,8 +5,11 @@ import {
 } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { SITE } from '@mettlo/types';
+import { apiTry } from '@mettlo/web-core';
 import { BranchCard, CoachCard, ProductCard, ProgramCard } from '@/app/components/cards';
-import { DEFAULT_BRANCHES, getAllBranches, getCreators, getProducts, getPrograms } from '@/app/lib/data';
+import { DEFAULT_BRANCHES, getAllBranches, getProducts, type Page } from '@/app/lib/data';
+
+const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
 export const metadata: Metadata = {
   title: { absolute: `Mettlo — Bugün Başla. Kendini Yeniden Keşfet.` },
@@ -35,9 +38,14 @@ const FEATURES = [
 ];
 
 export default async function HomePage() {
-  const [branches, creators, programs, products] = await Promise.all([
-    getAllBranches(), getCreators('?limit=6'), getPrograms('?limit=6'), getProducts('?limit=4'),
+  const [branches, creatorsRaw, programsRaw, products] = await Promise.all([
+    getAllBranches(),
+    apiTry<Page<any>>('/public/creators?limit=8'),
+    apiTry<Page<any>>('/public/programs?limit=8'),
+    getProducts('?limit=4'),
   ]);
+  const creators = creatorsRaw ? { ...creatorsRaw, items: shuffle(creatorsRaw.items).slice(0, 6) } : null;
+  const programs = programsRaw ? { ...programsRaw, items: shuffle(programsRaw.items).slice(0, 6) } : null;
   const cats = branches && branches.length ? branches : DEFAULT_BRANCHES;
 
   return (

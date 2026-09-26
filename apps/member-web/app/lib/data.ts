@@ -3,7 +3,7 @@ import { apiTry } from '@mettlo/web-core';
 /** Herkese açık, 5 dk önbellekli okumalar; içerik yayınlanınca 'seo' etiketi ile anında tazelenir. */
 const pub = { revalidate: 300, tags: ['seo'] };
 
-export interface Page<T> { page: number; total: number; items: T[] }
+export interface Page<T> { page: number; total: number; items: T[]; }
 
 export const getBranches = () => apiTry<any[]>('/public/branches', pub);
 /** Kapalı (yakında) branşlar dahil — ana sayfa kartları için */
