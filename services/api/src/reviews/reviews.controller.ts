@@ -89,8 +89,8 @@ export class ReviewsController {
 
   @Post(':id/reply')
   async reply(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(replySchema)) b: { body: string }) {
-    const review = await this.prisma.review.findUnique({ where: { id, status: { in: ['PUBLISHED', 'PENDING'] } }, select: { id: true, targetType: true, targetId: true } });
-    if (!review) throw new NotFoundException('Değlendirme bulunamadı');
+    const review = await this.prisma.review.findUnique({ where: { id, status: 'PUBLISHED' }, select: { id: true, targetType: true, targetId: true } });
+    if (!review) throw new NotFoundException('Değerlendirme bulunamadı');
     const isStaff = STAFF_ROLES.includes(me.role);
     const isCoachOwner = review.targetType === 'CREATOR' && review.targetId === me.id;
     let canReply = isStaff || isCoachOwner;

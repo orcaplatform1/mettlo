@@ -43,7 +43,7 @@ const sanctionSchema = z.object({
   days: z.number().int().min(1).max(90).optional(),
   reason: z.string().trim().min(5).max(500),
 });
-const reportCreate = z.object({ targetType: z.enum(['user', 'post', 'comment', 'review', 'message', 'content']), targetId: z.string().min(5).max(60), reason: z.string().trim().min(3).max(120), details: z.string().trim().max(1000).optional() });
+const reportCreate = z.object({ targetType: z.enum(['user', 'post', 'comment', 'review', 'message', 'content']), targetId: z.string().min(3).max(60), reason: z.string().trim().min(3).max(120), details: z.string().trim().max(1000).optional() });
 const reportPatch = z.object({ status: z.enum(['REVIEWING', 'ACTIONED', 'DISMISSED']) });
 
 /** Yönetim: toplu istatistik, Mettlo Mağaza yönetimi, branşlar, yaptırımlar, şikâyetler. */
