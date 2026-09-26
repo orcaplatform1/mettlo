@@ -68,9 +68,27 @@ class HomePage extends ConsumerWidget {
             ]);
           },
         ),
+        const SectionTitle('Günlüklerim'),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          _SportChip(label: 'Koşu', icon: Icons.directions_run, path: '/sports/running'),
+          _SportChip(label: 'Boks', icon: Icons.sports_mma, path: '/sports/boxing'),
+          _SportChip(label: 'Yoga', icon: Icons.self_improvement, path: '/sports/yoga'),
+          _SportChip(label: 'Meditasyon', icon: Icons.spa_outlined, path: '/sports/meditation'),
+          _SportChip(label: 'HIIT', icon: Icons.fitness_center, path: '/sports/hiit'),
+          _SportChip(label: 'Dans', icon: Icons.music_note_outlined, path: '/sports/dance'),
+          _SportChip(label: 'Beslenme', icon: Icons.restaurant_menu, path: '/sports/nutrition'),
+          _SportChip(label: 'Pilates', icon: Icons.accessibility_new, path: '/sports/pilates'),
+        ]),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(child: OutlinedButton.icon(onPressed: () => context.push('/bookings'), icon: const Icon(Icons.event_available_outlined, size: 16), label: const Text('Rezervasyonlar'))),
+          const SizedBox(width: 8),
+          Expanded(child: OutlinedButton.icon(onPressed: () => context.push('/challenges'), icon: const Icon(Icons.emoji_events_outlined, size: 16), label: const Text("Challenge'lar"))),
+        ]),
         const SectionTitle('Hızlı erişim'),
         Wrap(spacing: 10, runSpacing: 10, children: [
           _Quick(Icons.monitor_heart_outlined, 'Sağlık & İlerleme', () => context.push('/health')),
+          _Quick(Icons.notifications_outlined, 'Bildirimler', () => context.push('/notifications')),
           _Quick(Icons.support_agent_outlined, 'Destek Merkezi', () => context.push('/support')),
         ]),
       ]),
@@ -90,4 +108,20 @@ class _Quick extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => ActionChip(avatar: Icon(icon, size: 18, color: MettloColors.primary), label: Text(label), onPressed: onTap, backgroundColor: MettloColors.surface1, side: const BorderSide(color: MettloColors.borderSubtle));
+}
+
+class _SportChip extends StatelessWidget {
+  const _SportChip({required this.label, required this.icon, required this.path});
+  final String label;
+  final IconData icon;
+  final String path;
+
+  @override
+  Widget build(BuildContext context) => ActionChip(
+        avatar: Icon(icon, size: 15, color: MettloColors.primary),
+        label: Text(label, style: const TextStyle(fontSize: 12)),
+        onPressed: () => context.push(path),
+        backgroundColor: MettloColors.surface1,
+        side: const BorderSide(color: MettloColors.borderSubtle),
+      );
 }

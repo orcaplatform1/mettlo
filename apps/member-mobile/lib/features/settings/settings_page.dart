@@ -109,6 +109,10 @@ class SettingsPage extends ConsumerWidget {
         );
       }),
       const SectionTitle('Hesap'),
+      ListTile(leading: const Icon(Icons.notifications_outlined), title: const Text('Bildirimler'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/notifications')),
+      ListTile(leading: const Icon(Icons.event_available_outlined), title: const Text('Rezervasyonlarım'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/bookings')),
+      if (['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].contains(user?.role))
+        ListTile(leading: const Icon(Icons.flag_outlined, color: MettloColors.error), title: const Text('Şikayet Yönetimi', style: TextStyle(fontWeight: FontWeight.w600)), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/moderation')),
       ListTile(leading: const Icon(Icons.support_agent_outlined), title: const Text('Destek Merkezi'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/support')),
       ListTile(leading: const Icon(Icons.monitor_heart_outlined), title: const Text('Sağlık & İlerleme'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/health')),
       if (isCoach) ListTile(leading: const Icon(Icons.dashboard_customize_outlined), title: const Text('Koç paneli (web)'), subtitle: const Text('İçerik, plan ve öğrenci yönetimi web panelinde'), onTap: () => _open('/creator')),

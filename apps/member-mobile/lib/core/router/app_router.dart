@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/admin/moderation_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
+import '../../features/bookings/bookings_page.dart';
+import '../../features/challenges/challenges_page.dart';
 import '../../features/discover/coach_profile_page.dart';
 import '../../features/discover/discover_page.dart';
 import '../../features/health/health_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/messages/messages_page.dart';
+import '../../features/notifications/notifications_page.dart';
 import '../../features/programs/program_content_page.dart';
 import '../../features/programs/programs_page.dart';
 import '../../features/settings/settings_page.dart';
+import '../../features/sports/boxing_page.dart';
+import '../../features/sports/nutrition_page.dart';
+import '../../features/sports/practice_log_page.dart';
+import '../../features/sports/running_page.dart';
 import '../../features/support/support_pages.dart';
 import '../auth/auth_controller.dart';
 import '../theme/tokens.dart';
@@ -55,6 +63,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/support/new', builder: (_, _) => const NewTicketPage()),
       GoRoute(path: '/support/:id', builder: (_, s) => TicketPage(id: s.pathParameters['id']!)),
       GoRoute(path: '/health', builder: (_, _) => const HealthPage()),
+      GoRoute(path: '/notifications', builder: (_, _) => const NotificationsPage()),
+      GoRoute(path: '/bookings', builder: (_, _) => const BookingsPage()),
+      GoRoute(path: '/challenges', builder: (_, _) => const ChallengesPage()),
+      GoRoute(path: '/challenges/:slug', builder: (_, s) => ChallengeDetailPage(slug: s.pathParameters['slug']!)),
+      GoRoute(path: '/sports/running', builder: (_, _) => const RunningPage()),
+      GoRoute(path: '/sports/boxing', builder: (_, _) => const BoxingPage()),
+      GoRoute(path: '/sports/nutrition', builder: (_, _) => const NutritionPage()),
+      GoRoute(path: '/sports/yoga', builder: (_, _) => const PracticeLogPage(branch: 'yoga-mobility', title: 'Yoga & Esneklik Günlüğü')),
+      GoRoute(path: '/sports/meditation', builder: (_, _) => const PracticeLogPage(branch: 'meditation-mindfulness', title: 'Meditasyon Günlüğü')),
+      GoRoute(path: '/sports/hiit', builder: (_, _) => const PracticeLogPage(branch: 'hiit-cardio', title: 'HIIT & Kardiyo Günlüğü')),
+      GoRoute(path: '/sports/dance', builder: (_, _) => const PracticeLogPage(branch: 'dance-aerobics', title: 'Dans & Aerobik Günlüğü')),
+      GoRoute(path: '/sports/pilates', builder: (_, _) => const PracticeLogPage(branch: 'pilates-core', title: 'Pilates & Core Günlüğü')),
+      GoRoute(path: '/moderation', builder: (_, _) => const ModerationPage()),
     ],
   );
 });
