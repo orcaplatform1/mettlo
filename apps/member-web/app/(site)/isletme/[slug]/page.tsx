@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight } from 'lucide-react';
+import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils } from 'lucide-react';
 import { apiTry } from '@mettlo/web-core';
 
 type BusinessProfile = {
@@ -95,6 +95,17 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             </div>
           </div>
         </div>
+
+        {/* Menü linki (yemek kategorileri için) */}
+        {['NUTRITION_CLINIC', 'WELLNESS_CENTER'].includes(ba.category) || ba.category.includes('FOOD') ? (
+          <Link href={`/isletme/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'var(--accent)', color: '#fff', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 600, marginBottom: '24px' }}>
+            <Utensils size={16} /> Menüyü Görüntüle
+          </Link>
+        ) : (
+          <Link href={`/isletme/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'inherit', borderRadius: '10px', textDecoration: 'none', fontSize: '13px', marginBottom: '20px' }}>
+            <Utensils size={14} /> Yemek Menüsü
+          </Link>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 32, alignItems: 'start' }}>
           {/* Sol kolon */}
