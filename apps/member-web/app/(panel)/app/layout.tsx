@@ -30,7 +30,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: '/app/settings', label: 'Ayarlar' },
     { href: '/app/settings/blocks', label: 'Engellenenler' },
     ...(s.role === 'MEMBER' && !s.creator ? [{ href: '/app/become-coach', label: 'Koç Ol' }] : []),
-    ...(s.role === 'CREATOR' ? [{ href: '/creator', label: 'Koç Paneli' }] : []),
+    ...(s.role === 'CREATOR' ? [
+      { href: '/app/clients', label: 'Müşterilerim' },
+      { href: '/app/subscribers', label: 'Abonelerim' },
+      { href: '/app/assessments', label: 'Formlar' },
+      { href: '/app/alerts', label: 'Uyarılar' },
+      { href: '/creator', label: 'Koç Paneli' },
+    ] : []),
     ...(isAdminRole(s.role) ? [{ href: '/admin', label: 'Yönetim Paneli' }] : []),
   ];
   return <PanelShell title={s.role === 'CREATOR' ? 'Koç' : 'Üye'} user={s} links={links} logoutAction="/logout">{children}</PanelShell>;

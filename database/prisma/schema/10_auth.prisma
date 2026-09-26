@@ -126,6 +126,13 @@ model User {
   reports                  Report[]                  @relation("UserReports")
   blocksGiven              Block[]                   @relation("BlockerBlocks")
   blocksReceived           Block[]                   @relation("BlockedByBlocks")
+  // --- Coaching Intelligence (Phase 2-6) ---
+  metricDefinitions        MetricDefinition[]        @relation("MetricDefinitionCreator")
+  metricValues             MetricValue[]             @relation("MetricValueUser")
+  coachedMetricValues      MetricValue[]             @relation("MetricValueCoach")
+  assessmentTemplates      AssessmentTemplate[]      @relation("AssessmentTemplateCreator")
+  checkinTemplates         CheckinTemplate[]         @relation("CheckinTemplateCreator")
+  clientAlerts             ClientAlert[]             @relation("ClientAlertCreator")
 
   @@index([role, status])
   @@index([createdAt])

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_controller.dart';
+import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
 
@@ -57,13 +58,19 @@ class HomePage extends ConsumerWidget {
             return Column(children: [
               for (final s in subs)
                 Card(
-                  child: ListTile(
-                    onTap: () => context.push('/coach/${s['coach']['username']}'),
-                    leading: UserAvatar(name: s['coach']['displayName'] ?? s['coach']['username'], url: s['coach']['avatarUrl'], verified: s['coach']['verified'] == true, size: 44),
-                    title: Text(s['coach']['displayName'] ?? s['coach']['username'], style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text(s['endsAt'] != null ? '${_date(s['endsAt'])} tarihine kadar' : 'Süresiz', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12.5)),
-                    trailing: const Icon(Icons.chevron_right),
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    ListTile(
+                      onTap: () => context.push('/coach/${s['coach']['username']}'),
+                      leading: UserAvatar(name: s['coach']['displayName'] ?? s['coach']['username'], url: s['coach']['avatarUrl'], verified: s['coach']['verified'] == true, size: 44),
+                      title: Text(s['coach']['displayName'] ?? s['coach']['username'], style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(s['endsAt'] != null ? '${_date(s['endsAt'])} tarihine kadar' : 'Süresiz', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12.5)),
+                      trailing: const Icon(Icons.chevron_right),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
+                      child: _CancelSubBtn(coachUsername: s['coach']['username'] as String, onCancelled: () => ref.invalidate(overviewProvider)),
+                    ),
+                  ]),
                 ),
             ]);
           },
@@ -99,6 +106,61 @@ class HomePage extends ConsumerWidget {
 String _date(dynamic iso) {
   final d = DateTime.tryParse('$iso')?.toLocal();
   return d == null ? '' : '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+}
+
+class _CancelSubBtn extends ConsumerStatefulWidget {
+  const _CancelSubBtn({required this.coachUsername, required this.onCancelled});
+  final String coachUsername;
+  final VoidCallback onCancelled;
+
+  @override
+  ConsumerState<_CancelSubBtn> createState() => _CancelSubBtnState();
+}
+
+class _CancelSubBtnState extends ConsumerState<_CancelSubBtn> {
+  bool _confirm = false;
+  bool _loading = false;
+
+  Future<void> _cancel() async {
+    setState(() => _loading = true);
+    try {
+      await ref.read(apiClientProvider).post('/me/subscriptions/cancel-by-creator/${widget.coachUsername}');
+      widget.onCancelled();
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() { _loading = false; _confirm = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_confirm) {
+      return TextButton.icon(
+        onPressed: () => setState(() => _confirm = true),
+        icon: const Icon(Icons.cancel_outlined, size: 16, color: MettloColors.error),
+        label: const Text('Aboneliği İptal Et', style: TextStyle(color: MettloColors.error, fontSize: 13)),
+        style: TextButton.styleFrom(padding: EdgeInsets.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      );
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Emin misin? İptal sonrasında bu koçun içeriklerine erişimin sona erecektir.', style: TextStyle(fontSize: 12.5, color: MettloColors.textSecondary)),
+      const SizedBox(height: 8),
+      Row(children: [
+        FilledButton(
+          onPressed: _loading ? null : _cancel,
+          style: FilledButton.styleFrom(backgroundColor: MettloColors.error, padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)),
+          child: _loading ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Evet, iptal et', style: TextStyle(fontSize: 12.5)),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton(
+          onPressed: _loading ? null : () => setState(() => _confirm = false),
+          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)),
+          child: const Text('Vazgeç', style: TextStyle(fontSize: 12.5)),
+        ),
+      ]),
+    ]);
+  }
 }
 
 class _Quick extends StatelessWidget {

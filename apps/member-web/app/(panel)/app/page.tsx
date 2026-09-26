@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Bell, LifeBuoy, MessageSquare, Users } from 'lucide-react';
 import { Avatar, EmptyState, VerifiedBadge } from '@mettlo/ui';
 import { apiTry, authed, requireSession } from '@mettlo/web-core';
+import { SubscriptionCancelBtn } from '../../components/subscription-cancel-btn';
 
 export default async function AppHome() {
   const s = await requireSession('/app');
@@ -39,12 +40,25 @@ export default async function AppHome() {
           <h2 className="h4" style={{ marginBottom: 14 }}>Aboneliklerim</h2>
           <div className="grid grid-3">
             {subscriptions.map((sub: any, i: number) => sub.coach && (
-              <Link key={i} href={`/profile/${sub.coach.username}`} className="card card-hover row" style={{ gap: 14 }}>
-                <Avatar name={sub.coach.displayName ?? sub.coach.username} src={sub.coach.avatarUrl} size={52} verified={!!sub.coach.verified} />
-                <div style={{ minWidth: 0 }}><b className="row" style={{ gap: 6 }}>{sub.coach.displayName ?? sub.coach.username}{sub.coach.verified && <VerifiedBadge size={16} />}</b>
-                  <span className="caption text-tertiary">{sub.source === 'CREATOR_INVITE_GRANT' ? 'Koç daveti · ' : ''}{sub.endsAt ? `${new Date(sub.endsAt).toLocaleDateString('tr-TR')} tarihine kadar` : 'Süresiz'}</span></div>
-              </Link>
+              <div key={i} className="card row" style={{ gap: 14, alignItems: 'flex-start' }}>
+                <Link href={`/profile/${sub.coach.username}`} style={{ display: 'contents' }}>
+                  <Avatar name={sub.coach.displayName ?? sub.coach.username} src={sub.coach.avatarUrl} size={52} verified={!!sub.coach.verified} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <b className="row" style={{ gap: 6 }}>{sub.coach.displayName ?? sub.coach.username}{sub.coach.verified && <VerifiedBadge size={16} />}</b>
+                    <span className="caption text-tertiary">{sub.source === 'CREATOR_INVITE_GRANT' ? 'Koç daveti · ' : ''}{sub.endsAt ? `${new Date(sub.endsAt).toLocaleDateString('tr-TR')} tarihine kadar` : 'Süresiz'}</span>
+                  </div>
+                </Link>
+                <SubscriptionCancelBtn coachUsername={sub.coach.username} />
+              </div>
             ))}
+          </div>
+        </section>
+      )}
+      {s.role === 'CREATOR' && (
+        <section>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h2 className="h4">Abonelerim</h2>
+            <Link href="/app/subscribers" className="btn btn-sm btn-secondary btn-pill">Tümünü Yönet</Link>
           </div>
         </section>
       )}

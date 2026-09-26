@@ -103,12 +103,20 @@ model Measurement {
 }
 
 model ProgressPhoto {
-  id      String   @id @default(cuid())
-  userId  String
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mediaId String
-  angle   String?
-  takenAt DateTime @default(now())
+  id               String        @id @default(cuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mediaId          String
+  angle            String?
+  category         PhotoCategory @default(FRONT)
+  notes            String?
+  /// Koç tarafından eklenen açıklama (ayrı KVKK izni gerektirir)
+  coachAnnotation  String?
+  /// Fotoğraf çekildiğindeki anlık ağırlık (isteğe bağlı)
+  weightKgSnapshot Decimal?      @db.Decimal(5, 2)
+  /// true = yalnızca koç ve üye görür
+  isPrivate        Boolean       @default(true)
+  takenAt          DateTime      @default(now())
 
   @@index([userId, takenAt])
   @@map("progress_photos")

@@ -225,18 +225,25 @@ model WorkoutBlock {
 }
 
 model WorkoutExercise {
-  id         String       @id @default(cuid())
+  id         String   @id @default(cuid())
   blockId    String
   block      WorkoutBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
   exerciseId String
-  exercise   Exercise     @relation(fields: [exerciseId], references: [id])
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
   position   Int
   sets       Int?
   reps       String?
-  weightKg   Decimal?     @db.Decimal(6, 2)
+  weightKg   Decimal? @db.Decimal(6, 2)
   restSec    Int?
   tempo      String?
   notes      String?
+  /// RPE 1-10 hedef
+  rpeTarget  Decimal? @db.Decimal(3, 1)
+  /// RIR (Reps In Reserve) hedef
+  rirTarget  Int?
+  setType    SetType  @default(WORKING)
+  /// Kümülatif antrenman hacmi (hesaplanmış, performans için önbelleklenir)
+  volumeKg   Decimal? @db.Decimal(10, 2)
 
   @@index([blockId])
   @@map("workout_exercises")

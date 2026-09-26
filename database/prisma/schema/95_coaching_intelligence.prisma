@@ -1,0 +1,244 @@
+// ============ COACHING INTELLIGENCE ENGINE ============
+// Phase 2-6: Universal Metric Engine, Assessment/Form Builder,
+// Check-in Engine, Client Timeline, Client Goals & Alerts
+// Mevcut coaching altyapısının üzerine kurulur; hiçbir tablo silinmez.
+// Enum'lar 01_enums.prisma'da tanımlıdır.
+
+// ---------- PHASE 2: UNIVERSAL METRIC ENGINE ----------
+
+/// Hem sistem tanımlı hem koç tanımlı metrikler için tek kaynak
+model MetricDefinition {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  name        String
+  category    MetricCategory
+  dataType    MetricDataType @default(NUMBER)
+  unit        String?
+  unitOptions String[]
+  /// null = sistem tanımlı (herkes kullanabilir)
+  creatorId   String?
+  creator     User?          @relation("MetricDefinitionCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  branchId    String?
+  isSystem    Boolean        @default(false)
+  sides       MetricSide     @default(NONE)
+  isActive    Boolean        @default(true)
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+
+  values    MetricValue[]
+  goals     ClientGoal[]
+  questions AssessmentQuestion[]
+
+  @@index([creatorId])
+  @@index([branchId])
+  @@index([isSystem, category])
+  @@map("metric_definitions")
+}
+
+model MetricValue {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation("MetricValueUser", fields: [userId], references: [id], onDelete: Cascade)
+  metricId     String
+  metric       MetricDefinition @relation(fields: [metricId], references: [id])
+  value        Decimal          @db.Decimal(14, 4)
+  valueRight   Decimal?         @db.Decimal(14, 4)
+  unit         String
+  source       MetricSource     @default(MANUAL)
+  notes        String?
+  mediaId      String?
+  /// Koç tarafından girilmişse dolu
+  coachId      String?
+  coach        User?            @relation("MetricValueCoach", fields: [coachId], references: [id], onDelete: SetNull)
+  /// CoachingCheckin ile ilişkilendir (extend edilen mevcut model)
+  checkinId    String?
+  checkin      CoachingCheckin?   @relation(fields: [checkinId], references: [id], onDelete: SetNull)
+  assessmentId String?
+  assessment   AssessmentResponse? @relation(fields: [assessmentId], references: [id], onDelete: SetNull)
+  recordedAt   DateTime
+  createdAt    DateTime         @default(now())
+
+  @@index([userId, metricId, recordedAt])
+  @@index([coachId])
+  @@map("metric_values")
+}
+
+// ---------- CLIENT GOALS ----------
+
+model ClientGoal {
+  id             String           @id @default(cuid())
+  clientId       String
+  client         CoachingClient   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title          String
+  category       GoalCategory     @default(CUSTOM)
+  metricId       String?
+  metric         MetricDefinition? @relation(fields: [metricId], references: [id], onDelete: SetNull)
+  baselineValue  Decimal?         @db.Decimal(14, 4)
+  targetValue    Decimal?         @db.Decimal(14, 4)
+  unit           String?
+  targetDate     DateTime?
+  priority       Int              @default(1)
+  status         GoalStatus       @default(ACTIVE)
+  progressPct    Decimal          @default(0) @db.Decimal(5, 2)
+  coachNote      String?
+  achievedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([clientId, status])
+  @@map("client_goals")
+}
+
+// ---------- PHASE 3: ASSESSMENT / FORM BUILDER ----------
+
+model AssessmentTemplate {
+  id          String   @id @default(cuid())
+  creatorId   String
+  creator     User     @relation("AssessmentTemplateCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  branchId    String?
+  isRecurring Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions AssessmentQuestion[]
+  responses AssessmentResponse[]
+
+  @@index([creatorId])
+  @@map("assessment_templates")
+}
+
+model AssessmentQuestion {
+  id          String              @id @default(cuid())
+  templateId  String
+  template    AssessmentTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  position    Int
+  label       String
+  type        AssessmentFieldType
+  required    Boolean             @default(false)
+  options     Json?
+  minValue    Decimal?            @db.Decimal(10, 2)
+  maxValue    Decimal?            @db.Decimal(10, 2)
+  unit        String?
+  /// Yanıt otomatik olarak MetricValue'ya dönüştürülsün
+  metricId    String?
+  metric      MetricDefinition?   @relation(fields: [metricId], references: [id], onDelete: SetNull)
+  hint        String?
+
+  items AssessmentResponseItem[]
+
+  @@index([templateId, position])
+  @@map("assessment_questions")
+}
+
+model AssessmentResponse {
+  id           String             @id @default(cuid())
+  templateId   String
+  template     AssessmentTemplate @relation(fields: [templateId], references: [id])
+  clientId     String
+  client       CoachingClient     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  /// "Week 0", "Week 4", "Month 3" vb. — karşılaştırmada kullanılır
+  periodLabel  String?
+  status       AssessmentStatus   @default(PENDING)
+  coachNote    String?
+  reviewedAt   DateTime?
+  submittedAt  DateTime?
+  createdAt    DateTime           @default(now())
+
+  items        AssessmentResponseItem[]
+  metricValues MetricValue[]
+
+  @@index([templateId, clientId])
+  @@map("assessment_responses")
+}
+
+model AssessmentResponseItem {
+  id          String             @id @default(cuid())
+  responseId  String
+  response    AssessmentResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    AssessmentQuestion @relation(fields: [questionId], references: [id])
+  valueText   String?
+  valueNumber Decimal?           @db.Decimal(14, 4)
+  valueJson   Json?
+  mediaIds    String[]
+
+  @@index([responseId])
+  @@map("assessment_response_items")
+}
+
+// ---------- PHASE 4: CHECK-IN TEMPLATE & SCHEDULE ----------
+// NOT: Check-in yanıtları CoachingCheckin modelinde tutulur (40_coaching_community.prisma).
+// CheckinTemplate → şablon tanımı; CheckinSchedule → zamanlama.
+
+model CheckinTemplate {
+  id          String           @id @default(cuid())
+  creatorId   String
+  creator     User             @relation("CheckinTemplateCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  title       String
+  frequency   CheckinFrequency @default(WEEKLY)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  schedules CheckinSchedule[]
+  checkins  CoachingCheckin[]
+
+  @@index([creatorId])
+  @@map("checkin_templates")
+}
+
+model CheckinSchedule {
+  id          String          @id @default(cuid())
+  templateId  String
+  template    CheckinTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      CoachingClient  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  dueAt       DateTime
+  completedAt DateTime?
+
+  @@index([clientId, dueAt])
+  @@map("checkin_schedules")
+}
+
+// ---------- CLIENT ALERTS (Attention Queue) ----------
+
+model ClientAlert {
+  id         String        @id @default(cuid())
+  creatorId  String
+  creator    User          @relation("ClientAlertCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  clientId   String
+  client     CoachingClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type       AlertType
+  severity   AlertSeverity @default(MEDIUM)
+  title      String
+  body       String?
+  isRead     Boolean       @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime      @default(now())
+
+  @@index([creatorId, isRead, createdAt])
+  @@index([clientId])
+  @@map("client_alerts")
+}
+
+// ---------- PHASE 5: CLIENT TIMELINE ----------
+
+model ClientTimelineEvent {
+  id        String             @id @default(cuid())
+  clientId  String
+  client    CoachingClient     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type      TimelineEventType
+  title     String
+  body      String?
+  refType   String?
+  refId     String?
+  data      Json?
+  createdAt DateTime           @default(now())
+
+  @@index([clientId, createdAt])
+  @@map("client_timeline_events")
+}

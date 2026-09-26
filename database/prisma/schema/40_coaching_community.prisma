@@ -30,43 +30,82 @@ model CoachingClient {
   package       CoachingPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
   entitlementId String?
   status        CoachingStatus   @default(ACTIVE)
+  /// Ayrıntılı koçluk durumu (eski "status" korunur; bu ek bilgi)
+  coachingStatus CoachingClientStatus @default(ACTIVE)
   goal          String?
   startedAt     DateTime         @default(now())
   endedAt       DateTime?
+  /// Son aktivite tarihi (engagement tracking için)
+  lastActivityAt DateTime?
+  /// Sonraki planlanan check-in
+  nextCheckinAt  DateTime?
 
-  checkins CoachingCheckin[]
-  notes    CoachingNote[]
+  checkins    CoachingCheckin[]
+  notes       CoachingNote[]
+  goals       ClientGoal[]
+  schedules   CheckinSchedule[]
+  assessments AssessmentResponse[]
+  alerts      ClientAlert[]
+  timeline    ClientTimelineEvent[]
 
   @@unique([creatorId, memberId])
   @@index([memberId])
+  @@index([creatorId, coachingStatus])
   @@map("coaching_clients")
 }
 
 model CoachingCheckin {
-  id            String         @id @default(cuid())
+  id            String          @id @default(cuid())
   clientId      String
-  client        CoachingClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client        CoachingClient  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   weekNo        Int?
   answers       Json?
-  weightKg      Decimal?       @db.Decimal(5, 2)
+  weightKg      Decimal?        @db.Decimal(5, 2)
   photoMediaIds String[]
   coachReply    String?
   repliedAt     DateTime?
-  createdAt     DateTime       @default(now())
+  // --- Phase 4 Extensions (nullable, backward-compatible) ---
+  status        CheckinStatus   @default(SUBMITTED)
+  templateId    String?
+  template      CheckinTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  period        String?
+  trainingAdherencePct  Int?
+  nutritionAdherencePct Int?
+  sleepHours    Decimal?        @db.Decimal(4, 1)
+  energyScore   Int?
+  moodScore     Int?
+  stressScore   Int?
+  sorenessScore Int?
+  recoveryScore Int?
+  motivationScore Int?
+  highlights    String?
+  challenges    String?
+  questions     String?
+  coachReviewedAt DateTime?
+  submittedAt   DateTime?
+  createdAt     DateTime        @default(now())
+
+  metricValues MetricValue[]
 
   @@index([clientId, createdAt])
+  @@index([clientId, status])
   @@map("coaching_checkins")
 }
 
 model CoachingNote {
-  id        String         @id @default(cuid())
-  clientId  String
-  client    CoachingClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  authorId  String
-  body      String
-  createdAt DateTime       @default(now())
+  id         String          @id @default(cuid())
+  clientId   String
+  client     CoachingClient  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  authorId   String
+  body       String
+  visibility NoteVisibility  @default(PRIVATE_COACH)
+  category   NoteCategory    @default(GENERAL)
+  /// Seansla ilişkilendirilmişse
+  sessionId  String?
+  updatedAt  DateTime        @updatedAt
+  createdAt  DateTime        @default(now())
 
-  @@index([clientId])
+  @@index([clientId, visibility])
   @@map("coaching_notes")
 }
 

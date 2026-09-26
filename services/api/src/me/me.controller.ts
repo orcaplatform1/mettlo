@@ -170,6 +170,116 @@ export class MeController {
     return { avatarUrl };
   }
 
+  /** Üye, abone olduğu bir koça olan aboneliğini iptal eder */
+  @Post('subscriptions/cancel-by-creator/:username')
+  async cancelSubscription(@CurrentUser() me: AuthUser, @Param('username') username: string) {
+    const coach = await this.prisma.user.findFirst({ where: { username: username.toLowerCase(), role: 'CREATOR' }, select: { id: true } });
+    if (!coach) throw new NotFoundException('Koç bulunamadı');
+    const sub = await this.prisma.subscription.findFirst({
+      where: { memberId: me.id, creatorId: coach.id, status: { in: ['ACTIVE', 'PAST_DUE', 'PAUSED'] } },
+      select: { id: true },
+    });
+    if (!sub) throw new BadRequestException('Bu koça aktif aboneliğin yok');
+    const now = new Date();
+    await this.prisma.$transaction([
+      this.prisma.subscription.update({ where: { id: sub.id }, data: { status: 'CANCELLED', cancelledAt: now, cancelAtPeriodEnd: false } }),
+      this.prisma.entitlement.updateMany({ where: { subscriptionId: sub.id, status: { in: ['ACTIVE', 'GRACE', 'PAUSED'] } }, data: { status: 'CANCELLED' } }),
+    ]);
+    await recountSubscribers(this.prisma, coach.id);
+    return { ok: true };
+  }
+
+  // =========================================================
+  // Üye: Kendi metrik değerleri
+  // =========================================================
+
+  @Get('metrics')
+  async myMetrics(@CurrentUser() me: AuthUser) {
+    return this.prisma.metricValue.findMany({
+      where: { userId: me.id },
+      include: { metric: { select: { name: true, category: true, unit: true, dataType: true, sides: true } } },
+      orderBy: { recordedAt: 'desc' },
+      take: 200,
+    });
+  }
+
+  @Post('metrics')
+  async recordMyMetric(@CurrentUser() me: AuthUser, @Body() body: { metricId: string; value: number; valueRight?: number; unit: string; notes?: string; recordedAt?: string }) {
+    return this.prisma.metricValue.create({
+      data: { userId: me.id, metricId: body.metricId, value: body.value, valueRight: body.valueRight, unit: body.unit, notes: body.notes, source: 'MANUAL', recordedAt: body.recordedAt ? new Date(body.recordedAt) : new Date() },
+    });
+  }
+
+  // =========================================================
+  // Üye: Kendi hedefleri (koç tarafından oluşturulur, üye görür)
+  // =========================================================
+
+  @Get('goals')
+  async myGoals(@CurrentUser() me: AuthUser) {
+    const clients = await this.prisma.coachingClient.findMany({ where: { memberId: me.id, status: 'ACTIVE' }, select: { id: true } });
+    const clientIds = clients.map((c) => c.id);
+    return this.prisma.clientGoal.findMany({ where: { clientId: { in: clientIds } }, include: { metric: { select: { name: true, unit: true } } }, orderBy: [{ priority: 'desc' }, { status: 'asc' }] });
+  }
+
+  // =========================================================
+  // Üye: Değerlendirme formlarım
+  // =========================================================
+
+  @Get('assessments')
+  async myAssessments(@CurrentUser() me: AuthUser) {
+    const clients = await this.prisma.coachingClient.findMany({ where: { memberId: me.id, status: 'ACTIVE' }, select: { id: true } });
+    const clientIds = clients.map((c) => c.id);
+    return this.prisma.assessmentResponse.findMany({
+      where: { clientId: { in: clientIds }, status: { not: 'REVIEWED' } },
+      include: { template: { select: { title: true, description: true } }, items: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  @Post('assessments/:responseId/submit')
+  async submitAssessment(@CurrentUser() me: AuthUser, @Param('responseId') responseId: string, @Body() body: { items: Array<{ questionId: string; valueText?: string; valueNumber?: number; valueJson?: unknown }> }) {
+    const clients = await this.prisma.coachingClient.findMany({ where: { memberId: me.id }, select: { id: true } });
+    const clientIds = clients.map((c) => c.id);
+    const resp = await this.prisma.assessmentResponse.findFirst({ where: { id: responseId, clientId: { in: clientIds }, status: { in: ['PENDING', 'DRAFT'] } } });
+    if (!resp) throw new NotFoundException('Form bulunamadı veya zaten gönderildi');
+    await this.prisma.$transaction([
+      this.prisma.assessmentResponseItem.createMany({ data: body.items.map((item) => ({ responseId, questionId: item.questionId, valueText: item.valueText, valueNumber: item.valueNumber, valueJson: item.valueJson as any })) }),
+      this.prisma.assessmentResponse.update({ where: { id: responseId }, data: { status: 'SUBMITTED', submittedAt: new Date() } }),
+    ]);
+    return { ok: true };
+  }
+
+  // =========================================================
+  // Üye: Check-in gönder
+  // =========================================================
+
+  @Post('checkins')
+  async submitCheckin(
+    @CurrentUser() me: AuthUser,
+    @Body() body: {
+      coachUsername: string; weekNo?: number; answers?: unknown;
+      trainingAdherencePct?: number; nutritionAdherencePct?: number; sleepHours?: number;
+      energyScore?: number; moodScore?: number; stressScore?: number; sorenessScore?: number;
+      recoveryScore?: number; motivationScore?: number; highlights?: string; challenges?: string; questions?: string;
+      period?: string; templateId?: string;
+    },
+  ) {
+    const coach = await this.prisma.user.findFirst({ where: { username: body.coachUsername.toLowerCase(), role: 'CREATOR' }, select: { id: true } });
+    if (!coach) throw new NotFoundException('Koç bulunamadı');
+    const client = await this.prisma.coachingClient.findUnique({ where: { creatorId_memberId: { creatorId: coach.id, memberId: me.id } } });
+    if (!client) throw new BadRequestException('Bu koçun aktif müşterisi değilsiniz');
+    return this.prisma.coachingCheckin.create({
+      data: {
+        clientId: client.id, weekNo: body.weekNo, answers: body.answers as any, period: body.period, templateId: body.templateId,
+        trainingAdherencePct: body.trainingAdherencePct, nutritionAdherencePct: body.nutritionAdherencePct,
+        sleepHours: body.sleepHours, energyScore: body.energyScore, moodScore: body.moodScore,
+        stressScore: body.stressScore, sorenessScore: body.sorenessScore, recoveryScore: body.recoveryScore,
+        motivationScore: body.motivationScore, highlights: body.highlights, challenges: body.challenges,
+        questions: body.questions, status: 'SUBMITTED', submittedAt: new Date(),
+      },
+    });
+  }
+
   @Delete('avatar')
   async deleteAvatar(@CurrentUser() me: AuthUser) {
     const u = await this.prisma.user.findUnique({ where: { id: me.id }, select: { avatarUrl: true } });
