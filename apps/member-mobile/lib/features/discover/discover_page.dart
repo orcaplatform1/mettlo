@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/ad_banner_widget.dart';
 
 final branchesProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/public/branches', auth: false) as List<dynamic>);
 
@@ -61,7 +62,12 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
         builder: (d) {
           final items = (d['items'] as List);
           if (items.isEmpty) return const Padding(padding: EdgeInsets.all(24), child: InfoBanner('Bu kriterlere uygun koç bulunamadı. Koçlar yayınlandıkça burada listelenecek.'));
-          return Column(children: [for (final c in items) _CoachCard(c as Map<String, dynamic>)]);
+          return Column(children: [
+            for (int i = 0; i < items.length; i++) ...[
+              _CoachCard(items[i] as Map<String, dynamic>),
+              if (i == 5) const AdBannerWidget(placement: 'FEED'),
+            ],
+          ]);
         },
       ),
     ]);
