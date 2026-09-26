@@ -200,15 +200,59 @@ model BookingWaitlist {
 }
 
 model SessionPack {
-  id        String  @id @default(cuid())
-  creatorId String
-  name      String
-  sessions  Int
-  price     Decimal @db.Decimal(12, 2)
-  validDays Int     @default(90)
-  isActive  Boolean @default(true)
+  id                 String   @id @default(cuid())
+  /// null = platform paketi (1:1 görüntülü koçluk); dolu = koça özel paket
+  creatorId          String?
+  name               String
+  sessions           Int
+  priceWeb           Decimal  @db.Decimal(12, 2)
+  /// iOS/Android mağaza fiyatı (null = web fiyatı kullanılır)
+  priceMobile        Decimal? @db.Decimal(12, 2)
+  validDays          Int      @default(90)
+  /// true = 1:1 görüntülü koçluk oturumu; false = eski koça-özel seans paketi
+  isVideoCoaching    Boolean  @default(false)
+  /// Oturum başına planlanan süre (dakika)
+  sessionDurationMin Int      @default(60)
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
 
+  balances VideoSessionBalance[]
+
+  @@index([isVideoCoaching, isActive])
   @@map("session_packs")
+}
+
+/// Kullanıcının satın aldığı 1:1 görüntülü koçluk oturumu bakiyesi
+model VideoSessionBalance {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation("VideoSessionBalanceUser", fields: [userId], references: [id], onDelete: Cascade)
+  packId    String
+  pack      SessionPack @relation(fields: [packId], references: [id])
+  total     Int
+  remaining Int
+  paymentId String?
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+
+  consumptions VideoSessionConsumption[]
+
+  @@index([userId, remaining])
+  @@map("video_session_balances")
+}
+
+/// Bir oturum tüketimi: bakiyeden 1 oturum düşüldüğünde (COMPLETED sonrası, idempotent)
+model VideoSessionConsumption {
+  id          String              @id @default(cuid())
+  balanceId   String
+  balance     VideoSessionBalance @relation(fields: [balanceId], references: [id])
+  /// 1:1 görüntülü oturum (live_sessions.id)
+  sessionId   String              @unique
+  consumedAt  DateTime            @default(now())
+
+  @@index([balanceId])
+  @@map("video_session_consumptions")
 }
 
 // ---------- Yorumlar ----------

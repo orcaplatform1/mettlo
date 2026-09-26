@@ -126,6 +126,7 @@ model User {
   reports                  Report[]                  @relation("UserReports")
   blocksGiven              Block[]                   @relation("BlockerBlocks")
   blocksReceived           Block[]                   @relation("BlockedByBlocks")
+  videoSessionBalances     VideoSessionBalance[]     @relation("VideoSessionBalanceUser")
   // --- Coaching Intelligence (Phase 2-6) ---
   metricDefinitions        MetricDefinition[]        @relation("MetricDefinitionCreator")
   metricValues             MetricValue[]             @relation("MetricValueUser")

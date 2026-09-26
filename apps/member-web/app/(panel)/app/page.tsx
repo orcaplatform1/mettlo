@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Bell, LifeBuoy, MessageSquare, Users } from 'lucide-react';
+import { ArrowRight, Bell, LifeBuoy, MessageSquare, Users, Video } from 'lucide-react';
 import { Avatar, EmptyState, VerifiedBadge } from '@mettlo/ui';
 import { apiTry, authed, requireSession } from '@mettlo/web-core';
 import { SubscriptionCancelBtn } from '../../components/subscription-cancel-btn';
@@ -7,9 +7,10 @@ import { SubscriptionCancelBtn } from '../../components/subscription-cancel-btn'
 export default async function AppHome() {
   const s = await requireSession('/app');
   // Admin rolleri /me/gamification'a erişemez (MEMBER/CREATOR only) — apiTry ile graceful handle
-  const [ov, gm] = await Promise.all([
+  const [ov, gm, vs] = await Promise.all([
     apiTry<any>('/me/overview'),
     apiTry<any>('/me/gamification'),
+    apiTry<any>('/me/video-sessions'),
   ]);
   const subscriptions: any[] = ov?.subscriptions ?? [];
   const xp = gm?.xp ?? 0;
@@ -66,6 +67,25 @@ export default async function AppHome() {
         <section>
           <h2 className="h4" style={{ marginBottom: 14 }}>Aboneliklerim</h2>
           <EmptyState icon={<Users size={32} aria-hidden />} title="Henüz bir koça abone değilsin" action={<Link href="/coaches" className="btn btn-primary btn-pill">Koçları Keşfet <ArrowRight size={16} aria-hidden /></Link>}>Abone olduğunda koçun tüm içeriklerine, programlarına ve canlı derslerine erişirsin.</EmptyState>
+        </section>
+      )}
+      {(vs?.totalRemaining > 0 || (vs?.balances?.length ?? 0) > 0) && (
+        <section>
+          <div className="row" style={{ gap: 10, marginBottom: 14, alignItems: 'center' }}>
+            <Video size={18} className="text-primary" aria-hidden />
+            <h2 className="h4" style={{ margin: 0 }}>1:1 Görüntülü Koçluk</h2>
+            <span className="badge">{vs?.totalRemaining ?? 0} oturum hakkı</span>
+          </div>
+          <div className="grid grid-3">
+            {(vs?.balances ?? []).filter((b: any) => b.remaining > 0).map((b: any) => (
+              <div key={b.id} className="card">
+                <p className="body-sm text-secondary">{b.pack?.name}</p>
+                <p className="h3 gradient-text" style={{ margin: '6px 0' }}>{b.remaining} <span className="body-sm text-tertiary">oturum kaldı</span></p>
+                <p className="caption text-tertiary">Son kullanma: {new Date(b.expiresAt).toLocaleDateString('tr-TR')}</p>
+              </div>
+            ))}
+          </div>
+          <Link href="/pricing" className="btn btn-sm btn-outline btn-pill" style={{ marginTop: 12 }}>Daha Fazla Satın Al</Link>
         </section>
       )}
     </div>

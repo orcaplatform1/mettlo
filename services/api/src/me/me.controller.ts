@@ -280,6 +280,18 @@ export class MeController {
     });
   }
 
+  /** Üyenin 1:1 görüntülü koçluk oturum bakiyeleri */
+  @Get('video-sessions')
+  async videoSessions(@CurrentUser() me: AuthUser) {
+    const now = new Date();
+    const balances = await this.prisma.videoSessionBalance.findMany({
+      where: { userId: me.id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, total: true, remaining: true, expiresAt: true, createdAt: true, pack: { select: { name: true, sessions: true, sessionDurationMin: true } } },
+    });
+    return { balances, totalRemaining: balances.filter((b) => b.remaining > 0 && b.expiresAt > now).reduce((s, b) => s + b.remaining, 0) };
+  }
+
   @Delete('avatar')
   async deleteAvatar(@CurrentUser() me: AuthUser) {
     const u = await this.prisma.user.findUnique({ where: { id: me.id }, select: { avatarUrl: true } });

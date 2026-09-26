@@ -29,6 +29,7 @@ import { AdminTicketsController, SupportController } from './support/support.con
 import { SupportService } from './support/support.service';
 import { BlocksController } from './blocks/blocks.controller';
 import { CheckoutController } from './checkout/checkout.controller';
+import { LiveController } from './live/live.controller';
 import { CheckoutService } from './checkout/checkout.service';
 import { IyzicoService } from './checkout/iyzico.service';
 
@@ -50,7 +51,7 @@ import { IyzicoService } from './checkout/iyzico.service';
       },
     }),
   ],
-  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController],
+  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController],
   providers: [
     SupportService,
     PresenceService,

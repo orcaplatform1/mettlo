@@ -24,6 +24,19 @@ model LiveSession {
   externalMeetingId String?
   creditsRequired   Int        @default(0)
   classSessionId    String?    @unique
+  // --- 1:1 Görüntülü Koçluk alanları (nullable, backward-compatible) ---
+  /// Planlanan toplam oturum süresi (dakika) — 0 = grup sesi varsayılanı
+  scheduledDurationMin  Int        @default(0)
+  /// Server-side doğrulanmış bağlı süre (saniye) — sıfırlanamaz
+  totalConnectedSec     Int        @default(0)
+  /// Son bağlantı kopma zamanı
+  lastDisconnectAt      DateTime?
+  /// Reconnect grace period bitiş zamanı (son disconnect + 15 dk)
+  reconnectGraceExpiresAt DateTime?
+  /// Oturum hakkı tüketildi mi? (idempotency bayrağı)
+  entitlementConsumed   Boolean    @default(false)
+  /// Hangi VideoSessionBalance'tan tüketildi
+  videoBalanceId        String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -32,10 +45,28 @@ model LiveSession {
   replays               LiveReplay[]
   externalRegistrations LiveExternalRegistration[]
   usage                 LiveUsage?
+  connectionEvents      LiveConnectionEvent[]
 
   @@index([creatorId, scheduledAt])
   @@index([status, scheduledAt])
   @@map("live_sessions")
+}
+
+/// 1:1 görüntülü oturum bağlantı olayları — disconnect/reconnect/completed logu
+model LiveConnectionEvent {
+  id               String                   @id @default(cuid())
+  sessionId        String
+  session          LiveSession              @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId           String
+  event            LiveConnectionEventType
+  /// Bu bağlantı segmentinin süresi (saniye) — DISCONNECTED olayında dolu
+  connectedSec     Int?
+  /// Bağlantı kopma nedeni (provider'dan gelen kod)
+  reason           String?
+  createdAt        DateTime                 @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("live_connection_events")
 }
 
 model LiveParticipant {

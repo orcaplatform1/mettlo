@@ -328,9 +328,24 @@ enum LiveFormat {
 
 enum LiveStatus {
   SCHEDULED
+  READY
   LIVE
+  // 1:1 oturum bağlantı durumları
+  CONNECTION_LOST
+  RECONNECTING
+  COMPLETED
+  INTERRUPTED
+  FAILED
+  // Genel
   ENDED
   CANCELLED
+}
+
+enum LiveConnectionEventType {
+  CONNECTED
+  DISCONNECTED
+  RECONNECTED
+  SESSION_ENDED
 }
 
 // ---------- Üyelik / yetkilendirme ----------
