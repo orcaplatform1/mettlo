@@ -14,6 +14,7 @@ import { ReviewForm } from '@/app/components/review-form';
 import { BookButton } from '@/app/components/book-button';
 import { ReportButton } from '@/app/components/report-button';
 import { BlockButton } from '@/app/components/block-button';
+import { ReviewReplyButton } from '@/app/components/review-reply-button';
 import { fmtHours, formatTenure } from '@/app/lib/format';
 
 type Props = { params: Promise<{ username: string }> };
@@ -386,7 +387,29 @@ export default async function ProfilePage({ params }: Props) {
           {p.reviews.length > 0 && (
             <div className="grid grid-2" style={{ marginTop: 20 }}>
               {p.reviews.map((r: any, i: number) => (
-                <article key={i} className="card"><div className="rating">{Array.from({ length: r.rating }).map((_, k) => <Star key={k} size={14} fill="currentColor" aria-hidden />)}<span className="sr-only">{r.rating} / 5</span></div>{r.body && <p className="body-sm text-secondary" style={{ marginTop: 8 }}>{r.body}</p>}<p className="caption text-tertiary" style={{ marginTop: 10 }}>{r.author ? `@${r.author.username}` : 'Silinmiş kullanıcı'} · {new Date(r.createdAt).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</p></article>
+                <article key={i} className="card">
+                  <div className="rating">{Array.from({ length: r.rating }).map((_, k) => <Star key={k} size={14} fill="currentColor" aria-hidden />)}<span className="sr-only">{r.rating} / 5</span></div>
+                  {r.body && <p className="body-sm text-secondary" style={{ marginTop: 8 }}>{r.body}</p>}
+                  <p className="caption text-tertiary" style={{ marginTop: 10 }}>{r.author ? `@${r.author.username}` : 'Silinmiş kullanıcı'} · {new Date(r.createdAt).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</p>
+                  {(r.replies as any[])?.length > 0 && (
+                    <div className="stack" style={{ ['--stack' as string]: '8px', marginTop: 12, paddingLeft: 16, borderLeft: '2px solid var(--color-primary)' }}>
+                      {(r.replies as any[]).map((rep: any, j: number) => (
+                        <div key={j}>
+                          <p className="caption text-tertiary" style={{ fontWeight: 600 }}>{rep.author ? `@${rep.author.username}` : 'Silinmiş kullanıcı'}</p>
+                          <p className="body-sm text-secondary">{rep.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="row" style={{ gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
+                    {session && r.author?.username !== session.username && (
+                      <ReportButton targetType="review" targetId={r.id} label="Şikayet" />
+                    )}
+                    {session && (isSubscriber || isStaff || isOwn) && (
+                      <ReviewReplyButton reviewId={r.id} username={p.username} />
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
           )}

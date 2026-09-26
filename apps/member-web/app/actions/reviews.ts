@@ -4,6 +4,7 @@ import { ApiError, apiFetch, getAccessToken } from '@mettlo/web-core';
 import { reviewSchema } from '@mettlo/validation';
 
 export interface ReviewState { error?: string; ok?: boolean; fieldErrors?: Record<string, string> }
+export interface ReplyState { error?: string; ok?: boolean }
 
 /** Değerlendirme, yorum ve yıldız YALNIZCA abonelere özeldir; yetki API'de de doğrulanır. */
 export async function submitReviewAction(username: string, _prev: ReviewState, fd: FormData): Promise<ReviewState> {
@@ -25,6 +26,21 @@ export async function submitReviewAction(username: string, _prev: ReviewState, f
       if (e.status === 409) return { error: 'Bu koçu zaten değerlendirdin.' };
       if (e.status === 429) return { error: 'Çok fazla deneme. Lütfen daha sonra tekrar dene.' };
     }
-    return { error: 'Değerlendirme şu an gönderilemedi.' };
+    return { error: 'Değlendirme şu an gönderilemedi.' };
+  }
+}
+
+export async function submitReplyAction(reviewId: string, coachUsername: string, body: string): Promise<ReplyState> {
+  const token = await getAccessToken();
+  if (!token) return { error: 'Yanıtlamak için giriş yapmalısın.' };
+  try {
+    await apiFetch(`/reviews/${encodeURIComponent(reviewId)}/reply`, { method: 'POST', token, body: { body } });
+    revalidatePath(`/profile/${coachUsername}`);
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof ApiError) {
+      if (e.status === 403) return { error: 'Bu yoruma yanıt yapma yetkiniz yok.' };
+    }
+    return { error: 'Yanıt gönderilemedi.' };
   }
 }
