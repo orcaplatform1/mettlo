@@ -30,8 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: '/app/settings/blocks', label: 'Engellenenler' },
     ...(s.role === 'MEMBER' && !s.creator ? [{ href: '/app/become-coach', label: 'Koç Ol' }] : []),
     ...(s.role === 'CREATOR' ? [
-      { href: '/app/clients', label: 'Müşterilerim' },
-      { href: '/app/subscribers', label: 'Abonelerim' },
+      { href: '/creator/clients', label: 'Danışanlarım' },
       { href: '/app/assessments', label: 'Formlar' },
       { href: '/app/alerts', label: 'Uyarılar' },
       { href: '/app/is-basvurulari', label: 'İş Başvurularım' },

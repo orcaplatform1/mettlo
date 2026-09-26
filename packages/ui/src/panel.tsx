@@ -29,7 +29,15 @@ export function PanelShell({ title, user, links, logoutAction, basePath = '', ch
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [counts, setCounts] = useState<{ unreadMessages: number; unreadNotifications: number } | null>(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const load = () =>
@@ -44,7 +52,7 @@ export function PanelShell({ title, user, links, logoutAction, basePath = '', ch
 
   return (
     <>
-      <header className="site-header">
+      <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
         <div className="container" style={{ gap: 10 }}>
           <a href="/" aria-label="Mettlo ana sayfa"><Logo /></a>
           <span className="badge badge-premium" style={{ marginLeft: 4 }}>{title}</span>

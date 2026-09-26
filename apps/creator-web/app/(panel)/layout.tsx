@@ -6,7 +6,7 @@ export default async function CreatorLayout({ children }: { children: React.Reac
   const me = await authed<any>('/creators/me').catch(() => null);
   const slugs: string[] = (me?.branches ?? []).map((b: any) => b.branch.slug);
   const links: PanelLink[] = [
-    { href: '/creator', label: 'Panel', exact: true }, { href: '/creator/profile', label: 'Profilim' }, { href: '/creator/clients', label: 'Öğrencilerim' },
+    { href: '/creator', label: 'Panel', exact: true }, { href: '/creator/profile', label: 'Profilim' }, { href: '/creator/clients', label: 'Danışanlarım' },
     ...(slugs.includes('running') ? [{ href: '/creator/running', label: 'Koşu Koçluğu' }] : []),
     ...(slugs.includes('boxing-kickboxing') ? [{ href: '/creator/boxing', label: 'Boks & Kickboks' }] : []),
     ...(slugs.includes('yoga-mobility') ? [{ href: '/creator/yoga', label: 'Yoga & Esneklik' }] : []),

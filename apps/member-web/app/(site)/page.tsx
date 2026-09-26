@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
-  Activity, ArrowRight, BrainCircuit, ClipboardList, Crown, Handshake, HeartPulse, Play, Radio, ShoppingBag, Trophy, UserRound, Users, Video, MessageSquare,
+  Activity, ArrowRight, BrainCircuit, Briefcase, Building2, CalendarDays, ClipboardList, Crown, Handshake, HeartPulse, Play, Radio, ShoppingBag, Trophy, UserRound, Users, Video, MessageSquare,
 } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { SITE } from '@mettlo/types';
@@ -21,9 +21,11 @@ const QUICK = [
   { href: '/programs', label: 'Programlar', Icon: ClipboardList },
   { href: '/coaches', label: '1:1 Koçluk', Icon: Handshake },
   { href: '/live', label: 'Canlı Dersler', Icon: Video },
+  { href: '/etkinlikler', label: 'Etkinlikler', Icon: CalendarDays },
+  { href: '/isletme', label: 'İşletmeler', Icon: Building2 },
+  { href: '/is-ilanlari', label: 'İş İlanları', Icon: Briefcase },
   { href: '/community', label: 'Topluluk', Icon: Users },
   { href: '/store', label: 'Mağaza', Icon: ShoppingBag },
-  { href: '/explore', label: 'Sağlık Takibi', Icon: HeartPulse },
 ];
 
 const FEATURES = [
@@ -38,15 +40,19 @@ const FEATURES = [
 ];
 
 export default async function HomePage() {
-  const [branches, creatorsRaw, programsRaw, products] = await Promise.all([
+  const [branches, creatorsRaw, programsRaw, products, eventsRaw, businessesRaw] = await Promise.all([
     getAllBranches(),
     apiTry<Page<any>>('/public/creators?limit=8'),
     apiTry<Page<any>>('/public/programs?limit=8'),
     getProducts('?limit=4'),
+    apiTry<Page<any>>('/public/events?limit=4&status=UPCOMING'),
+    apiTry<Page<any>>('/public/businesses?limit=6'),
   ]);
   const creators = creatorsRaw ? { ...creatorsRaw, items: shuffle(creatorsRaw.items).slice(0, 6) } : null;
   const programs = programsRaw ? { ...programsRaw, items: shuffle(programsRaw.items).slice(0, 6) } : null;
   const cats = branches && branches.length ? branches : DEFAULT_BRANCHES;
+  const events = eventsRaw?.items ?? [];
+  const businesses = businessesRaw?.items ?? [];
 
   return (
     <>
@@ -196,6 +202,81 @@ export default async function HomePage() {
           ) : (
             <EmptyState icon={<ShoppingBag size={36} aria-hidden />} title="Mağaza yakında açılıyor">Spor giyim, takviye ve ekipmanlar Mettlo Mağaza&apos;da satışa çıkınca burada listelenecek.</EmptyState>
           )}
+        </div>
+      </section>
+
+      {/* ---------- ETKİNLİKLER ---------- */}
+      <section className="section-sm" aria-labelledby="events-title">
+        <div className="container">
+          <div className="section-head">
+            <div><span className="overline">ETKİNLİKLER</span><h2 id="events-title" className="h2">Yaklaşan Etkinlikler</h2></div>
+            <Link href="/etkinlikler" className="btn btn-secondary btn-pill btn-sm">Tüm Etkinlikler <ArrowRight size={16} aria-hidden /></Link>
+          </div>
+          {events.length > 0 ? (
+            <div className="grid grid-3">
+              {events.map((e: any) => (
+                <Link key={e.slug ?? e.id} href={`/etkinlikler/${e.slug ?? e.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
+                  {e.coverUrl && <img src={e.coverUrl} alt={e.title} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }} />}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                    <CalendarDays size={15} className="text-primary-c" aria-hidden />
+                    <span className="caption text-secondary">{e.startsAt ? new Date(e.startsAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}</span>
+                  </div>
+                  <h3 className="h5" style={{ margin: '0 0 6px' }}>{e.title}</h3>
+                  {e.location && <p className="caption text-tertiary">{e.location}</p>}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={<CalendarDays size={36} aria-hidden />} title="Yaklaşan etkinlik yok" action={<Link href="/etkinlikler" className="btn btn-secondary btn-pill btn-sm">Etkinlikleri Keşfet <ArrowRight size={16} aria-hidden /></Link>}>
+              Fitness, yoga, koşu ve wellness etkinlikleri burada listelenir.
+            </EmptyState>
+          )}
+        </div>
+      </section>
+
+      {/* ---------- İŞLETMELER ---------- */}
+      <section className="section-sm" aria-labelledby="businesses-title">
+        <div className="container">
+          <div className="section-head">
+            <div><span className="overline">İŞLETMELER</span><h2 id="businesses-title" className="h2">Fitness &amp; Wellness İşletmeleri</h2></div>
+            <Link href="/isletme" className="btn btn-secondary btn-pill btn-sm">Tüm İşletmeler <ArrowRight size={16} aria-hidden /></Link>
+          </div>
+          {businesses.length > 0 ? (
+            <div className="grid grid-3">
+              {businesses.map((b: any) => (
+                <Link key={b.slug ?? b.id} href={`/isletme/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
+                    {b.logoUrl ? <img src={b.logoUrl} alt={b.name} style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--color-surface-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={22} className="text-secondary" /></div>}
+                    <div style={{ minWidth: 0 }}>
+                      <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
+                      {b.city && <p className="caption text-tertiary" style={{ margin: 0 }}>{b.city}</p>}
+                    </div>
+                  </div>
+                  {b.description && <p className="body-sm text-secondary" style={{ margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{b.description}</p>}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={<Building2 size={36} aria-hidden />} title="İşletmeler çok yakında" action={<Link href="/isletme" className="btn btn-secondary btn-pill btn-sm">İşletmeleri Gör <ArrowRight size={16} aria-hidden /></Link>}>
+              Spor salonları, yoga stüdyoları, sağlıklı restoranlar ve daha fazlası Mettlo&apos;da.
+            </EmptyState>
+          )}
+        </div>
+      </section>
+
+      {/* ---------- İŞ İLANLARI ---------- */}
+      <section className="section" aria-labelledby="jobs-title">
+        <div className="container">
+          <div className="cta-band" style={{ background: 'linear-gradient(135deg, rgba(249,115,22,.12) 0%, rgba(234,179,8,.08) 100%)' }}>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <span className="overline text-coral">FİTNESS SEKTÖRÜNDE KARİYER</span>
+              <h2 id="jobs-title" className="h2" style={{ margin: '10px 0 12px' }}>İş İlanları</h2>
+              <p className="text-secondary">Spor salonları, koçlar ve fitness işletmeleri için iş ilanlarını gör. Kariyer fırsatlarını kaçırma.</p>
+            </div>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <Link href="/is-ilanlari" className="btn btn-primary btn-pill">İş İlanlarını Gör <ArrowRight size={16} aria-hidden /></Link>
+            </div>
+          </div>
         </div>
       </section>
 
