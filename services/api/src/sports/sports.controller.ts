@@ -31,6 +31,36 @@ const sessionSchema = z.object({
   sessionType: z.enum(['TECHNICAL', 'SPARRING', 'CONDITIONING', 'BAG_WORK']), notes: cleanText(500).optional(),
 }).refine((v) => notFuture(v.date), { message: 'Gelecek tarihli seans kaydedilemez', path: ['date'] });
 
+const PRACTICE_BRANCHES = ['yoga-mobility', 'pilates', 'hiit-cardio', 'meditation', 'dance'] as const;
+const practiceLogSchema = z.object({
+  branch: z.enum(PRACTICE_BRANCHES),
+  date,
+  durationMin: z.number().int().min(1).max(600),
+  sessionType: cleanText(60, 1),
+  intensity: z.number().int().min(1).max(5).optional(),
+  moodBefore: z.number().int().min(1).max(5).optional(),
+  moodAfter: z.number().int().min(1).max(5).optional(),
+  caloriesEst: z.number().int().min(1).max(5000).optional(),
+  notes: cleanText(500).optional(),
+}).refine((v) => notFuture(v.date), { message: 'Gelecek tarih kaydedilemez', path: ['date'] });
+
+const nutritionLogSchema = z.object({
+  date,
+  label: cleanText(100, 1),
+  calories: z.number().int().min(0).max(10000).optional(),
+  proteinG: z.number().min(0).max(500).optional(),
+  carbG: z.number().min(0).max(1000).optional(),
+  fatG: z.number().min(0).max(500).optional(),
+  waterMl: z.number().int().min(0).max(5000).optional(),
+});
+const nutritionProfileSchema = z.object({
+  calorieTarget: z.number().int().min(500).max(10000).optional().nullable(),
+  proteinG: z.number().int().min(0).max(500).optional().nullable(),
+  carbG: z.number().int().min(0).max(1000).optional().nullable(),
+  fatG: z.number().int().min(0).max(500).optional().nullable(),
+  waterMl: z.number().int().min(0).max(5000).optional().nullable(),
+});
+
 /** Üye tarafı: koşu ve boks & kickboks verileri. Yalnızca üyenin kendi kayıtları. */
 @Roles('MEMBER')
 @Controller()
@@ -155,6 +185,77 @@ export class SportsMemberController {
   async delSession(@CurrentUser() me: AuthUser, @Param('id') id: string) {
     const r = await this.prisma.boxingSessionLog.deleteMany({ where: { id, memberId: me.id } });
     if (!r.count) throw new NotFoundException('Kayıt bulunamadı');
+    return { ok: true };
+  }
+
+  // ---------- Practice Log (yoga, pilates, hiit, meditasyon, dans) ----------
+  @Get('practice/overview/:branch')
+  async practiceOverview(@CurrentUser() me: AuthUser, @Param('branch') branch: string) {
+    if (!PRACTICE_BRANCHES.includes(branch as any)) throw new NotFoundException('Gecersiz brans');
+    const since30 = new Date(Date.now() - 30 * 864e5);
+    const sinceWeek = new Date(Date.now() - 7 * 864e5);
+    const [logs, weekLogs] = await Promise.all([
+      this.prisma.practiceLog.findMany({ where: { userId: me.id, branch }, orderBy: { date: 'desc' }, take: 50 }),
+      this.prisma.practiceLog.findMany({ where: { userId: me.id, branch, date: { gte: sinceWeek } } }),
+    ]);
+    const month30 = logs.filter((l) => l.date >= since30);
+    const weekMinutes = weekLogs.reduce((n, l) => n + l.durationMin, 0);
+    const avgMood = month30.filter((l) => l.moodAfter != null).length
+      ? Math.round((month30.filter((l) => l.moodAfter != null).reduce((n, l) => n + l.moodAfter!, 0) / month30.filter((l) => l.moodAfter != null).length) * 10) / 10
+      : null;
+    return {
+      logs: logs.map((l) => ({ id: l.id, date: iso(l.date), branch: l.branch, durationMin: l.durationMin, sessionType: l.sessionType, intensity: l.intensity, moodBefore: l.moodBefore, moodAfter: l.moodAfter, caloriesEst: l.caloriesEst, notes: l.notes })),
+      stats: { weekMinutes, month30Count: month30.length, avgMoodAfter: avgMood, totalCalories: month30.reduce((n, l) => n + (l.caloriesEst ?? 0), 0) },
+    };
+  }
+
+  @Post('practice/logs')
+  async addPracticeLog(@CurrentUser() me: AuthUser, @Body(new ZodPipe(practiceLogSchema)) b: z.infer<typeof practiceLogSchema>) {
+    const r = await this.prisma.practiceLog.create({ data: { userId: me.id, branch: b.branch, date: day(b.date), durationMin: b.durationMin, sessionType: b.sessionType, intensity: b.intensity, moodBefore: b.moodBefore, moodAfter: b.moodAfter, caloriesEst: b.caloriesEst, notes: b.notes } });
+    return { id: r.id };
+  }
+
+  @Delete('practice/logs/:id')
+  async delPracticeLog(@CurrentUser() me: AuthUser, @Param('id') id: string) {
+    const r = await this.prisma.practiceLog.deleteMany({ where: { id, userId: me.id } });
+    if (!r.count) throw new NotFoundException('Kayit bulunamadi');
+    return { ok: true };
+  }
+
+  // ---------- Beslenme ----------
+  @Get('nutrition/overview')
+  async nutritionOverview(@CurrentUser() me: AuthUser) {
+    const since14 = new Date(Date.now() - 14 * 864e5);
+    const [profile, logs] = await Promise.all([
+      this.prisma.nutritionProfile.findUnique({ where: { userId: me.id } }),
+      this.prisma.nutritionLog.findMany({ where: { userId: me.id, date: { gte: since14 } }, orderBy: { date: 'desc' }, take: 100 }),
+    ]);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayLogs = logs.filter((l) => iso(l.date) === todayStr);
+    const todayTotals = { calories: todayLogs.reduce((n, l) => n + (l.calories ?? 0), 0), proteinG: todayLogs.reduce((n, l) => n + Number(l.proteinG ?? 0), 0), carbG: todayLogs.reduce((n, l) => n + Number(l.carbG ?? 0), 0), fatG: todayLogs.reduce((n, l) => n + Number(l.fatG ?? 0), 0), waterMl: todayLogs.reduce((n, l) => n + (l.waterMl ?? 0), 0) };
+    return {
+      profile: profile ? { calorieTarget: profile.calorieTarget, proteinG: profile.proteinG, carbG: profile.carbG, fatG: profile.fatG, waterMl: profile.waterMl } : null,
+      todayTotals,
+      logs: logs.map((l) => ({ id: l.id, date: iso(l.date), label: l.label, calories: l.calories, proteinG: l.proteinG ? Number(l.proteinG) : null, carbG: l.carbG ? Number(l.carbG) : null, fatG: l.fatG ? Number(l.fatG) : null, waterMl: l.waterMl })),
+    };
+  }
+
+  @Post('nutrition/logs')
+  async addNutritionLog(@CurrentUser() me: AuthUser, @Body(new ZodPipe(nutritionLogSchema)) b: z.infer<typeof nutritionLogSchema>) {
+    const r = await this.prisma.nutritionLog.create({ data: { userId: me.id, date: day(b.date), label: b.label, calories: b.calories, proteinG: b.proteinG, carbG: b.carbG, fatG: b.fatG, waterMl: b.waterMl } });
+    return { id: r.id };
+  }
+
+  @Delete('nutrition/logs/:id')
+  async delNutritionLog(@CurrentUser() me: AuthUser, @Param('id') id: string) {
+    const r = await this.prisma.nutritionLog.deleteMany({ where: { id, userId: me.id } });
+    if (!r.count) throw new NotFoundException('Kayit bulunamadi');
+    return { ok: true };
+  }
+
+  @Put('nutrition/profile')
+  async updateNutritionProfile(@CurrentUser() me: AuthUser, @Body(new ZodPipe(nutritionProfileSchema)) b: z.infer<typeof nutritionProfileSchema>) {
+    await this.prisma.nutritionProfile.upsert({ where: { userId: me.id }, update: b, create: { userId: me.id, ...b } });
     return { ok: true };
   }
 }

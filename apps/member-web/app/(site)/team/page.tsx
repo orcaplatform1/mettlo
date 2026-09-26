@@ -12,15 +12,15 @@ export const metadata: Metadata = {
 const ROLE_LABEL: Record<string, string> = {
   founder: 'Kurucu',
   admin: 'Yönetici',
-  moderator: 'Moderatör',
-  support: 'Destek',
+  moderator: 'Topluluk Kontrolörü',
+  support: 'Müşteri İlişkileri',
 };
 
-const STAR_COLOR: Record<string, string> = {
+const ROLE_COLOR: Record<string, string> = {
   founder: '#ef4444',
-  admin: '#3b82f6',
-  moderator: '#8b5cf6',
-  support: '#10b981',
+  admin: '#22c55e',
+  moderator: '#f97316',
+  support: '#a855f7',
 };
 
 const BIOS: Record<string, string> = {
@@ -29,7 +29,7 @@ const BIOS: Record<string, string> = {
 };
 
 function StarDot({ role }: { role: string }) {
-  const color = STAR_COLOR[role] ?? '#6b7280';
+  const color = ROLE_COLOR[role] ?? '#6b7280';
   return (
     <span style={{ position: 'absolute', bottom: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: color, border: '2px solid var(--color-bg)', display: 'grid', placeItems: 'center', boxShadow: `0 0 8px ${color}88` }}>
       <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#fff' }}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
@@ -76,7 +76,7 @@ export default async function TeamPage() {
                         <p style={{ fontWeight: 700, fontSize: 15 }}>{m.name}</p>
                         <p className="caption text-tertiary">@{m.username}</p>
                       </div>
-                      <span className={`badge badge-${m.staffRole === 'founder' ? 'founder' : m.staffRole === 'admin' ? 'admin' : ''}`}>{ROLE_LABEL[m.staffRole] ?? 'Ekip'}</span>
+                      <span className="badge" style={{ color: ROLE_COLOR[m.staffRole] ?? 'var(--color-text-secondary)', borderColor: `${ROLE_COLOR[m.staffRole] ?? '#6b7280'}44`, background: `${ROLE_COLOR[m.staffRole] ?? '#6b7280'}12` }}>{ROLE_LABEL[m.staffRole] ?? 'Ekip'}</span>
                     </div>
 
                     {/* Bio */}

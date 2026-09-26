@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Clock, MapPin, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { ROLES } from '@/app/lib/careers-data';
 
-export const metadata: Metadata = { title: 'Kariyer', description: 'Mettlo ekibine katılın: Moderatör ve Halkla İlişkiler Uzmanı pozisyonları için görev tanımları ve başvuru formu.', alternates: { canonical: '/careers' } };
+export const metadata: Metadata = { title: 'Kariyer', description: 'Mettlo ekibine katılın: Topluluk Kontrolörü ve Müşteri İlişkileri Uzmanı pozisyonları için görev tanımları ve başvuru formu.', alternates: { canonical: '/careers' } };
 
 export default function Careers() {
   return (

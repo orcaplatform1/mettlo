@@ -27,8 +27,11 @@ export function PanelShell({ title, user, links, logoutAction, basePath = '', ch
         </div>
       </header>
       <div className={`shell${open ? ' shell-nav-open' : ''}`}>
-        <nav className="sidebar" aria-label={`${title} menüsü`} onClick={() => setOpen(false)}>
+        <nav className="sidebar" aria-label={`${title} menüsü`}>
           <PanelNav links={links} basePath={basePath} />
+          <form method="post" action={logoutAction} style={{ marginTop: 'auto', paddingTop: 16 }} onClick={() => setOpen(false)}>
+            <button className="btn btn-sm" type="submit" style={{ width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', cursor: 'pointer', fontWeight: 600 }}>Çıkış Yap</button>
+          </form>
         </nav>
         {open && <div className="shell-backdrop" aria-hidden onClick={() => setOpen(false)} />}
         <main id="main" className="shell-main">{children}</main>

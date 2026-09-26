@@ -289,3 +289,25 @@ model CoachSubCategory {
   @@index([subCategoryId])
   @@map("coach_sub_categories")
 }
+
+// ---------- Genel Pratik Gunlugu (yoga, pilates, hiit, meditasyon, dans) ----------
+
+model PracticeLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation("PracticeLogUser", fields: [userId], references: [id], onDelete: Cascade)
+  branch      String
+  date        DateTime @db.Date
+  durationMin Int
+  sessionType String
+  intensity   Int?
+  moodBefore  Int?
+  moodAfter   Int?
+  caloriesEst Int?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, branch, date])
+  @@map("practice_logs")
+}

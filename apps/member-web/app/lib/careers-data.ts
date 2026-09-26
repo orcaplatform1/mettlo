@@ -6,7 +6,7 @@ export interface Role {
 
 export const ROLES: Role[] = [
   {
-    key: 'moderator', title: 'Moderatör', team: 'Topluluk ve Güvenlik', type: 'Yarı zamanlı / vardiyalı', location: 'Uzaktan (Türkiye)',
+    key: 'moderator', title: 'Topluluk Kontrolörü', team: 'Topluluk ve Güvenlik', type: 'Yarı zamanlı / vardiyalı', location: 'Uzaktan (Türkiye)',
     summary: 'Mettlo topluluğunun güvenli, saygılı ve kurallara uygun kalmasını sağlar; içerik, yorum ve mesaj bildirimlerini inceler.',
     about: 'Mettlo’da koçlar ve aboneler arasındaki güven, platformun temelidir. Moderatör; bildirilen içerikleri, yorumları, topluluk gönderilerini ve koç profillerini kurallara göre inceler, gerektiğinde uyarı veya yaptırım sürecini başlatır. Rolün her adımı denetim kaydına alınır ve rol bazlı yetkilerle sınırlandırılmıştır.',
     duties: [
@@ -41,7 +41,7 @@ export const ROLES: Role[] = [
     },
   },
   {
-    key: 'pr-specialist', title: 'Halkla İlişkiler Uzmanı', team: 'İletişim ve Marka', type: 'Yarı zamanlı veya tam zamanlı', location: 'Uzaktan / Hibrit',
+    key: 'pr-specialist', title: 'Müşteri İlişkileri Uzmanı', team: 'İletişim ve Marka', type: 'Yarı zamanlı veya tam zamanlı', location: 'Uzaktan / Hibrit',
     summary: 'Mettlo’nun basın, medya, koç ve marka iş birlikleri ile kurumsal itibarını yönetir; Platform’un sesini ve hikâyesini güvenilir biçimde anlatır.',
     about: 'Mettlo, koç odaklı bir platform olarak koçlar, markalar, medya ve topluluk ile güçlü ilişkiler kurmaya ihtiyaç duyar. Halkla İlişkiler Uzmanı; kurumsal iletişimi planlar, basın ve iş ortaklığı taleplerini yönetir, koç toplulukla kampanyalar geliştirir ve itibarı korur.',
     duties: [

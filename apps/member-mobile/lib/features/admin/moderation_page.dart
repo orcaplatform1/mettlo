@@ -6,13 +6,13 @@ import '../../core/widgets/common.dart';
 
 final reportsProvider =
     FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, status) async =>
-        await ref.watch(apiClientProvider).get('/admin/user-reports?status=$status&limit=50')
+        await ref.watch(apiClientProvider).get('/admin/reports?status=$status&limit=50')
             as Map<String, dynamic>);
 
 const _statusTr = {
   'OPEN': 'Açık',
   'REVIEWING': 'İnceleniyor',
-  'RESOLVED': 'Çözüldü',
+  'ACTIONED': 'İşlem Yapıldı',
   'DISMISSED': 'Reddedildi',
 };
 const _typeTr = {
@@ -148,11 +148,11 @@ class _ReportList extends ConsumerWidget {
                                   newStatus: 'REVIEWING',
                                   label: 'İncelemeye Al',
                                   curStatus: status),
-                            if (status != 'RESOLVED')
+                            if (status != 'ACTIONED')
                               _ActionBtn(
                                   id: r['id'] as String,
-                                  newStatus: 'RESOLVED',
-                                  label: 'Çözüldü',
+                                  newStatus: 'ACTIONED',
+                                  label: 'İşlem Yapıldı',
                                   curStatus: status),
                             if (status != 'DISMISSED')
                               _ActionBtn(
@@ -208,7 +208,7 @@ class _ActionBtnState extends ConsumerState<_ActionBtn> {
               setState(() => _busy = true);
               try {
                 await ref.read(apiClientProvider).patch(
-                    '/admin/user-reports/${widget.id}',
+                    '/admin/reports/${widget.id}',
                     body: {'status': widget.newStatus});
                 ref.invalidate(reportsProvider(widget.curStatus));
               } on ApiException catch (e) {

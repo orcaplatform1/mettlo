@@ -1,5 +1,5 @@
 import { Download, HeartPulse, Trash2 } from 'lucide-react';
-import { authed, apiTry, requireSession } from '@mettlo/web-core';
+import { authed, requireSession } from '@mettlo/web-core';
 import { cancelDeletionAction, requestDeletionAction, toggleHealthShareAction } from '@/app/actions/panel';
 import { PrivacyForm } from './privacy-form';
 import { AvatarUpload } from './avatar-upload';
@@ -7,7 +7,7 @@ import { ProfileForm } from './profile-form';
 
 export default async function SettingsPage() {
   const s = await requireSession('/app/settings');
-  const [privacy, sharing, meData] = await Promise.all([apiTry<any>('/me/privacy'), apiTry<any[]>('/me/health-sharing'), apiTry<any>('/auth/me')]);
+  const [privacy, sharing, meData] = await Promise.all([authed<any>('/me/privacy').catch(() => null), authed<any[]>('/me/health-sharing').catch(() => []), authed<any>('/auth/me').catch(() => null)]);
   const pendingDeletion = s.status === 'PENDING_DELETION';
   return (
     <div className="stack" style={{ ['--stack' as string]: '28px', maxWidth: 760 }}>
@@ -29,7 +29,7 @@ export default async function SettingsPage() {
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
         <h2 className="h4">Profil gizliliği</h2>
         <p className="body-sm text-secondary">Profil adresin: <b>mettlo.tr/profile/{s.username}</b>. Varsayılan olarak profilin gizlidir; yalnızca kullanıcı adın ve fotoğrafın görünür.</p>
-        <PrivacyForm current={privacy.profileVisibility} showOnline={privacy.showOnlineStatus !== false} />
+        <PrivacyForm current={privacy?.profileVisibility ?? 'private'} showOnline={privacy?.showOnlineStatus !== false} />
       </section>
       <section className="card stack" style={{ ['--stack' as string]: '14px' }}>
         <h2 className="h4 row" style={{ gap: 8 }}><HeartPulse size={20} className="text-primary-c" aria-hidden /> Sağlık verisi paylaşımı</h2>

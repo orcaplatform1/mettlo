@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Body, Controller, Get, Patch, Post, Put, Req } from '@nestjs/common';
+import { BadRequestException, ConflictException, Body, Controller, Delete, Get, Patch, Post, Put, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
+import { extname, join } from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { Throttle } from '@nestjs/throttler';
 import { cleanText, emailSchema, registerSchema, type RegisterInput } from '@mettlo/validation';
@@ -108,6 +113,50 @@ export class CreatorsController {
   async update(@CurrentUser() u: AuthUser, @Body(new ZodPipe(updateSchema)) b: z.infer<typeof updateSchema>) {
     const p = await this.prisma.creatorProfile.update({ where: { userId: u.id }, data: b, include: { user: { select: { username: true } } } });
     if (p.isPublic) this.seo.notify([`/profile/${p.user.username}`]);
+    return { ok: true };
+  }
+
+  @Roles('CREATOR')
+  @Post('me/cover')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: (_req, _file, cb) => {
+        const dir = join('/var/www/mettlo.tr/uploads/covers');
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (_req, file, cb) => {
+        const ext = extname(file.originalname).toLowerCase() || '.jpg';
+        cb(null, `${randomBytes(16).toString('hex')}${ext}`);
+      },
+    }),
+    fileFilter: (_req, file, cb) => {
+      const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+      cb(null, allowed.includes(extname(file.originalname).toLowerCase()));
+    },
+    limits: { fileSize: 8 * 1024 * 1024 },
+  }))
+  async uploadCover(@CurrentUser() u: AuthUser, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('Geçerli bir resim yükleyin (jpg, png, webp — maks 8 MB).');
+    const profile = await this.prisma.creatorProfile.findUnique({ where: { userId: u.id }, select: { coverUrl: true, isPublic: true, user: { select: { username: true } } } });
+    if (profile?.coverUrl?.startsWith('/uploads/covers/')) {
+      try { unlinkSync(join('/var/www/mettlo.tr', profile.coverUrl)); } catch { /* yoksay */ }
+    }
+    const coverUrl = `/uploads/covers/${file.filename}`;
+    await this.prisma.creatorProfile.update({ where: { userId: u.id }, data: { coverUrl } });
+    if (profile?.isPublic) this.seo.notify([`/profile/${profile.user.username}`]);
+    return { coverUrl };
+  }
+
+  @Roles('CREATOR')
+  @Delete('me/cover')
+  async deleteCover(@CurrentUser() u: AuthUser) {
+    const profile = await this.prisma.creatorProfile.findUnique({ where: { userId: u.id }, select: { coverUrl: true, isPublic: true, user: { select: { username: true } } } });
+    if (profile?.coverUrl?.startsWith('/uploads/covers/')) {
+      try { unlinkSync(join('/var/www/mettlo.tr', profile.coverUrl)); } catch { /* yoksay */ }
+    }
+    await this.prisma.creatorProfile.update({ where: { userId: u.id }, data: { coverUrl: null } });
+    if (profile?.isPublic) this.seo.notify([`/profile/${profile.user.username}`]);
     return { ok: true };
   }
 }

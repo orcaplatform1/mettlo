@@ -19,7 +19,7 @@ export default async function CoachLoginPage({ searchParams }: { searchParams: P
         <h1 className="h3" style={{ marginTop: 12 }}>Koç girişi</h1>
         <p className="text-secondary body-sm" style={{ margin: '6px 0 24px' }}>Koç ve yönetim hesapları kullanıcı adı, şifre ve iki adımlı doğrulama koduyla giriş yapar.</p>
         <LoginForm next={safe} />
-        <p className="body-sm text-secondary" style={{ textAlign: 'center', marginTop: 20 }}>Üye misin? <Link href="/login" className="text-coral">Üye girişi</Link> · Koç olmak mı istiyorsun? <Link href="/become-a-coach" className="text-coral">Başvur</Link></p>
+        <p className="body-sm text-secondary" style={{ textAlign: 'center', marginTop: 20, padding: '10px 14px', background: 'var(--color-warning-bg, rgba(255,180,0,0.08))', borderRadius: 8, border: '1px solid var(--color-warning-border, rgba(255,180,0,0.25))' }}>⚠️ Sadece Koç ve Yönetici giriş alanıdır. Üye/Aboneler buradan giriş yapamaz.</p>
       </div>
     </div>
   );

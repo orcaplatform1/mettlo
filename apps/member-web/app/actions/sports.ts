@@ -58,3 +58,27 @@ export async function addBoxingSessionAction(_p: FormState, fd: FormData): Promi
   return done('/app/boxing', 'Seans kaydedildi.');
 }
 export async function deleteBoxingSessionAction(id: string) { await authed(`/boxing/sessions/${id}`, { method: 'DELETE' }); revalidatePath('/app/boxing'); }
+
+// ---------- Genel Pratik Günlüğü (yoga, pilates, hiit, meditasyon, dans) ----------
+export async function addPracticeAction(branch: string, _p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    await authed('/practice/logs', { method: 'POST', body: { branch, date: str(fd, 'date') || new Date().toISOString().slice(0, 10), durationMin: num(fd, 'durationMin'), sessionType: str(fd, 'sessionType'), intensity: num(fd, 'intensity') ?? undefined, moodBefore: num(fd, 'moodBefore') ?? undefined, moodAfter: num(fd, 'moodAfter') ?? undefined, caloriesEst: num(fd, 'caloriesEst') ?? undefined, notes: str(fd, 'notes') || undefined } });
+  } catch (e) { return fail(e); }
+  return done(`/app/${branch.replace('-', '')}`, 'Seans kaydedildi.');
+}
+export async function deletePracticeLogAction(id: string, branch: string) { await authed(`/practice/logs/${id}`, { method: 'DELETE' }); revalidatePath(`/app/${branch.replace('-', '')}`); }
+
+// ---------- Beslenme ----------
+export async function addNutritionLogAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    await authed('/nutrition/logs', { method: 'POST', body: { date: str(fd, 'date') || new Date().toISOString().slice(0, 10), label: str(fd, 'label'), calories: num(fd, 'calories') ?? undefined, proteinG: num(fd, 'proteinG') ?? undefined, carbG: num(fd, 'carbG') ?? undefined, fatG: num(fd, 'fatG') ?? undefined, waterMl: num(fd, 'waterMl') ?? undefined } });
+  } catch (e) { return fail(e); }
+  return done('/app/nutrition', 'Öğün kaydedildi.');
+}
+export async function deleteNutritionLogAction(id: string) { await authed(`/nutrition/logs/${id}`, { method: 'DELETE' }); revalidatePath('/app/nutrition'); }
+export async function updateNutritionProfileAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    await authed('/nutrition/profile', { method: 'PUT', body: { calorieTarget: num(fd, 'calorieTarget') ?? null, proteinG: num(fd, 'proteinG') ?? null, carbG: num(fd, 'carbG') ?? null, fatG: num(fd, 'fatG') ?? null, waterMl: num(fd, 'waterMl') ?? null } });
+  } catch (e) { return fail(e); }
+  return done('/app/nutrition', 'Hedefler güncellendi.');
+}

@@ -37,10 +37,11 @@ export class MeController {
       this.prisma.supportTicket.count({ where: { userId: me.id, status: { in: ['OPEN', 'ANSWERED'] } } }),
       this.prisma.user.findUniqueOrThrow({ where: { id: me.id }, select: { username: true, name: true, avatarUrl: true, creatorProfile: { select: { status: true } } } }),
     ]);
-    const coaches = await this.prisma.user.findMany({ where: { id: { in: subs.map((s) => s.creatorId!) } }, select: { id: true, username: true, creatorProfile: { select: { displayName: true, verified: true } }, avatarUrl: true } });
+    const coaches = await this.prisma.user.findMany({ where: { id: { in: subs.map((s) => s.creatorId!) } }, select: { id: true, username: true, creatorProfile: { select: { displayName: true, verified: true, branches: { select: { branch: { select: { slug: true } } } } } }, avatarUrl: true } });
     const byId = new Map(coaches.map((c) => [c.id, c]));
+    const branchSlugs = [...new Set(coaches.flatMap((c) => c.creatorProfile?.branches.map((b) => b.branch.slug) ?? []))];
     return {
-      user: u, unreadNotifications: unread, openTickets,
+      user: u, unreadNotifications: unread, openTickets, branchSlugs,
       subscriptions: subs.map((s) => ({ source: s.source, endsAt: s.endsAt, coach: byId.get(s.creatorId!) ? { username: byId.get(s.creatorId!)!.username, displayName: byId.get(s.creatorId!)!.creatorProfile?.displayName, verified: byId.get(s.creatorId!)!.creatorProfile?.verified, avatarUrl: byId.get(s.creatorId!)!.avatarUrl } : null })),
     };
   }
