@@ -6,6 +6,7 @@ import '../../features/admin/moderation_page.dart';
 import '../../features/business/business_checkin_page.dart';
 import '../../features/earnings/earnings_page.dart';
 import '../../features/events/events_page.dart';
+import '../../features/food/food_menu_page.dart';
 import '../../features/jobs/jobs_page.dart';
 import '../../features/business/business_list_page.dart';
 import '../../features/business/business_profile_page.dart';
@@ -98,6 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/earnings', builder: (_, _) => const EarningsPage()),
       GoRoute(path: '/events', builder: (_, _) => const EventsPage()),
       GoRoute(path: '/jobs', builder: (_, _) => const JobsPage()),
+      GoRoute(path: '/business/:slug/menu', builder: (_, s) => FoodMenuPage(businessId: s.pathParameters['slug']!, businessName: 'Menü')),
     ],
   );
 });
