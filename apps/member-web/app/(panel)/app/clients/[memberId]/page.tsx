@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Activity, Target, ClipboardList, MessageSquare, Clock, Bell } from 'lucide-react';
+import { ArrowLeft, Activity, Target, ClipboardList, MessageSquare, Clock, Bell, Video } from 'lucide-react';
 import { Avatar } from '@mettlo/ui';
 import { authed, requireSession } from '@mettlo/web-core';
 import { GoalSection } from './goal-section';
@@ -23,12 +23,13 @@ type Alert = { id: string; type: string; severity: string; title: string; isRead
 export default async function ClientWorkspacePage({ params }: { params: { memberId: string } }) {
   await requireSession('/app', ['CREATOR']);
 
-  const [detail, goals, metrics, timeline, alerts] = await Promise.all([
+  const [detail, goals, metrics, timeline, alerts, videoSessions] = await Promise.all([
     authed<ClientDetail>(`/coaching/clients/${params.memberId}`).catch(() => null),
     authed<Goal[]>(`/coaching/clients/${params.memberId}/goals`).catch(() => [] as Goal[]),
     authed<MetricValue[]>(`/coaching/clients/${params.memberId}/metrics`).catch(() => [] as MetricValue[]),
     authed<{ id: string; type: string; title: string; createdAt: string }[]>(`/coaching/clients/${params.memberId}/timeline`).catch(() => []),
     authed<Alert[]>(`/coaching/alerts?unreadOnly=false`).catch(() => [] as Alert[]),
+    authed<{ totalRemaining: number; balances: Array<{ id: string; total: number; remaining: number; expiresAt: string; pack: { name: string } }> }>(`/coaching/clients/${params.memberId}/video-sessions`).catch(() => ({ totalRemaining: 0, balances: [] })),
   ]);
 
   if (!detail) notFound();
@@ -52,6 +53,28 @@ export default async function ClientWorkspacePage({ params }: { params: { member
         )}
         {!detail.active && <span style={{ fontSize: 12, color: '#94a3b8', background: '#f1f5f9', padding: '4px 10px', borderRadius: 6 }}>Pasif abonelik</span>}
       </div>
+
+      {/* Video Sessions */}
+      <section style={{ marginBottom: 28 }}>
+        <SectionHeader icon={<Video size={16} />} title="1:1 Görüntülü Koçluk" badge={videoSessions.totalRemaining > 0 ? `${videoSessions.totalRemaining} oturum hakkı` : undefined} />
+        {videoSessions.totalRemaining === 0 && videoSessions.balances.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--color-text-2)', margin: 0 }}>Müşterinin henüz video oturum hakkı yok.</p>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            {videoSessions.balances.filter((b) => b.remaining > 0).map((b) => (
+              <div key={b.id} style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--color-surface-1)', border: '1px solid var(--color-border)', fontSize: 13 }}>
+                <div style={{ fontWeight: 600 }}>{b.remaining} oturum kaldı</div>
+                <div style={{ color: 'var(--color-text-2)', fontSize: 12 }}>{b.pack?.name}</div>
+                <div style={{ color: 'var(--color-text-3)', fontSize: 11, marginTop: 2 }}>Son kullanma: {new Date(b.expiresAt).toLocaleDateString('tr-TR')}</div>
+              </div>
+            ))}
+            {videoSessions.totalRemaining === 0 && <p style={{ fontSize: 13, color: 'var(--color-text-2)', margin: 0 }}>Tüm haklar kullanıldı.</p>}
+          </div>
+        )}
+        <Link href="/pricing#video" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, fontSize: 12, color: 'var(--color-primary)' }}>
+          <Video size={12} /> Paket fiyatlarını gör →
+        </Link>
+      </section>
 
       {/* Goals */}
       <section style={{ marginBottom: 28 }}>
@@ -105,10 +128,11 @@ export default async function ClientWorkspacePage({ params }: { params: { member
   );
 }
 
-function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+function SectionHeader({ icon, title, badge }: { icon: React.ReactNode; title: string; badge?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12, fontWeight: 600, fontSize: 15 }}>
       {icon} {title}
+      {badge && <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: 'var(--color-primary-alpha)', color: 'var(--color-primary)' }}>{badge}</span>}
     </div>
   );
 }

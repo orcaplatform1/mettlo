@@ -196,6 +196,20 @@ export class AdminController {
     return u;
   }
 
+  @RequirePermission('users:read_masked')
+  @Get('profiles/:username/video-sessions')
+  async profileVideoSessions(@Param('username') username: string) {
+    const u = await this.prisma.user.findUnique({ where: { username: username.toLowerCase() }, select: { id: true } });
+    if (!u) throw new NotFoundException('Profil bulunamadı');
+    const now = new Date();
+    const balances = await this.prisma.videoSessionBalance.findMany({
+      where: { userId: u.id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, total: true, remaining: true, expiresAt: true, createdAt: true, paymentId: true, pack: { select: { name: true, sessions: true } }, consumptions: { select: { id: true, sessionId: true, consumedAt: true } } },
+    });
+    return { balances, totalRemaining: balances.filter((b) => b.remaining > 0 && b.expiresAt > now).reduce((s, b) => s + b.remaining, 0) };
+  }
+
   @RequirePermission('health_data:read')
   @Get('profiles/:username/health')
   async profileHealth(@CurrentUser() me: AuthUser, @Param('username') username: string, @Req() req: AuthedRequest) {

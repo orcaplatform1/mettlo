@@ -314,6 +314,20 @@ export class CoachingController {
     return this.prisma.clientAlert.update({ where: { id: alertId }, data: { isRead: body.isRead ?? alert.isRead, resolvedAt: body.resolved ? new Date() : alert.resolvedAt } });
   }
 
+  /** Müşterinin 1:1 görüntülü koçluk bakiyelerini göster */
+  @Get('clients/:memberId/video-sessions')
+  async clientVideoSessions(@CurrentUser() me: AuthUser, @Param('memberId') memberId: string) {
+    const rel = await this.relation(me.id, memberId);
+    if (!rel.canSeeOwnArea) throw new ForbiddenException('Bu üyenin verilerine erişiminiz yok');
+    const now = new Date();
+    const balances = await this.prisma.videoSessionBalance.findMany({
+      where: { userId: memberId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, total: true, remaining: true, expiresAt: true, createdAt: true, pack: { select: { name: true, sessions: true, sessionDurationMin: true } } },
+    });
+    return { balances, totalRemaining: balances.filter((b) => b.remaining > 0 && b.expiresAt > now).reduce((s, b) => s + b.remaining, 0) };
+  }
+
   // =========================================================
   // COACH NOTES
   // =========================================================

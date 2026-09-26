@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/theme/tokens.dart';
 
+final clientVideoSessionsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, memberId) async {
+  return await ref.watch(apiClientProvider).get('/coaching/clients/$memberId/video-sessions') as Map<String, dynamic>;
+});
+
 final clientDetailProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, memberId) async {
   return await ref.watch(apiClientProvider).get('/coaching/clients/$memberId') as Map<String, dynamic>;
 });
@@ -47,7 +51,7 @@ class ClientWorkspacePage extends ConsumerWidget {
               ),
             ),
             body: TabBarView(children: [
-              _OverviewTab(detail: detail, notes: notes),
+              _OverviewTab(detail: detail, notes: notes, memberId: memberId),
               _GoalsTab(memberId: memberId, ref: ref),
               _MetricsTab(memberId: memberId, ref: ref),
               _CheckinsTab(checkins: checkins, memberId: memberId),
@@ -59,14 +63,22 @@ class ClientWorkspacePage extends ConsumerWidget {
   }
 }
 
-class _OverviewTab extends StatelessWidget {
+class _OverviewTab extends ConsumerWidget {
   final Map<String, dynamic> detail;
   final List<Map<String, dynamic>> notes;
-  const _OverviewTab({required this.detail, required this.notes});
+  final String memberId;
+  const _OverviewTab({required this.detail, required this.notes, required this.memberId});
+
+  String _fmtDate(String? iso) {
+    if (iso == null) return '';
+    final d = DateTime.tryParse(iso)?.toLocal();
+    return d == null ? '' : '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final active = detail['active'] as bool? ?? false;
+    final vsState = ref.watch(clientVideoSessionsProvider(memberId));
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -76,6 +88,43 @@ class _OverviewTab extends StatelessWidget {
           const SizedBox(height: 12),
           Text('Hedef: ${detail['goal']}', style: const TextStyle(fontSize: 13, color: MettloColors.textSecondary)),
         ],
+        const SizedBox(height: 20),
+        // 1:1 Görüntülü Koçluk Bakiyesi
+        Row(children: [
+          const Icon(Icons.videocam_outlined, size: 16, color: MettloColors.primary),
+          const SizedBox(width: 6),
+          const Text('1:1 Görüntülü Koçluk', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(width: 6),
+          vsState.when(
+            loading: () => const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
+            error: (_, _) => const SizedBox.shrink(),
+            data: (vs) {
+              final total = (vs['totalRemaining'] as num?)?.toInt() ?? 0;
+              return total > 0
+                  ? Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: MettloColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text('$total hak', style: const TextStyle(color: MettloColors.primary, fontSize: 11, fontWeight: FontWeight.w700)))
+                  : const SizedBox.shrink();
+            },
+          ),
+        ]),
+        const SizedBox(height: 8),
+        vsState.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const Text('Yüklenemedi', style: TextStyle(color: MettloColors.textSecondary, fontSize: 12)),
+          data: (vs) {
+            final balances = (vs['balances'] as List<dynamic>?) ?? [];
+            final active_ = balances.where((b) => ((b['remaining'] as num?)?.toInt() ?? 0) > 0).toList();
+            if (active_.isEmpty) return const Text('Oturum hakkı yok', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13));
+            return Wrap(spacing: 8, runSpacing: 8, children: active_.map((b) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(color: MettloColors.surface1, borderRadius: BorderRadius.circular(8), border: Border.all(color: MettloColors.borderSubtle)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text('${(b['remaining'] as num).toInt()} oturum', style: const TextStyle(fontWeight: FontWeight.w700, color: MettloColors.primary)),
+                Text((b['pack']?['name'] as String?) ?? '', style: const TextStyle(fontSize: 11, color: MettloColors.textSecondary)),
+                Text('SKT: ${_fmtDate(b['expiresAt'] as String?)}', style: const TextStyle(fontSize: 10, color: MettloColors.textTertiary)),
+              ]),
+            )).toList());
+          },
+        ),
         const SizedBox(height: 20),
         if (notes.isNotEmpty) ...[
           const Text('Son Notlar', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
