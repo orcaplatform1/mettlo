@@ -185,3 +185,13 @@ export async function updatePlatformConfigAction(key: string, _p: FormState, fd:
   revalidatePath('/admin/settings/features');
   return { ok: 'Ayar güncellendi.' };
 }
+
+export async function cancelEventAction(eventId: string): Promise<void> {
+  await authed(`/admin/events/${eventId}/cancel`, { method: 'PATCH', body: {} });
+  revalidatePath('/admin/events');
+}
+
+export async function closeJobAction(jobId: string): Promise<void> {
+  await authed(`/admin/jobs/${jobId}/close`, { method: 'PATCH', body: {} });
+  revalidatePath('/admin/jobs');
+}

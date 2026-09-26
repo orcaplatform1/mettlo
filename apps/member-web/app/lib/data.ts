@@ -21,6 +21,10 @@ export const getCities = () => apiTry<any[]>('/location/cities', pub);
 export const getSitemap = () => apiTry<Array<{ path: string; lastModified?: string; priority: number; changeFrequency: string }>>('/public/sitemap', pub);
 export const getTeam = () => apiTry<Array<{ username: string; name: string; avatarUrl: string | null; staffRole: string }>>('/public/team', pub);
 
+export const getEvents = (qs = '') => apiTry<{ items: any[]; total: number }>(`/events${qs}`, pub);
+export const getEvent = (slug: string) => apiTry<any>(`/events/${slug}`, pub);
+export const getJobs = (qs = '') => apiTry<{ items: any[]; total: number }>(`/jobs${qs}`, pub);
+
 /** Marka renk paletinden türetilen branş görselleri (fotoğraf gelene kadar) */
 export const BRANCH_STYLE: Record<string, { icon: string; bg: string }> = {
   fitness: { icon: 'Dumbbell', bg: 'linear-gradient(135deg,#7C2D12,#F97316 120%)' },

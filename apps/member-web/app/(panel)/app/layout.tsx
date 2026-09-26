@@ -35,6 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       { href: '/app/subscribers', label: 'Abonelerim' },
       { href: '/app/assessments', label: 'Formlar' },
       { href: '/app/alerts', label: 'Uyarılar' },
+      { href: '/app/is-basvurulari', label: 'İş Başvurularım' },
       { href: '/app/kazanclar', label: 'Kazançlarım' },
       { href: '/creator', label: 'Koç Paneli' },
     ] : []),

@@ -14,7 +14,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(can(r, 'careers:manage') ? [{ href: '/admin/careers', label: 'Kariyer Başvuruları' }] : []),
     ...(can(r, 'users:read_masked') ? [{ href: '/admin/users', label: 'Kullanıcılar' }, { href: '/admin/creators', label: 'Koçlar' }] : []),
     ...(can(r, 'reports:manage') ? [{ href: '/admin/reports', label: 'Şikâyetler' }] : []),
-    ...(can(r, 'content:moderate') ? [{ href: '/admin/reviews', label: 'Değerlendirmeler' }] : []),
+    ...(can(r, 'content:moderate') ? [
+      { href: '/admin/reviews', label: 'Değerlendirmeler' },
+      { href: '/admin/events', label: 'Etkinlikler' },
+      { href: '/admin/jobs', label: 'İş İlanları' },
+    ] : []),
     ...(can(r, 'finance:read') ? [{ href: '/admin/payments', label: 'Ödemeler & Finans' }] : []),
     ...(can(r, 'finance:refund_approve') ? [{ href: '/admin/payouts', label: 'Para Çekme' }] : []),
     ...(can(r, 'roles:manage') ? [{ href: '/admin/roles', label: 'Rol Yönetimi' }] : []),
