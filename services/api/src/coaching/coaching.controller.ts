@@ -112,13 +112,17 @@ export class CoachingController {
       // Koçun sağlık verisine her erişimi denetim kaydına yazılır
       await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'health.coach_view', targetType: 'user', targetId: memberId, subjectUserId: memberId, ip: clientIp(req), userAgent: userAgent(req) });
     }
-    const [practiceLogs, nutritionLogs, liveParticipations, streak] = await Promise.all([
+    const [practiceLogs, nutritionLogs, liveParticipations, streak, goals, timeline, alerts, metricValues] = await Promise.all([
       this.prisma.practiceLog.findMany({ where: { userId: memberId }, orderBy: { date: 'desc' }, take: 50 }),
       this.prisma.nutritionLog.findMany({ where: { userId: memberId }, orderBy: { date: 'desc' }, take: 60 }),
       this.prisma.liveParticipant.findMany({ where: { userId: memberId, session: { creatorId: me.id } }, orderBy: { joinedAt: 'desc' }, take: 30, select: { id: true, joinedAt: true, leftAt: true, minutes: true, session: { select: { title: true, slug: true, scheduledAt: true, status: true } } } }),
       this.prisma.streak.findUnique({ where: { userId: memberId }, select: { current: true, longest: true, lastActiveOn: true } }),
+      rel.client ? this.prisma.clientGoal.findMany({ where: { clientId: rel.client.id }, orderBy: { createdAt: 'desc' } }) : [],
+      rel.client ? this.prisma.clientTimelineEvent.findMany({ where: { clientId: rel.client.id }, orderBy: { createdAt: 'desc' }, take: 30 }) : [],
+      rel.client ? this.prisma.clientAlert.findMany({ where: { clientId: rel.client.id, resolvedAt: null }, orderBy: { createdAt: 'desc' } }) : [],
+      rel.client ? this.prisma.metricValue.findMany({ where: { userId: memberId, metric: { creatorId: me.id } }, orderBy: { recordedAt: 'desc' }, take: 100, include: { metric: { select: { name: true, unit: true, category: true } } } }) : [],
     ]);
-    return { member, goal: rel.client?.goal ?? null, active: rel.active, workoutLogs, programs: enrollments, challenges, bookings, checkins, notes, healthSharing: !!consent, health, practiceLogs, nutritionLogs, liveParticipations, streak };
+    return { member, goal: rel.client?.goal ?? null, active: rel.active, workoutLogs, programs: enrollments, challenges, bookings, checkins, notes, healthSharing: !!consent, health, practiceLogs, nutritionLogs, liveParticipations, streak, goals, timeline, alerts, metricValues };
   }
 
   // =========================================================

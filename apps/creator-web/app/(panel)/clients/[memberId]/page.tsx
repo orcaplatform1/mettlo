@@ -4,6 +4,7 @@ import {
   ArrowLeft, HeartPulse, Dumbbell, ClipboardList, Utensils, Activity,
   Moon, Scale, Radio, TrendingUp, MessageSquare, ChevronLeft, ChevronRight,
   CheckCircle2, Clock, Zap, Target, BarChart3, FileText, Star, Flame,
+  Flag, Bell, Ruler,
 } from 'lucide-react';
 import { ApiError, authed } from '@mettlo/web-core';
 import { Avatar } from '@mettlo/ui';
@@ -60,7 +61,11 @@ export default async function ClientPage({
     { key: 'checkins',  label: 'Check-in\'ler', icon: ClipboardList },
     { key: 'workouts',  label: 'Antrenmanlar',  icon: Dumbbell },
     { key: 'health',    label: 'Sağlık',         icon: HeartPulse },
+    { key: 'metrics',   label: 'Ölçümler',       icon: Ruler },
     { key: 'nutrition', label: 'Beslenme',        icon: Utensils },
+    { key: 'goals',     label: 'Hedefler',        icon: Flag },
+    { key: 'timeline',  label: 'Timeline',        icon: TrendingUp },
+    { key: 'alerts',    label: 'Uyarılar',        icon: Bell },
     { key: 'live',      label: 'Canlı Dersler',   icon: Radio },
     { key: 'notes',     label: 'Notlarım',        icon: FileText },
   ];
@@ -71,7 +76,7 @@ export default async function ClientPage({
     <div style={{ maxWidth: 860 }}>
       {/* ── Geri ── */}
       <Link href="/creator/clients" className="body-sm text-secondary row" style={{ gap: 6, marginBottom: 20, display: 'inline-flex' }}>
-        <ArrowLeft size={16} /> Öğrencilerim
+        <ArrowLeft size={16} /> Danışanlarım
       </Link>
 
       {/* ── Profil başlığı ── */}
@@ -379,6 +384,155 @@ export default async function ClientPage({
                 </div>
               </div>
             ))
+          }
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/* ÖLÇÜMLER (MetricValue) */}
+      {tab === 'metrics' && (
+        <div className="stack" style={{ ['--stack' as string]: '14px' }}>
+          <h2 className="h4" style={{ margin: 0 }}>Vücut Ölçümleri ({c.metricValues?.length ?? 0})</h2>
+          {(c.metricValues?.length ?? 0) === 0
+            ? <div className="card" style={{ padding: 32, textAlign: 'center' }}><Ruler size={32} style={{ margin: '0 auto 10px', opacity: .3 }} /><p className="text-muted">Henüz ölçüm kaydı yok.</p></div>
+            : (() => {
+              // Metric adına göre grupla
+              const byMetric = new Map<string, { name: string; unit: string; values: any[] }>();
+              for (const v of c.metricValues as any[]) {
+                const name = v.metric?.name ?? v.metricId;
+                if (!byMetric.has(name)) byMetric.set(name, { name, unit: v.metric?.unit ?? v.unit ?? '', values: [] });
+                byMetric.get(name)!.values.push(v);
+              }
+              return [...byMetric.values()].map(({ name, unit, values }) => {
+                const sorted = [...values].sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
+                const first = Number(sorted[0]?.value ?? 0);
+                const last = Number(sorted[sorted.length - 1]?.value ?? 0);
+                const delta = last - first;
+                return (
+                  <div key={name} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-soft)', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div className="row" style={{ gap: 8 }}>
+                        <Ruler size={15} style={{ color: '#f59e0b' }} />
+                        <h3 className="h5" style={{ margin: 0 }}>{name}</h3>
+                      </div>
+                      <div className="row" style={{ gap: 16 }}>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>Başlangıç: <strong>{first} {unit}</strong></span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>Şu an: <strong>{last} {unit}</strong></span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: delta < 0 ? '#34d399' : delta > 0 ? '#f87171' : 'var(--color-text-tertiary)' }}>{delta > 0 ? '+' : ''}{delta.toFixed(1)} {unit}</span>
+                      </div>
+                    </div>
+                    <div className="table-wrap"><table className="table"><thead><tr><th>Tarih</th><th>Değer</th><th>Kaynak</th></tr></thead>
+                      <tbody>{sorted.map((v: any) => <tr key={v.id}><td>{df(v.recordedAt)}</td><td style={{ fontWeight: 600 }}>{Number(v.value)} {unit}</td><td><span className="badge" style={{ fontSize: 10 }}>{v.source === 'COACH_ENTRY' ? 'Koç' : v.source}</span></td></tr>)}</tbody>
+                    </table></div>
+                  </div>
+                );
+              });
+            })()
+          }
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/* HEDEFLER */}
+      {tab === 'goals' && (
+        <div className="stack" style={{ ['--stack' as string]: '10px' }}>
+          <h2 className="h4" style={{ margin: 0 }}>Hedefler ({c.goals?.length ?? 0})</h2>
+          {(c.goals?.length ?? 0) === 0
+            ? <div className="card" style={{ padding: 32, textAlign: 'center' }}><Flag size={32} style={{ margin: '0 auto 10px', opacity: .3 }} /><p className="text-muted">Hedef tanımlanmamış.</p></div>
+            : c.goals.map((g: any) => {
+              const pct = Math.round(Number(g.progressPct ?? 0));
+              const statusColor: Record<string, string> = { ACTIVE: '#34d399', ACHIEVED: '#818cf8', PAUSED: '#f59e0b', ABANDONED: '#f87171' };
+              const statusLabel: Record<string, string> = { ACTIVE: 'Devam ediyor', ACHIEVED: 'Tamamlandı ✓', PAUSED: 'Duraklatıldı', ABANDONED: 'Vazgeçildi' };
+              return (
+                <div key={g.id} className="card" style={{ padding: '16px 20px', borderLeft: `3px solid ${statusColor[g.status] ?? '#ccc'}` }}>
+                  <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                    <div>
+                      <p className="body-sm" style={{ fontWeight: 700 }}>{g.title}</p>
+                      {g.description && <p className="caption text-tertiary" style={{ marginTop: 3 }}>{g.description}</p>}
+                    </div>
+                    <div className="row" style={{ gap: 8, flexShrink: 0 }}>
+                      <span className="badge" style={{ background: `${statusColor[g.status]}22`, color: statusColor[g.status], border: 'none', fontSize: 11 }}>{statusLabel[g.status] ?? g.status}</span>
+                      <span className="badge" style={{ fontSize: 11 }}>{g.category}</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 6, background: 'var(--color-surface-2)', overflow: 'hidden', marginBottom: 6 }}>
+                    <div style={{ height: '100%', width: `${pct}%`, background: statusColor[g.status] ?? 'var(--color-primary)', borderRadius: 6, transition: 'width .4s' }} />
+                  </div>
+                  <div className="row" style={{ justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: statusColor[g.status] ?? 'var(--color-primary)' }}>%{pct}</span>
+                    <div className="row" style={{ gap: 12 }}>
+                      {g.baselineValue != null && <span className="caption text-tertiary">Başlangıç: {Number(g.baselineValue)}</span>}
+                      {g.targetValue != null && <span className="caption text-tertiary">Hedef: {Number(g.targetValue)}</span>}
+                      {g.targetDate && <span className="caption text-tertiary">Son tarih: {dfull(g.targetDate)}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          }
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/* TİMELINE */}
+      {tab === 'timeline' && (
+        <div className="stack" style={{ ['--stack' as string]: '8px' }}>
+          <h2 className="h4" style={{ margin: 0 }}>Gelişim Timeline'ı ({c.timeline?.length ?? 0})</h2>
+          {(c.timeline?.length ?? 0) === 0
+            ? <div className="card" style={{ padding: 32, textAlign: 'center' }}><TrendingUp size={32} style={{ margin: '0 auto 10px', opacity: .3 }} /><p className="text-muted">Timeline kaydı yok.</p></div>
+            : <div style={{ position: 'relative', paddingLeft: 24 }}>
+              <div style={{ position: 'absolute', left: 8, top: 0, bottom: 0, width: 2, background: 'var(--color-surface-2)', borderRadius: 2 }} />
+              {c.timeline.map((ev: any) => {
+                const typeIcon: Record<string, string> = { COACH_ASSIGNED: '🎯', PROGRAM_STARTED: '🏋️', GOAL_ACHIEVED: '🏆', METRIC_RECORDED: '📊', ASSESSMENT_SUBMITTED: '📝', ALERT_TRIGGERED: '⚠️', MILESTONE_REACHED: '⭐', NOTE_ADDED: '📌' };
+                const typeLabel: Record<string, string> = { COACH_ASSIGNED: 'Koç Atandı', PROGRAM_STARTED: 'Program Başlatıldı', GOAL_ACHIEVED: 'Hedef Tamamlandı', METRIC_RECORDED: 'Ölçüm Kaydedildi', ASSESSMENT_SUBMITTED: 'Form Gönderildi', ALERT_TRIGGERED: 'Uyarı Oluştu', MILESTONE_REACHED: 'Milestone', NOTE_ADDED: 'Not Eklendi' };
+                return (
+                  <div key={ev.id} style={{ marginBottom: 12, position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: -20, top: 4, width: 12, height: 12, borderRadius: '50%', background: 'var(--color-primary)', border: '2px solid var(--color-background)' }} />
+                    <div className="card" style={{ padding: '12px 16px' }}>
+                      <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{typeIcon[ev.type] ?? '•'} {typeLabel[ev.type] ?? ev.type}</span>
+                        <span className="caption text-tertiary">{dfull(ev.createdAt)}</span>
+                      </div>
+                      {ev.body && <p className="body-sm text-secondary">{ev.body}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          }
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/* UYARILAR */}
+      {tab === 'alerts' && (
+        <div className="stack" style={{ ['--stack' as string]: '10px' }}>
+          <h2 className="h4" style={{ margin: 0 }}>Aktif Uyarılar ({c.alerts?.length ?? 0})</h2>
+          {(c.alerts?.length ?? 0) === 0
+            ? <div className="card" style={{ padding: 32, textAlign: 'center', background: 'rgba(52,211,153,.04)', border: '1px solid rgba(52,211,153,.2)' }}>
+                <Bell size={32} style={{ margin: '0 auto 10px', color: '#34d399', opacity: .6 }} />
+                <p style={{ color: '#34d399', fontWeight: 600 }}>Her şey yolunda!</p>
+                <p className="caption text-tertiary" style={{ marginTop: 4 }}>Aktif uyarı bulunmuyor.</p>
+              </div>
+            : c.alerts.map((a: any) => {
+              const sev: Record<string, string> = { LOW: '#34d399', MEDIUM: '#f59e0b', HIGH: '#f87171', CRITICAL: '#ef4444' };
+              const sevLabel: Record<string, string> = { LOW: 'Düşük', MEDIUM: 'Orta', HIGH: 'Yüksek', CRITICAL: 'Kritik' };
+              return (
+                <div key={a.id} className="card" style={{ padding: '16px 20px', borderLeft: `3px solid ${sev[a.severity] ?? '#f59e0b'}` }}>
+                  <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                    <div className="row" style={{ gap: 8 }}>
+                      <Bell size={16} style={{ color: sev[a.severity] ?? '#f59e0b' }} />
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>{a.alertType}</span>
+                    </div>
+                    <div className="row" style={{ gap: 8 }}>
+                      <span className="badge" style={{ background: `${sev[a.severity] ?? '#f59e0b'}22`, color: sev[a.severity] ?? '#f59e0b', border: 'none', fontSize: 11 }}>{sevLabel[a.severity] ?? a.severity}</span>
+                      <span className="caption text-tertiary">{df(a.createdAt)}</span>
+                    </div>
+                  </div>
+                  <p className="body-sm">{a.body}</p>
+                </div>
+              );
+            })
           }
         </div>
       )}
