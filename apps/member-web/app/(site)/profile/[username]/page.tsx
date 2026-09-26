@@ -242,7 +242,7 @@ export default async function ProfilePage({ params }: Props) {
               <h1 className="h2 row" style={{ gap: 8 }}>{p.displayName}<OnlineStatus username={p.username} label size={11} /></h1>
               <p className="text-tertiary">@{p.username}</p>
               {p.headline && <p className="text-secondary" style={{ marginTop: 6 }}>{p.headline}</p>}
-              {p.subCategories?.length > 0 && <div className="row row-wrap" style={{ marginTop: 10, gap: 6 }}>{p.subCategories.map((x: any) => <Link key={x.slug} href={`/coaches?branch=${p.branches?.[0]?.slug ?? ''}&sub=${x.slug}`} prefetch={false} className="badge badge-premium">{x.name}</Link>)}</div>}
+              {p.subCategories?.length > 0 && <div className="row row-wrap" style={{ marginTop: 10, gap: 6 }}>{p.subCategories.map((x: any) => <Link key={x.slug} href={`/coaches?branch=${p.branches?.[0]?.slug ?? ''}&sub=${x.slug}`} prefetch={false} className="badge badge-premium" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10, display: 'block' }}>{x.name}</Link>)}</div>}
               <div className="row row-wrap" style={{ marginTop: 12, gap: 8 }}>
                 <TenureBadge badge={st.tenureBadge} />
                 {st.experienceYears && <span className="badge"><GraduationCap size={12} aria-hidden /> {st.experienceYears} yıldır eğitmen</span>}
@@ -300,7 +300,7 @@ export default async function ProfilePage({ params }: Props) {
                   <div className="row between"><h3 className="h5">{pl.name}</h3>{pl.isPremiumLive && <span className="badge badge-premium">Premium Live</span>}</div>
                   <p className="h3" style={{ margin: '12px 0' }}>{formatTRY(pl.priceWeb)} <span className="body-sm text-tertiary">/ {pl.interval === 'ANNUAL' ? 'yıl' : 'ay'}</span></p>
                   {pl.description && <p className="body-sm text-secondary">{pl.description}</p>}
-                  <a href={subscribeHref(pl.id)} className="btn btn-primary btn-block" style={{ marginTop: 16 }}>{isSubscriber ? '✓ Aktif Abonelik' : 'Abone Ol'}</a>
+                  {!isOwn && <a href={subscribeHref(pl.id)} className="btn btn-primary btn-block" style={{ marginTop: 16 }}>{isSubscriber ? '✓ Aktif Abonelik' : 'Abone Ol'}</a>}
                 </div>
               ))}
             </div>
@@ -402,7 +402,7 @@ export default async function ProfilePage({ params }: Props) {
           )}
         </section>
 
-        {!isStaff && (
+        {!isStaff && !isOwn && (
           <div className="cta-band" style={{ marginTop: 56 }}>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <h2 className="h3">{p.displayName} ile hedeflerine ulaş</h2>
