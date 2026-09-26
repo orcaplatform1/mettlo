@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PasswordInput, PhoneInput, DateField } from '@mettlo/ui';
 import { ConsentGate } from './consent-gate';
 
@@ -36,6 +36,7 @@ export function AccountFields({ state }: { state: FieldState }) {
         {err(state, 'email') && <p className="field-error" role="alert">{err(state, 'email')}</p>}
       </div>
       <PhoneInput error={err(state, 'phone')} defaultValue={state.values?.phone} />
+      <CityDistrictFields state={state} />
       <div className="field">
         <label htmlFor="birthDate">Doğum tarihi</label>
         <DateField id="birthDate" name="birthDate" max={maxBirth} required defaultValue={state.values?.birthDate} aria-invalid={!!err(state, 'birthDate')} />
@@ -44,6 +45,47 @@ export function AccountFields({ state }: { state: FieldState }) {
           : <p className="field-hint">Mettlo 18 yaş ve üzeri içindir. 18 yaşından küçükler yalnızca ebeveyn / yasal vasi kaydı ile üye olabilir.</p>}
       </div>
     </>
+  );
+}
+
+function CityDistrictFields({ state }: { state: FieldState }) {
+  const [cities, setCities] = useState<Array<{ id: number; name: string }>>([]);
+  const [districts, setDistricts] = useState<Array<{ id: number; name: string }>>([]);
+  const [cityId, setCityId] = useState('');
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
+    fetch(`${apiBase}/location/cities`).then(r => r.json()).then(setCities).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!cityId) { setDistricts([]); return; }
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
+    fetch(`${apiBase}/location/districts/${cityId}`).then(r => r.json()).then(setDistricts).catch(() => {});
+  }, [cityId]);
+
+  if (cities.length === 0) return null;
+
+  return (
+    <div className="row" style={{ gap: 12 }}>
+      <div className="field" style={{ flex: 1 }}>
+        <label htmlFor="cityId">Şehir</label>
+        <select id="cityId" name="cityId" className="input" value={cityId} onChange={e => { setCityId(e.target.value); }} aria-invalid={!!err(state, 'cityId')}>
+          <option value="">Seçin</option>
+          {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        {err(state, 'cityId') && <p className="field-error" role="alert">{err(state, 'cityId')}</p>}
+      </div>
+      {districts.length > 0 && (
+        <div className="field" style={{ flex: 1 }}>
+          <label htmlFor="districtId">İlçe</label>
+          <select id="districtId" name="districtId" className="input" aria-invalid={!!err(state, 'districtId')}>
+            <option value="">Seçin</option>
+            {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -66,10 +66,13 @@ export async function loginAction(_prev: AuthState, fd: FormData): Promise<AuthS
 }
 
 export async function registerAction(_prev: AuthState, fd: FormData): Promise<AuthState> {
+  const cityIdRaw = fd.get('cityId'); const districtIdRaw = fd.get('districtId');
   const raw = {
     email: String(fd.get('email') ?? ''), username: String(fd.get('username') ?? ''), name: String(fd.get('name') ?? ''),
     phone: String(fd.get('phone') ?? ''), password: String(fd.get('password') ?? ''), birthDate: String(fd.get('birthDate') ?? ''),
     acceptTerms: fd.get('acceptTerms') === 'on', acceptKvkk: fd.get('acceptKvkk') === 'on', marketingConsent: fd.get('marketingConsent') === 'on',
+    cityId: cityIdRaw ? parseInt(String(cityIdRaw), 10) || undefined : undefined,
+    districtId: districtIdRaw ? parseInt(String(districtIdRaw), 10) || undefined : undefined,
   };
   const values = { email: raw.email, username: raw.username, name: raw.name, phone: raw.phone, birthDate: raw.birthDate };
   const parsed = registerSchema.safeParse(raw);

@@ -74,6 +74,7 @@ export class AuthService {
               phoneHash,
               registrationIp: ip,
               registrationUserAgent: ua,
+              ...(input.cityId ? { cityId: input.cityId, districtId: input.districtId ?? null } : {}),
             },
           },
         },

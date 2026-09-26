@@ -16,6 +16,8 @@ export const getCommunities = (qs = '') => apiTry<Page<any>>(`/public/communitie
 export const getProducts = (qs = '') => apiTry<Page<any>>(`/public/products${qs}`, pub);
 export const getBrands = () => apiTry<any[]>('/public/brands', pub);
 export const getProductCategories = () => apiTry<any[]>('/public/product-categories', pub);
+export const getBusinesses = (qs = '') => apiTry<{ items: any[]; total: number }>(`/business${qs}`, pub);
+export const getCities = () => apiTry<any[]>('/location/cities', pub);
 export const getSitemap = () => apiTry<Array<{ path: string; lastModified?: string; priority: number; changeFrequency: string }>>('/public/sitemap', pub);
 export const getTeam = () => apiTry<Array<{ username: string; name: string; avatarUrl: string | null; staffRole: string }>>('/public/team', pub);
 

@@ -48,6 +48,8 @@ export const registerSchema = z
     acceptTerms: z.literal(true, { error: 'Kullanım koşulları kabul edilmeli' }),
     acceptKvkk: z.literal(true, { error: 'KVKK aydınlatma metni onaylanmalı' }),
     marketingConsent: z.boolean().optional().default(false),
+    cityId: z.number().int().positive().optional(),
+    districtId: z.number().int().positive().optional(),
   })
   .superRefine((v, ctx) => {
     const age = ageOn(v.birthDate);

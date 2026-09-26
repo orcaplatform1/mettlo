@@ -1,4 +1,4 @@
-import { Flag, LifeBuoy, Package, UserCheck, Users } from 'lucide-react';
+import { Flag, LifeBuoy, Package, UserCheck, Users, Store, Megaphone } from 'lucide-react';
 import { can } from '@mettlo/types';
 import { authed, requireSession } from '@mettlo/web-core';
 import { runMaintenanceAction } from '../actions';
@@ -20,6 +20,8 @@ export default async function Overview() {
           <div className="stat-tile"><Users size={20} aria-hidden /><span className="n">{st.newUsers7}</span><span className="l">Son 7 gün yeni üye</span></div>
           <div className="stat-tile"><UserCheck size={20} aria-hidden /><span className="n">{st.activeCreators}</span><span className="l">Yayındaki koç</span></div>
           <div className="stat-tile"><Package size={20} aria-hidden /><span className="n">{st.publishedProducts}</span><span className="l">Yayındaki ürün</span></div>
+          {st.pendingBusinessVerifications != null && <a href="/admin/businesses?tab=pending" className="stat-tile"><Store size={20} aria-hidden /><span className="n">{st.pendingBusinessVerifications}</span><span className="l">Bekleyen işletme doğrulama</span></a>}
+          {st.pendingAds != null && <a href="/admin/ads?status=PENDING_REVIEW" className="stat-tile"><Megaphone size={20} aria-hidden /><span className="n">{st.pendingAds}</span><span className="l">İnceleme bekleyen reklam</span></a>}
         </div>
         <p className="caption text-tertiary">Yalnızca toplu istatistikler gösterilir. Kişisel veriler ve mesaj içerikleri yalnızca süper admin tarafından, kullanıcı profil sayfasında görüntülenir.</p>
       </>) : <p className="text-secondary">Hoş geldin. Menüden yetkin dahilindeki bölümlere ulaşabilirsin.</p>}

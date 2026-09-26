@@ -101,6 +101,51 @@ export async function updateReviewAction(reviewId: string, _p: FormState, fd: Fo
   revalidatePath('/admin/reviews'); return { ok: 'Değerlendirme güncellendi.' };
 }
 
+// ── İşletme Doğrulama ────────────────────────────────────────────────────────
+
+export async function approveBusinessVerificationAction(verificationId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  try { await authed(`/admin/businesses/verification/${verificationId}/approve`, { method: 'PATCH', body: { note: str(fd, 'note') || undefined } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/businesses');
+  return { ok: 'İşletme doğrulandı.' };
+}
+
+export async function rejectBusinessVerificationAction(verificationId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const reason = str(fd, 'reason');
+  if (!reason) return { error: 'Red gerekçesi zorunludur.' };
+  try { await authed(`/admin/businesses/verification/${verificationId}/reject`, { method: 'PATCH', body: { reason } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/businesses');
+  return { ok: 'Başvuru reddedildi.' };
+}
+
+export async function suspendBusinessAction(businessId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const reason = str(fd, 'reason');
+  if (!reason) return { error: 'Gerekçe zorunludur.' };
+  try { await authed(`/admin/businesses/${businessId}/suspend`, { method: 'PATCH', body: { reason } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/businesses');
+  return { ok: 'İşletme askıya alındı.' };
+}
+
+export async function restoreBusinessAction(businessId: string): Promise<void> {
+  await authed(`/admin/businesses/${businessId}/restore`, { method: 'PATCH' });
+  revalidatePath('/admin/businesses');
+}
+
+// ── Reklam Moderasyonu ───────────────────────────────────────────────────────
+
+export async function approveAdAction(adId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  try { await authed(`/advertising/admin/${adId}/approve`, { method: 'PATCH', body: { note: str(fd, 'note') || undefined } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/ads');
+  return { ok: 'Reklam onaylandı ve yayına girdi.' };
+}
+
+export async function rejectAdAction(adId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const reason = str(fd, 'reason');
+  if (!reason) return { error: 'Red gerekçesi zorunludur.' };
+  try { await authed(`/advertising/admin/${adId}/reject`, { method: 'PATCH', body: { reason } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/ads');
+  return { ok: 'Reklam reddedildi.' };
+}
+
 export async function setUserRoleAction(_p: FormState, fd: FormData): Promise<FormState> {
   const userId = str(fd, 'userId');
   const role = str(fd, 'role');
