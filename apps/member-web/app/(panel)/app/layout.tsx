@@ -26,6 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(memberBranches.includes('nutrition') ? [{ href: '/app/nutrition', label: 'Beslenme Günlüğüm' }] : []),
     { href: '/app/messages', label: 'Mesajlar' },
     { href: '/app/notifications', label: 'Bildirimler' },
+    { href: '/app/ai-eslestirme', label: 'AI Koç Eşleştirme' },
     { href: '/app/support', label: 'Destek Merkezi' },
     { href: '/app/settings', label: 'Ayarlar' },
     { href: '/app/settings/blocks', label: 'Engellenenler' },

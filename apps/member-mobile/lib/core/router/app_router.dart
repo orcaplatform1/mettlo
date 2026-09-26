@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/moderation_page.dart';
 import '../../features/business/business_checkin_page.dart';
 import '../../features/earnings/earnings_page.dart';
+import '../../features/ai/ai_matching_page.dart';
 import '../../features/events/events_page.dart';
 import '../../features/food/food_menu_page.dart';
 import '../../features/jobs/jobs_page.dart';
@@ -100,6 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/events', builder: (_, _) => const EventsPage()),
       GoRoute(path: '/jobs', builder: (_, _) => const JobsPage()),
       GoRoute(path: '/business/:slug/menu', builder: (_, s) => FoodMenuPage(businessId: s.pathParameters['slug']!, businessName: 'Menü')),
+      GoRoute(path: '/ai/matching', builder: (_, _) => const AiMatchingPage()),
     ],
   );
 });
