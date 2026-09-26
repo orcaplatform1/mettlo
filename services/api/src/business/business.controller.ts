@@ -272,6 +272,15 @@ export class BusinessController {
 
   // ── Takip ─────────────────────────────────────────────────────────────────
 
+  @Get(':id/follow-status')
+  async followStatus(@Param('id') id: string, @CurrentUser() me: AuthUser) {
+    const record = await this.prisma.businessFollow.findUnique({
+      where: { followerId_businessId: { followerId: me.id, businessId: id } },
+      select: { businessId: true },
+    });
+    return { following: !!record };
+  }
+
   @Post(':id/follow')
   async follow(@Param('id') id: string, @CurrentUser() me: AuthUser) {
     const ba = await this.prisma.businessAccount.findUnique({ where: { id }, select: { id: true } });

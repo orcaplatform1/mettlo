@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils } from 'lucide-react';
+import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils, Megaphone } from 'lucide-react';
 import { apiTry, getAccessToken } from '@mettlo/web-core';
-import { Megaphone } from 'lucide-react';
+import { BusinessFollowButton } from '@/app/components/business-follow-button';
 
 type BusinessProfile = {
   id: string; name: string; slug: string; category: string;
@@ -59,6 +59,12 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
 
   // Sahibi mi kontrolü (API'den owner bilgisi geliyorsa)
   const isOwner = !!(token && (ba as any).ownerId);
+
+  // Takip durumu (giriş yapılmışsa)
+  const followStatus = token
+    ? await apiTry<{ following: boolean }>(`/business/${ba.id}/follow-status`, { token }).catch(() => null)
+    : null;
+  const initialFollowing = followStatus?.following ?? false;
 
   return (
     <div>
@@ -197,9 +203,11 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
               {ba.website && (
                 <WebsiteButton businessId={ba.id} website={ba.website} />
               )}
-              <button className="btn btn-outline btn-block" style={{ marginTop: ba.website ? 10 : 0 }}>
-                <Users size={15} /> Takip Et
-              </button>
+              {token && !isOwner && (
+                <div style={{ marginTop: ba.website ? 10 : 0 }}>
+                  <BusinessFollowButton businessId={ba.id} initialFollowing={initialFollowing} />
+                </div>
+              )}
             </div>
 
             {/* Hızlı bilgi */}

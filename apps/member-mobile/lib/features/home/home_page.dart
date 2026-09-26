@@ -6,6 +6,7 @@ import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
+import '../social/stories_bar.dart';
 
 final overviewProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/me/overview') as Map<String, dynamic>);
 final gamificationProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/me/gamification') as Map<String, dynamic>);
@@ -33,7 +34,9 @@ class HomePage extends ConsumerWidget {
         ]),
         const SizedBox(height: 4),
         const Text('Bugün kendin için harika bir gün.', style: TextStyle(color: MettloColors.textSecondary)),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+        const StoriesBar(),
+        const SizedBox(height: 8),
         AsyncBody(
           value: gm,
           onRetry: () => ref.invalidate(gamificationProvider),

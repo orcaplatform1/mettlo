@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       { href: '/admin/reviews', label: 'Değerlendirmeler' },
       { href: '/admin/events', label: 'Etkinlikler' },
       { href: '/admin/jobs', label: 'İş İlanları' },
+      { href: '/admin/stories', label: 'Hikayeler' },
     ] : []),
     ...(can(r, 'finance:read') ? [{ href: '/admin/payments', label: 'Ödemeler & Finans' }] : []),
     ...(can(r, 'finance:refund_approve') ? [{ href: '/admin/payouts', label: 'Para Çekme' }] : []),

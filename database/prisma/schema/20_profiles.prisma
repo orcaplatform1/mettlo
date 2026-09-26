@@ -104,6 +104,35 @@ model Follow {
   @@map("follows")
 }
 
+/// Kullanıcı hikayeleri — 24 saat sonra süresi dolar
+model Story {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation("UserStories", fields: [userId], references: [id], onDelete: Cascade)
+  mediaUrl  String
+  mediaType StoryMediaType @default(IMAGE)
+  caption   String?        @db.VarChar(500)
+  expiresAt DateTime
+  viewCount Int            @default(0)
+  views     StoryView[]
+  createdAt DateTime       @default(now())
+
+  @@index([userId, expiresAt])
+  @@map("stories")
+}
+
+model StoryView {
+  id       String   @id @default(cuid())
+  storyId  String
+  story    Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewerId String
+  viewer   User     @relation("UserStoryViews", fields: [viewerId], references: [id], onDelete: Cascade)
+  viewedAt DateTime @default(now())
+
+  @@unique([storyId, viewerId])
+  @@map("story_views")
+}
+
 /// Kullanıcı adı/slug değişince eski URL -> yeni URL 301 yönlendirmesi (SEO)
 model SlugRedirect {
   id        String   @id @default(cuid())

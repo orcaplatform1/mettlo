@@ -40,6 +40,8 @@ model User {
   // Aynı model çiftinde iki ilişki olduğu için açıkça adlandırıldı
   following                Follow[]                  @relation("UserFollows")
   followers                Follow[]                  @relation("CreatorFollowers")
+  stories                  Story[]                   @relation("UserStories")
+  storyViews               StoryView[]               @relation("UserStoryViews")
   coachingClients          CoachingClient[]          @relation("CoachClients")
   coachedBy                CoachingClient[]          @relation("MemberCoaches")
   healthConsentsGiven      HealthShareConsent[]      @relation("HealthConsentMember")

@@ -17,6 +17,7 @@ import { BookButton } from '@/app/components/book-button';
 import { ReportButton } from '@/app/components/report-button';
 import { BlockButton } from '@/app/components/block-button';
 import { ReviewReplyButton } from '@/app/components/review-reply-button';
+import { FollowButton, FollowersCount, MutualFollowBadge } from '@/app/components/follow-button';
 import { fmtHours, formatTenure } from '@/app/lib/format';
 
 type Props = { params: Promise<{ username: string }> };
@@ -190,6 +191,7 @@ export default async function ProfilePage({ params }: Props) {
   // Değerlendirme/yorum/yıldız/mesaj YALNIZCA abonelere özel: uygunluk API'den gelir
   const elig = token ? await apiTry<any>(`/reviews/creators/${p.username}/eligibility`, { token }) : null;
   const overview = token ? await apiTry<any>('/me/overview', { token }) : null;
+  const followStatus = (!isOwn && token && p.type === 'coach') ? await apiTry<any>(`/social/following/status/${encodeURIComponent(p.username)}`, { token }) : null;
   const isSubscriber = !!overview?.subscriptions?.some((x: any) => x.coach?.username === p.username);
   const classes = (await apiTry<any[]>(`/public/creators/${p.username}/classes`)) ?? [];
   const subscribeHref = (planId?: string) =>
@@ -218,6 +220,7 @@ export default async function ProfilePage({ params }: Props) {
     [ClipboardList, String(st.programs), 'Program'],
     [Trophy, String(st.challenges), 'Challenge'],
   ];
+  const followersCount = followStatus?.followers ?? st.followers ?? 0;
 
   return (
     <>
@@ -252,6 +255,7 @@ export default async function ProfilePage({ params }: Props) {
             <div className="row row-wrap" style={{ paddingBottom: 8, gap: 10 }}>
               <CoachInboxButton username={p.username} data={admin} />
               {!isOwn && session && <MessageButton username={p.username} subscribeHref={subscribeHref(p.plans[0]?.id)} />}
+              {!isOwn && session && !isStaff && <FollowButton username={p.username} initialFollowing={followStatus?.isFollowing ?? false} />}
               {!isOwn && session && (
                 <>
                   <ReportButton targetType="user" targetId={p.username} />
@@ -270,6 +274,12 @@ export default async function ProfilePage({ params }: Props) {
 
       <div className="container" style={{ paddingBlock: 32 }}>
         {/* Ziyaretçi ve abone olmayanlar yalnızca özet bilgileri görür; içeriğin kendisini değil */}
+        {/* Takipçi sayısı ve karşılıklı takip */}
+        <div className="row row-wrap" style={{ gap: 16, marginBottom: 16 }}>
+          <FollowersCount username={p.username} count={followersCount} />
+          {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
+        </div>
+
         <section aria-label="Koç özeti"><div className="stat-grid">
           {tiles.map(([Icon, n, l]) => <div key={l} className="stat-tile"><Icon size={20} aria-hidden /><span className="n">{n}</span><span className="l">{l}</span></div>)}
         </div></section>

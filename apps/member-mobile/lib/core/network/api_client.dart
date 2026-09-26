@@ -116,6 +116,22 @@ class ApiClient {
     return ApiException(message, status: res.statusCode, code: code, fieldErrors: fields);
   }
 
+  Future<dynamic> uploadFile(String path, {required String filePath, required String fileName, required String mimeType, Map<String, String> fields = const {}}) async {
+    final token = await _tokens.accessToken();
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: fileName, contentType: DioMediaType.parse(mimeType)),
+      ...fields,
+    });
+    Response<dynamic> res;
+    try {
+      res = await _dio.post<dynamic>(path, data: form, options: Options(headers: {if (token != null) 'authorization': 'Bearer $token'}));
+    } on DioException catch (e) {
+      throw ApiException(_networkMessage(e));
+    }
+    if ((res.statusCode ?? 500) >= 400) throw _toException(res);
+    return res.data;
+  }
+
   String _networkMessage(DioException e) => switch (e.type) {
         DioExceptionType.connectionTimeout || DioExceptionType.receiveTimeout || DioExceptionType.sendTimeout => 'Bağlantı zaman aşımına uğradı.',
         DioExceptionType.connectionError => 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.',

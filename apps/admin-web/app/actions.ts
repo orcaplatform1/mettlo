@@ -195,3 +195,8 @@ export async function closeJobAction(jobId: string): Promise<void> {
   await authed(`/admin/jobs/${jobId}/close`, { method: 'PATCH', body: {} });
   revalidatePath('/admin/jobs');
 }
+
+export async function deleteStoryAction(storyId: string): Promise<void> {
+  await authed(`/admin/stories/${storyId}`, { method: 'DELETE' });
+  revalidatePath('/admin/stories');
+}

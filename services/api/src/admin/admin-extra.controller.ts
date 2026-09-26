@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { can, type Permission } from '@mettlo/types';
 import { hmacHash } from '@mettlo/auth';
@@ -286,6 +286,33 @@ export class AdminExtraController {
       where, orderBy: { createdAt: 'desc' }, skip, take,
       include: { reporter: { select: { username: true, name: true, role: true } } },
     });
+  }
+
+  // ---------- Hikaye Moderasyonu ----------
+  @RequirePermission('content:moderate')
+  @Get('stories')
+  async listStories(@Query('q') q?: string, @Query('cursor') cursor?: string) {
+    return this.prisma.story.findMany({
+      where: q ? { user: { OR: [{ username: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] } } : {},
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      select: {
+        id: true, mediaUrl: true, mediaType: true, caption: true,
+        viewCount: true, expiresAt: true, createdAt: true,
+        user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  @RequirePermission('content:moderate')
+  @Delete('stories/:id')
+  async deleteStory(@CurrentUser() me: AuthUser, @Param('id') id: string, @Req() req: AuthedRequest) {
+    const story = await this.prisma.story.findUnique({ where: { id }, select: { id: true, userId: true } });
+    if (!story) throw new NotFoundException('Hikaye bulunamadı');
+    await this.prisma.story.delete({ where: { id } });
+    await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'content.delete', targetType: 'story', targetId: id, ...this.meta(req) });
+    return { ok: true };
   }
 
   @RequirePermission('reports:manage')

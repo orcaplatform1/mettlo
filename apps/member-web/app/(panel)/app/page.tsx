@@ -3,6 +3,7 @@ import { ArrowRight, Bell, LifeBuoy, MessageSquare, Users, Video } from 'lucide-
 import { Avatar, EmptyState, VerifiedBadge } from '@mettlo/ui';
 import { apiTry, authed, requireSession } from '@mettlo/web-core';
 import { SubscriptionCancelBtn } from '../../components/subscription-cancel-btn';
+import { StoryBar } from '@/app/components/stories';
 
 export default async function AppHome() {
   const s = await requireSession('/app');
@@ -22,6 +23,10 @@ export default async function AppHome() {
         <h1 className="h2">Merhaba {s.name.split(' ')[0]} 👋</h1>
         <p className="text-secondary" style={{ marginTop: 6 }}>Bugün kendin için harika bir gün.</p>
       </div>
+
+      {/* Hikayeler */}
+      <StoryBar isLoggedIn={true} />
+
       {s.creator?.status === 'PENDING' && <div className="alert alert-info">Koç başvurun inceleniyor. Onaylandığında bilgilendirileceksin.</div>}
       {gm && (
         <div className="stat-grid">

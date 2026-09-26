@@ -778,3 +778,8 @@ enum ApplicationStatus {
   REJECTED
   HIRED
 }
+
+enum StoryMediaType {
+  IMAGE
+  VIDEO
+}

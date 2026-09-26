@@ -12,6 +12,7 @@ import '../../core/validation/validators.dart';
 import '../../core/widgets/common.dart';
 import '../../core/widgets/report_dialog.dart';
 import '../home/home_page.dart';
+import '../social/follow_button.dart';
 
 final coachProfileProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/public/profiles/$u', auth: false) as Map<String, dynamic>);
 final coachClassesProvider = FutureProvider.autoDispose.family<List<dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/public/creators/$u/classes', auth: false) as List<dynamic>);
@@ -169,8 +170,20 @@ class _Body extends ConsumerWidget {
       ]),
       const SizedBox(height: 18),
       if (!isStaff) ...[
-        MettloButton(label: isSubscriber ? 'Abonesin ✓' : 'Abone Ol', secondary: isSubscriber, onPressed: isSubscriber ? null : () => launchUrl(Uri.parse('${Env.siteUrl}/profile/$username#plans'), mode: LaunchMode.externalApplication)),
+        Row(children: [
+          Expanded(child: MettloButton(label: isSubscriber ? 'Abonesin ✓' : 'Abone Ol', secondary: isSubscriber, onPressed: isSubscriber ? null : () => launchUrl(Uri.parse('${Env.siteUrl}/profile/$username#plans'), mode: LaunchMode.externalApplication))),
+          if (!isOwnProfile) ...[
+            const SizedBox(width: 10),
+            FollowButton(username: username),
+          ],
+        ]),
         if (!isSubscriber) const Padding(padding: EdgeInsets.only(top: 8), child: Text('Abonelik ödemesi web sitesinde yapılır; ödeme onaylanınca erişimin uygulamada otomatik açılır.', style: TextStyle(color: MettloColors.textTertiary, fontSize: 12))),
+        const SizedBox(height: 8),
+        Row(children: [
+          FollowersCountChip(username: username, count: (st['followers'] as num?)?.toInt() ?? 0),
+          const SizedBox(width: 12),
+          MutualFollowBadge(username: username),
+        ]),
         const SizedBox(height: 18),
       ],
       GridView.count(crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.7, children: [
