@@ -1,4 +1,5 @@
 import { BadRequestException, Body, Controller, Get, Param, Post, Redirect, Req, Res } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { ZodPipe } from '../common/zod.pipe';
@@ -24,6 +25,7 @@ export class CheckoutController {
 
   /** Etkinlik bileti ödeme formu başlat */
   @Post('event-ticket')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async initEventTicket(
     @CurrentUser() me: AuthUser,
     @Body(new ZodPipe(eventTicketSchema)) body: z.infer<typeof eventTicketSchema>,
@@ -34,6 +36,7 @@ export class CheckoutController {
 
   /** Abonelik ödeme formu başlat — üye kimlik doğrulaması gerekli */
   @Post('subscription')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async initSubscription(
     @CurrentUser() me: AuthUser,
     @Body(new ZodPipe(initSchema)) body: z.infer<typeof initSchema>,

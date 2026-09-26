@@ -141,7 +141,7 @@ export class CheckoutService {
       const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
       await this.prisma.$transaction([
-        this.prisma.eventTicket.create({ data: { userId: payment.userId, eventId, status: 'ACTIVE', qrToken, checkedInAt: null } }),
+        this.prisma.eventTicket.create({ data: { holderId: payment.userId, eventId, status: 'ACTIVE', qrToken } }),
         this.prisma.payment.update({ where: { id: payment.id }, data: { status: 'SUCCEEDED', providerRef: detail.paymentId } }),
         this.prisma.creatorEarning.create({ data: {
           creatorId: event.organizerId,
@@ -241,23 +241,26 @@ export class CheckoutService {
       where: { id: eventId },
       select: {
         id: true, title: true, ticketPriceKurus: true, status: true,
-        capacityLimit: true, _count: { select: { tickets: { where: { status: 'ACTIVE' } }, registrations: true } },
+        capacityLimit: true,
         organizer: { select: { id: true, name: true, email: true, createdAt: true } },
       },
     });
     if (!event || event.status !== 'PUBLISHED') throw new NotFoundException('Etkinlik bulunamadı.');
     if (event.ticketPriceKurus === 0) throw new BadRequestException('Bu etkinlik ücretsizdir; ödeme gerekmez.');
 
-    const spotsLeft = event.capacityLimit
-      ? event.capacityLimit - (event._count.tickets + event._count.registrations)
-      : null;
-    if (spotsLeft !== null && spotsLeft <= 0) throw new BadRequestException('Bu etkinliğin kapasitesi doldu.');
-
     // Mevcut aktif bilet kontrolü
     const existingTicket = await this.prisma.eventTicket.findFirst({
-      where: { userId: memberId, eventId, status: 'ACTIVE' },
+      where: { holderId: memberId, eventId, status: 'ACTIVE' },
     });
     if (existingTicket) throw new ConflictException('Bu etkinlik için zaten biletiniz var.');
+
+    if (event.capacityLimit) {
+      const [ticketCount, regCount] = await Promise.all([
+        this.prisma.eventTicket.count({ where: { eventId, status: 'ACTIVE' } }),
+        this.prisma.eventRegistration.count({ where: { eventId } }),
+      ]);
+      if (ticketCount + regCount >= event.capacityLimit) throw new BadRequestException('Bu etkinliğin kapasitesi doldu.');
+    }
 
     const member = await this.prisma.user.findUniqueOrThrow({ where: { id: memberId }, select: { id: true, name: true, email: true, createdAt: true } });
     const nameParts = member.name.trim().split(' ');

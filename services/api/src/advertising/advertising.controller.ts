@@ -2,6 +2,7 @@ import {
   Controller, Get, Post, Patch, Body, Param, Query,
   NotFoundException, ForbiddenException, BadRequestException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { PrismaService } from '../common/prisma.service';
 import { Public, CurrentUser, RequirePermission } from '../common/decorators';
 import { type AuthUser } from '../common/request';
@@ -25,6 +26,7 @@ export class AdvertisingController {
   // ── Reklam Oluşturma ─────────────────────────────────────────────────────
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 3600_000 } })
   async createAd(@Body() body: {
     ownerType: 'BUSINESS' | 'COACH';
     businessId?: string;
@@ -36,6 +38,10 @@ export class AdvertisingController {
     creative: { imageUrl: string; headline: string; body?: string; ctaLabel: string; ctaUrl?: string };
     targets?: { cityId?: number; districtId?: number; branchSlug?: string; minAge?: number; maxAge?: number; gender?: string }[];
   }, @CurrentUser() me: AuthUser) {
+    if (body.ownerType === 'COACH') {
+      const profile = await this.prisma.creatorProfile.findUnique({ where: { userId: me.id }, select: { userId: true } });
+      if (!profile) throw new ForbiddenException('Yalnızca kayıtlı koçlar reklam oluşturabilir.');
+    }
     if (body.ownerType === 'BUSINESS' && body.businessId) {
       const ba = await this.prisma.businessAccount.findUnique({ where: { id: body.businessId }, select: { ownerId: true, isOpen: true } });
       if (!ba) throw new NotFoundException('İşletme bulunamadı.');
@@ -247,9 +253,18 @@ export class AdvertisingController {
   }
 
   @Post(':id/click')
-  async recordClick(@Param('id') id: string, @Body() body: { platform?: string; cityId?: number }) {
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  async recordClick(@Param('id') id: string, @Body() body: { platform?: string; cityId?: number }, @CurrentUser() me: AuthUser) {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - 60_000);
+    const recentClick = await this.prisma.adEvent.findFirst({
+      where: { adId: id, sessionKey: me.id, type: 'CLICK', createdAt: { gte: windowStart } },
+      select: { id: true },
+    });
+    if (recentClick) return { ok: true };
+
     await this.prisma.$transaction([
-      this.prisma.adEvent.create({ data: { adId: id, type: 'CLICK', cityId: body.cityId ?? null, platform: body.platform as any ?? null } }),
+      this.prisma.adEvent.create({ data: { adId: id, type: 'CLICK', sessionKey: me.id, cityId: body.cityId ?? null, platform: body.platform as any ?? null } }),
       this.prisma.advertisement.update({ where: { id }, data: { totalClicks: { increment: 1 } } }),
     ]);
     return { ok: true };
