@@ -7,11 +7,11 @@ import '../../core/network/api_client.dart';
 import '../../core/presence/presence.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/report_dialog.dart';
 
 final conversationsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/messages/conversations') as List<dynamic>);
 final threadProvider = FutureProvider.autoDispose.family<List<dynamic>, String>((ref, id) async => await ref.watch(apiClientProvider).get('/messages/conversations/$id') as List<dynamic>);
 
-/// Mesajlaşma yalnızca koçun aboneleri ile koç arasında yapılabilir.
 class MessagesPage extends ConsumerWidget {
   const MessagesPage({super.key});
   @override
@@ -23,13 +23,13 @@ class MessagesPage extends ConsumerWidget {
       child: ListView(padding: const EdgeInsets.all(20), children: [
         Text('Mesajlar', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 6),
-        const Text('Mesajlaşma yalnızca koçun aboneleri ile koç arasında yapılabilir.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13)),
+        const Text('Mesajlaşma izinleri abonelik ve rol durumuna göre belirlenir.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13)),
         const SizedBox(height: 14),
         AsyncBody(
           value: list,
           onRetry: () => ref.invalidate(conversationsProvider),
           builder: (items) => items.isEmpty
-              ? const InfoBanner('Henüz konuşman yok. Abone olduğun bir koçun profilinden “Koça mesaj yaz” ile başlat.')
+              ? const InfoBanner('Henüz konuşman yok. Abone olduğun bir koçun profilinden "Koça mesaj yaz" ile başlat.')
               : Column(children: [
                   for (final c in items)
                     Card(
@@ -61,6 +61,7 @@ class ThreadPage extends ConsumerStatefulWidget {
 class _ThreadPageState extends ConsumerState<ThreadPage> {
   final _ctrl = TextEditingController();
   bool _busy = false;
+  final Set<String> _reportedIds = {};
 
   @override
   void dispose() {
@@ -84,6 +85,31 @@ class _ThreadPageState extends ConsumerState<ThreadPage> {
     }
   }
 
+  void _showMessageOptions(BuildContext context, Map<String, dynamic> m) {
+    if (m['mine'] == true) return;
+    final msgId = m['id'] as String? ?? '';
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.flag_outlined, color: Colors.red),
+            title: const Text('Şikayet Et'),
+            onTap: () {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                builder: (_) => ReportDialog(targetType: 'message', targetId: msgId),
+              ).then((_) {
+                if (mounted) setState(() => _reportedIds.add(msgId));
+              });
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final msgs = ref.watch(threadProvider(widget.id));
@@ -101,14 +127,30 @@ class _ThreadPageState extends ConsumerState<ThreadPage> {
               itemBuilder: (_, i) {
                 final m = items[items.length - 1 - i] as Map<String, dynamic>;
                 final mine = m['mine'] == true;
+                final msgId = m['id'] as String? ?? '';
+                final isReported = _reportedIds.contains(msgId);
                 return Align(
                   alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
-                    decoration: BoxDecoration(color: mine ? MettloColors.primary.withValues(alpha: .16) : MettloColors.surface2, borderRadius: BorderRadius.circular(16), border: mine ? Border.all(color: MettloColors.primary.withValues(alpha: .3)) : null),
-                    child: Text(m['deleted'] == true ? '(silinmiş mesaj)' : (m['body'] ?? '') as String),
+                  child: GestureDetector(
+                    onLongPress: mine ? null : () => _showMessageOptions(context, m),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
+                      decoration: BoxDecoration(
+                        color: mine ? MettloColors.primary.withValues(alpha: .16) : MettloColors.surface2,
+                        borderRadius: BorderRadius.circular(16),
+                        border: mine ? Border.all(color: MettloColors.primary.withValues(alpha: .3)) : null,
+                      ),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                        Text(m['deleted'] == true ? '(silinmiş mesaj)' : (m['body'] ?? '') as String),
+                        if (isReported)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Text('Şikayete inceleme başlatıldı', style: TextStyle(fontSize: 11, color: Colors.orange, fontStyle: FontStyle.italic)),
+                          ),
+                      ]),
+                    ),
                   ),
                 );
               },

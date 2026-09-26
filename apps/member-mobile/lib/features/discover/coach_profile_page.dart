@@ -10,16 +10,64 @@ import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/validation/validators.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/report_dialog.dart';
 import '../home/home_page.dart';
 
 final coachProfileProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/public/profiles/$u', auth: false) as Map<String, dynamic>);
 final coachClassesProvider = FutureProvider.autoDispose.family<List<dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/public/creators/$u/classes', auth: false) as List<dynamic>);
 final reviewEligibilityProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/reviews/creators/$u/eligibility') as Map<String, dynamic>);
 
+const _kStaffRoles = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'];
+
 String _tenure(int months) {
   if (months < 1) return '1 aydan az';
   final y = months ~/ 12, m = months % 12;
   return [if (y > 0) '$y yıl', if (m > 0) '$m ay'].join(' ');
+}
+
+void _showReplyBox(BuildContext context, WidgetRef ref, String reviewId, String coachUsername) {
+  final ctrl = TextEditingController();
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => Padding(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(ctx).bottom + 16),
+      child: StatefulBuilder(
+        builder: (_, setS) {
+          bool busy = false;
+          return Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('Yorumu Yanıtla', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 12),
+            TextField(controller: ctrl, maxLines: 3, maxLength: 1000, decoration: const InputDecoration(hintText: 'Yanıtınızı yazın...')),
+            const SizedBox(height: 10),
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+              FilledButton(
+                onPressed: busy
+                    ? null
+                    : () async {
+                        final text = ctrl.text.trim();
+                        if (text.isEmpty) return;
+                        setS(() => busy = true);
+                        try {
+                          await ref.read(apiClientProvider).post('/reviews/$reviewId/reply', body: {'body': text});
+                          ref.invalidate(coachProfileProvider(coachUsername));
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        } on ApiException catch (e) {
+                          if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.message)));
+                          setS(() => busy = false);
+                        }
+                      },
+                child: busy
+                    ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Gönder'),
+              ),
+            ]),
+          ]);
+        },
+      ),
+    ),
+  );
 }
 
 class CoachProfilePage extends ConsumerWidget {
@@ -29,14 +77,46 @@ class CoachProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(coachProfileProvider(username));
+    final user = ref.watch(authControllerProvider).user;
+    final isOwnProfile = user?.username == username;
+    final isStaff = _kStaffRoles.contains(user?.role);
+
     return Scaffold(
-      appBar: AppBar(title: Text('@$username')),
-      body: AsyncBody(
-        value: profile,
-        onRetry: () => ref.invalidate(coachProfileProvider(username)),
-        builder: (p) {
+      appBar: AppBar(
+        title: Text('@$username'),
+        actions: [
+          if (!isOwnProfile && user != null)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (v) {
+                if (v == 'report') {
+                  showDialog(context: context, builder: (_) => ReportDialog(targetType: 'user', targetId: username));
+                }
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(value: 'report', child: Row(children: [Icon(Icons.flag_outlined, size: 18, color: Colors.red), SizedBox(width: 8), Text('Şikayet Et')])),
+              ],
+            ),
+        ],
+      ),
+      body: profile.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: MettloColors.primary)),
+        error: (e, _) {
+          if (e is ApiException && e.status == 404) {
+            return const Padding(padding: EdgeInsets.all(24), child: InfoBanner('Bu kullanıcı bulunamamaktadır.'));
+          }
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              InfoBanner(e is ApiException ? (e as ApiException).message : 'Bir hata oluştu.', error: true),
+              const SizedBox(height: 12),
+              MettloButton(label: 'Tekrar Dene', secondary: true, onPressed: () => ref.invalidate(coachProfileProvider(username))),
+            ]),
+          );
+        },
+        data: (p) {
           if (p['type'] != 'coach') return const Padding(padding: EdgeInsets.all(24), child: InfoBanner('Bu bir koç profili değil.'));
-          return _Body(p: p, username: username);
+          return _Body(p: p, username: username, isOwnProfile: isOwnProfile, isStaff: isStaff);
         },
       ),
     );
@@ -44,9 +124,11 @@ class CoachProfilePage extends ConsumerWidget {
 }
 
 class _Body extends ConsumerWidget {
-  const _Body({required this.p, required this.username});
+  const _Body({required this.p, required this.username, required this.isOwnProfile, required this.isStaff});
   final Map<String, dynamic> p;
   final String username;
+  final bool isOwnProfile;
+  final bool isStaff;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,6 +141,12 @@ class _Body extends ConsumerWidget {
     final reviews = (p['reviews'] as List);
     final dist = (st['ratingDistribution'] as Map);
     final total = (st['ratingCount'] as num?) ?? 0;
+
+    final user = ref.watch(authControllerProvider).user;
+    final role = user?.role ?? '';
+    final canMessage = ['SUPER_ADMIN', 'MODERATOR', 'SUPPORT'].contains(role)
+        ? true
+        : (role == 'ADMIN' ? false : isSubscriber);
 
     String hours(dynamic v) => (v is num && v == v.roundToDouble()) ? '${v.toInt()}' : NumberFormat('0.0', 'tr').format(v);
 
@@ -80,9 +168,11 @@ class _Body extends ConsumerWidget {
         Pill('Mettlo\'da ${_tenure((st['monthsOnMettlo'] as num).toInt())}'),
       ]),
       const SizedBox(height: 18),
-      MettloButton(label: isSubscriber ? 'Abonesin ✓' : 'Abone Ol', secondary: isSubscriber, onPressed: isSubscriber ? null : () => launchUrl(Uri.parse('${Env.siteUrl}/profile/$username#plans'), mode: LaunchMode.externalApplication)),
-      if (!isSubscriber) const Padding(padding: EdgeInsets.only(top: 8), child: Text('Abonelik ödemesi web sitesinde yapılır; ödeme onaylanınca erişimin uygulamada otomatik açılır.', style: TextStyle(color: MettloColors.textTertiary, fontSize: 12))),
-      const SizedBox(height: 18),
+      if (!isStaff) ...[
+        MettloButton(label: isSubscriber ? 'Abonesin ✓' : 'Abone Ol', secondary: isSubscriber, onPressed: isSubscriber ? null : () => launchUrl(Uri.parse('${Env.siteUrl}/profile/$username#plans'), mode: LaunchMode.externalApplication)),
+        if (!isSubscriber) const Padding(padding: EdgeInsets.only(top: 8), child: Text('Abonelik ödemesi web sitesinde yapılır; ödeme onaylanınca erişimin uygulamada otomatik açılır.', style: TextStyle(color: MettloColors.textTertiary, fontSize: 12))),
+        const SizedBox(height: 18),
+      ],
       GridView.count(crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.7, children: [
         StatTile(icon: Icons.people_outline, value: '${st['subscribers']}', label: 'Abone'),
         StatTile(icon: Icons.star_outline, value: total > 0 ? (num.tryParse('${st['ratingAvg']}') ?? 0).toStringAsFixed(1) : '—', label: total > 0 ? '$total değerlendirme' : 'Henüz değerlendirme yok'),
@@ -104,7 +194,7 @@ class _Body extends ConsumerWidget {
           child: Text(p['whyChooseMe'] as String, style: const TextStyle(color: MettloColors.textSecondary, height: 1.5)),
         ),
       ],
-      if (plans.isNotEmpty) ...[
+      if (!isStaff && plans.isNotEmpty) ...[
         const SectionTitle('Abonelik Planları'),
         for (final pl in plans)
           Card(child: ListTile(title: Text(pl['name'] as String, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: pl['description'] != null ? Text(pl['description'] as String) : null, trailing: Text('₺${(num.tryParse('${pl['priceWeb']}') ?? 0).toStringAsFixed(0)} / ${pl['interval'] == 'ANNUAL' ? 'yıl' : 'ay'}', style: const TextStyle(fontWeight: FontWeight.w800, color: MettloColors.primary)))),
@@ -137,10 +227,40 @@ class _Body extends ConsumerWidget {
               Row(children: [for (var i = 0; i < (r['rating'] as int); i++) const Icon(Icons.star, size: 15, color: MettloColors.highlight)]),
               if (r['body'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(r['body'] as String, style: const TextStyle(color: MettloColors.textSecondary))),
               Padding(padding: const EdgeInsets.only(top: 8), child: Text(r['author'] != null ? '@${r['author']['username']}' : 'Silinmiş kullanıcı', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12))),
+              // Yanıtlar
+              if ((r['replies'] as List?)?.isNotEmpty == true) ...[
+                const SizedBox(height: 8),
+                for (final reply in r['replies'] as List)
+                  Container(
+                    margin: const EdgeInsets.only(left: 12, top: 4),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: MettloColors.surface2, borderRadius: BorderRadius.circular(8), border: const Border(left: BorderSide(color: MettloColors.primary, width: 2))),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(reply['author'] != null ? '@${reply['author']['username']}' : 'Silinmiş', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: MettloColors.textSecondary)),
+                      const SizedBox(height: 2),
+                      Text(reply['body'] as String? ?? '', style: const TextStyle(color: MettloColors.textSecondary, fontSize: 13)),
+                    ]),
+                  ),
+              ],
+              // Şikayet + Yanıtla satırı
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                if (isSubscriber || isStaff)
+                  TextButton(
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                    onPressed: () => _showReplyBox(context, ref, r['id'] as String, username),
+                    child: const Text('Yanıtla', style: TextStyle(fontSize: 12)),
+                  ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: Colors.red, padding: const EdgeInsets.symmetric(horizontal: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  onPressed: () => showDialog(context: context, builder: (_) => ReportDialog(targetType: 'review', targetId: r['id'] as String)),
+                  icon: const Icon(Icons.flag_outlined, size: 13),
+                  label: const Text('Şikayet', style: TextStyle(fontSize: 12)),
+                ),
+              ]),
             ]),
           ),
         ),
-      if (isSubscriber) ...[
+      if (canMessage) ...[
         const SizedBox(height: 16),
         MettloButton(label: 'Koça mesaj yaz', secondary: true, icon: Icons.chat_bubble_outline, onPressed: () async {
           try {
@@ -151,7 +271,96 @@ class _Body extends ConsumerWidget {
           }
         }),
       ],
+      // Engelle butonu (kendi profili değilse ve giriş yapılmışsa)
+      if (!isOwnProfile && user != null) ...[
+        const SizedBox(height: 8),
+        _BlockButton(username: username),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+          onPressed: () => showDialog(context: context, builder: (_) => ReportDialog(targetType: 'user', targetId: username)),
+          icon: const Icon(Icons.flag_outlined, size: 16),
+          label: const Text('Şikayet Et'),
+        ),
+      ],
     ]);
+  }
+}
+
+class _BlockButton extends ConsumerStatefulWidget {
+  const _BlockButton({required this.username});
+  final String username;
+
+  @override
+  ConsumerState<_BlockButton> createState() => _BlockButtonState();
+}
+
+class _BlockButtonState extends ConsumerState<_BlockButton> {
+  bool _blocked = false;
+  bool _busy = false;
+
+  Future<void> _block() async {
+    final reasonCtrl = TextEditingController();
+    final ok = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('@${widget.username} Kullanıcısını Engelle'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('Engelledikten sonra bu kullanıcı profilinize erişemez, size mesaj gönderemez.', style: TextStyle(fontSize: 13)),
+          const SizedBox(height: 12),
+          TextField(controller: reasonCtrl, maxLines: 3, maxLength: 500, decoration: const InputDecoration(labelText: 'Neden engelliyorsunuz?')),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, reasonCtrl.text.trim()),
+            child: const Text('Engelle'),
+          ),
+        ],
+      ),
+    );
+    reasonCtrl.dispose();
+    if (ok == null || ok.isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(apiClientProvider).post('/blocks', body: {'username': widget.username, 'reason': ok});
+      if (mounted) setState(() => _blocked = true);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kullanıcı engellendi.')));
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _unblock() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(apiClientProvider).delete('/blocks/${widget.username}');
+      if (mounted) setState(() => _blocked = false);
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_blocked) {
+      return OutlinedButton.icon(
+        onPressed: _busy ? null : _unblock,
+        icon: const Icon(Icons.shield_outlined, size: 16),
+        label: const Text('Engeli Kaldır'),
+      );
+    }
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+      onPressed: _busy ? null : _block,
+      icon: const Icon(Icons.block_outlined, size: 16),
+      label: const Text('Engelle'),
+    );
   }
 }
 
@@ -186,7 +395,6 @@ class _ClassTile extends ConsumerWidget {
   }
 }
 
-/// Değerlendirme, yorum ve yıldız YALNIZCA abonelere özeldir.
 class _ReviewBox extends ConsumerStatefulWidget {
   const _ReviewBox({required this.username});
   final String username;
@@ -216,9 +424,15 @@ class _ReviewBoxState extends ConsumerState<_ReviewBox> {
       _error = null;
     });
     try {
-      await ref.read(apiClientProvider).post('/reviews/creators/${widget.username}', body: {'rating': _rating, if (_body.text.trim().isNotEmpty) 'body': _body.text.trim()});
+      final res = await ref.read(apiClientProvider).post('/reviews/creators/${widget.username}', body: {'rating': _rating, if (_body.text.trim().isNotEmpty) 'body': _body.text.trim()}) as Map<String, dynamic>;
       ref.invalidate(coachProfileProvider(widget.username));
       ref.invalidate(reviewEligibilityProvider(widget.username));
+      if (mounted) {
+        final msg = res['pending'] == true
+            ? 'Değerlendirmen incelemeye alındı, onaylanınca yayınlanacak.'
+            : 'Değerlendirmen yayınlandı, teşekkürler!';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } finally {

@@ -11,6 +11,7 @@ import '../../core/widgets/common.dart';
 
 final privacyProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/me/privacy') as Map<String, dynamic>);
 final healthSharingProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/me/health-sharing') as List<dynamic>);
+final blocksProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async => await ref.watch(apiClientProvider).get('/blocks') as List<dynamic>);
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -74,6 +75,39 @@ class SettingsPage extends ConsumerWidget {
                   ),
               ]),
       ),
+      const SectionTitle('Engellenen Kullanıcılar'),
+      Consumer(builder: (context, ref, _) {
+        final blocks = ref.watch(blocksProvider);
+        return blocks.when(
+          loading: () => const Center(child: CircularProgressIndicator.adaptive()),
+          error: (_, _) => const SizedBox.shrink(),
+          data: (items) => items.isEmpty
+              ? const Padding(padding: EdgeInsets.only(top: 4), child: Text('Engellenen kullanıcı yok.', style: TextStyle(color: MettloColors.textMuted)))
+              : Column(children: [
+                  for (final b in items)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: UserAvatar(name: b['blocked']['name'] as String? ?? '?', url: b['blocked']['avatarUrl'] as String?),
+                      title: Text(b['blocked']['name'] as String? ?? ''),
+                      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('@${b['blocked']['username']}', style: const TextStyle(fontSize: 12)),
+                        if (b['reason'] != null) Text(b['reason'] as String, style: const TextStyle(fontSize: 12, color: MettloColors.textTertiary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ]),
+                      trailing: TextButton(
+                        onPressed: () async {
+                          try {
+                            await ref.read(apiClientProvider).delete('/blocks/${b['blocked']['username']}');
+                            ref.invalidate(blocksProvider);
+                          } on ApiException catch (e) {
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+                          }
+                        },
+                        child: const Text('Kaldır'),
+                      ),
+                    ),
+                ]),
+        );
+      }),
       const SectionTitle('Hesap'),
       ListTile(leading: const Icon(Icons.support_agent_outlined), title: const Text('Destek Merkezi'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/support')),
       ListTile(leading: const Icon(Icons.monitor_heart_outlined), title: const Text('Sağlık & İlerleme'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/health')),
