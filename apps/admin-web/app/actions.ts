@@ -153,3 +153,17 @@ export async function setUserRoleAction(_p: FormState, fd: FormData): Promise<Fo
   try { await authed(`/admin/users/${userId}/role`, { method: 'PATCH', body: { role } }); } catch (e) { return fail(e); }
   revalidatePath('/admin/roles'); return { ok: `Rol "${role}" olarak güncellendi.` };
 }
+
+export async function approvePayoutAction(payoutId: string, _p: FormState, _fd: FormData): Promise<FormState> {
+  try { await authed(`/admin/payouts/${payoutId}/approve`, { method: 'POST', body: {} }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/payouts');
+  return { ok: 'Para çekme onaylandı ve işleme alındı.' };
+}
+
+export async function cancelPayoutAction(payoutId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const reason = str(fd, 'reason');
+  if (!reason) return { error: 'İptal gerekçesi zorunludur.' };
+  try { await authed(`/admin/payouts/${payoutId}/cancel`, { method: 'POST', body: { reason } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/payouts');
+  return { ok: 'Para çekme iptal edildi.' };
+}

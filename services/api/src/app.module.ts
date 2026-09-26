@@ -37,6 +37,8 @@ import { BusinessController } from './business/business.controller';
 import { AdminBusinessController } from './business/admin-business.controller';
 import { CoachWorkplaceController } from './business/coach-workplace.controller';
 import { AdvertisingController } from './advertising/advertising.controller';
+import { EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController } from './payout/payout.controller';
+import { PayoutService } from './payout/payout.service';
 
 @Module({
   imports: [
@@ -56,7 +58,7 @@ import { AdvertisingController } from './advertising/advertising.controller';
       },
     }),
   ],
-  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController],
+  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController, EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController],
   providers: [
     SupportService,
     PresenceService,
@@ -64,6 +66,7 @@ import { AdvertisingController } from './advertising/advertising.controller';
     MaintenanceService,
     CheckoutService,
     IyzicoService,
+    PayoutService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

@@ -1,0 +1,258 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 35_extensions — Yeni modüller: Yiyecek İşletmesi, Etkinlik, Koç İş İlanı,
+//                 Platform Yapılandırma, AI Eşleştirme Günlüğü
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Platform yapılandırma ────────────────────────────────────────────────────
+
+/// Özellik bayrakları ve platform ayarları (admin panelinden yönetilir).
+model PlatformConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+  updatedBy   User?    @relation("ConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("platform_configs")
+}
+
+// ── Sağlıklı Beslenme İşletmesi — Menü ──────────────────────────────────────
+
+/// Bir işletmenin menü kategorisi (örn. "Smoothie", "Tabak Yemeği", "Snack").
+model FoodCategory {
+  id         String        @id @default(cuid())
+  businessId String
+  business   BusinessAccount @relation("BusinessFoodCategories", fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  sortOrder  Int           @default(0)
+  createdAt  DateTime      @default(now())
+  items      FoodItem[]
+
+  @@index([businessId, sortOrder])
+  @@map("food_categories")
+}
+
+/// Menüdeki tek bir ürün.
+model FoodItem {
+  id               String         @id @default(cuid())
+  businessId       String
+  business         BusinessAccount @relation("BusinessFoodItems", fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId       String?
+  category         FoodCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  name             String
+  description      String?
+  imageUrl         String?
+  /// Fiyat kuruş cinsinden
+  priceKurus       Int
+  deliveryMode     DeliveryMode   @default(BOTH)
+  status           FoodItemStatus @default(ACTIVE)
+  /// Besin değerleri (isteğe bağlı JSON)
+  nutritionJson    Json?
+  /// Alerjenler virgülle: "gluten,süt,fıstık"
+  allergens        String?
+  isGlutenFree     Boolean        @default(false)
+  isVegan          Boolean        @default(false)
+  isVegetarian     Boolean        @default(false)
+  preparationMinutes Int?
+  sortOrder        Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  orderItems       FoodOrderItem[]
+
+  @@index([businessId, status])
+  @@map("food_items")
+}
+
+/// Yiyecek siparişi (bir işletmeden).
+model FoodOrder {
+  id            String          @id @default(cuid())
+  businessId    String
+  business      BusinessAccount @relation("BusinessFoodOrders", fields: [businessId], references: [id])
+  customerId    String
+  customer      User            @relation("UserFoodOrders", fields: [customerId], references: [id])
+  paymentId     String?         @unique
+  payment       Payment?        @relation("FoodOrderPayment", fields: [paymentId], references: [id], onDelete: SetNull)
+  status        FoodOrderStatus @default(PENDING)
+  deliveryMode  DeliveryMode
+  /// Toplam kuruş
+  totalKurus    Int
+  /// Teslimat notu / adres
+  note          String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  items         FoodOrderItem[]
+
+  @@index([businessId, status])
+  @@index([customerId])
+  @@map("food_orders")
+}
+
+model FoodOrderItem {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       FoodOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  foodItemId  String
+  foodItem    FoodItem  @relation(fields: [foodItemId], references: [id])
+  quantity    Int       @default(1)
+  unitKurus   Int
+  note        String?
+
+  @@index([orderId])
+  @@map("food_order_items")
+}
+
+// ── Etkinlik ─────────────────────────────────────────────────────────────────
+
+/// Etkinlik organizatörü: işletme veya koç.
+model Event {
+  id                String      @id @default(cuid())
+  /// Etkinliği oluşturan kullanıcı
+  organizerId       String
+  organizer         User        @relation("UserEvents", fields: [organizerId], references: [id])
+  /// Eğer işletme adına düzenleniyorsa
+  businessId        String?
+  business          BusinessAccount? @relation("BusinessEvents", fields: [businessId], references: [id], onDelete: SetNull)
+  title             String
+  slug              String      @unique
+  description       String?
+  coverImageUrl     String?
+  status            EventStatus @default(DRAFT)
+  startsAt          DateTime
+  endsAt            DateTime?
+  locationName      String?
+  locationAddress   String?
+  cityId            Int?
+  city              TurkeyCity? @relation("EventCity", fields: [cityId], references: [id], onDelete: SetNull)
+  isOnline          Boolean     @default(false)
+  onlineLink        String?
+  capacityLimit     Int?
+  /// Bilet fiyatı kuruş (0 = ücretsiz)
+  ticketPriceKurus  Int         @default(0)
+  /// Etkinlik komisyonu anlık snapshot (onay anında kilitlenir)
+  commissionPct     Decimal     @default(10) @db.Decimal(5, 2)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  tickets           EventTicket[]
+  registrations     EventRegistration[]
+
+  @@index([organizerId, status])
+  @@index([startsAt])
+  @@map("events")
+}
+
+/// Bir etkinlik için satılan bilet.
+model EventTicket {
+  id           String            @id @default(cuid())
+  eventId      String
+  event        Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  holderId     String
+  holder       User              @relation("UserTickets", fields: [holderId], references: [id])
+  paymentId    String?           @unique
+  payment      Payment?          @relation("EventTicketPayment", fields: [paymentId], references: [id], onDelete: SetNull)
+  status       EventTicketStatus @default(ACTIVE)
+  /// QR kodu için benzersiz jeton
+  qrToken      String            @unique @default(cuid())
+  usedAt       DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@index([eventId, status])
+  @@index([holderId])
+  @@map("event_tickets")
+}
+
+/// Ücretsiz etkinlik katılım kaydı (bilet olmadan).
+model EventRegistration {
+  id        String                  @id @default(cuid())
+  eventId   String
+  event     Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User                    @relation("UserEventRegistrations", fields: [userId], references: [id])
+  status    EventRegistrationStatus @default(CONFIRMED)
+  createdAt DateTime                @default(now())
+
+  @@unique([eventId, userId])
+  @@map("event_registrations")
+}
+
+// ── Koç İş İlanı Panosu ─────────────────────────────────────────────────────
+
+/// İşletmenin koç aradığı ilan.
+model JobPost {
+  id            String        @id @default(cuid())
+  businessId    String
+  business      BusinessAccount @relation("BusinessJobPosts", fields: [businessId], references: [id], onDelete: Cascade)
+  title         String
+  description   String
+  requirements  String?
+  workMode      CoachWorkMode @default(BUSINESS)
+  branchSlugs   String[]
+  cityId        Int?
+  city          TurkeyCity? @relation("JobCity", fields: [cityId], references: [id], onDelete: SetNull)
+  status        JobPostStatus @default(OPEN)
+  expiresAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  applications  CoachJobApplication[]
+
+  @@index([businessId, status])
+  @@index([status, cityId])
+  @@map("job_posts")
+  offers        BusinessOffer[] @relation("BusinessOfferJobPost")
+}
+
+/// Koçun bir ilana başvurusu.
+model CoachJobApplication {
+  id          String             @id @default(cuid())
+  jobPostId   String
+  jobPost     JobPost            @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  creatorId   String
+  creator     CreatorProfile     @relation("CoachApplications", fields: [creatorId], references: [id], onDelete: Cascade)
+  coverLetter String?
+  status      JobApplicationStatus @default(APPLIED)
+  appliedAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([jobPostId, creatorId])
+  @@index([creatorId, status])
+  @@map("coach_job_applications")
+}
+
+/// İşletmenin doğrudan bir koça gönderdiği teklif.
+model BusinessOffer {
+  id          String             @id @default(cuid())
+  businessId  String
+  business    BusinessAccount    @relation("BusinessOffersSent", fields: [businessId], references: [id], onDelete: Cascade)
+  creatorId   String
+  creator     CreatorProfile     @relation("CoachOffersReceived", fields: [creatorId], references: [id], onDelete: Cascade)
+  jobPostId   String?
+  jobPost     JobPost?           @relation("BusinessOfferJobPost", fields: [jobPostId], references: [id], onDelete: SetNull)
+  message     String
+  status      JobApplicationStatus @default(APPLIED)
+  sentAt      DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([businessId])
+  @@index([creatorId, status])
+  @@map("business_offers")
+}
+
+// ── AI Eşleştirme ────────────────────────────────────────────────────────────
+
+/// Claude Haiku ile yapılan eşleştirme sorgusu günlüğü.
+model AiMatchingLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation("UserAiMatchingLogs", fields: [userId], references: [id])
+  queryJson     Json
+  responseJson  Json?
+  modelUsed     String   @default("claude-haiku-4-5-20251001")
+  inputTokens   Int?
+  outputTokens  Int?
+  durationMs    Int?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("ai_matching_logs")
+}

@@ -67,6 +67,8 @@ model CreatorProfile {
   subCategories   CoachSubCategory[]
   verifications   CreatorVerification[]
   coachWorkplaces CoachWorkplace[]
+  jobApplications CoachJobApplication[] @relation("CoachApplications")
+  offersReceived  BusinessOffer[]       @relation("CoachOffersReceived")
 
   @@index([status, isPublic])
   @@index([ratingAvg])

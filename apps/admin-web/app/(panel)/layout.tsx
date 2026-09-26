@@ -16,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(can(r, 'reports:manage') ? [{ href: '/admin/reports', label: 'Şikâyetler' }] : []),
     ...(can(r, 'content:moderate') ? [{ href: '/admin/reviews', label: 'Değerlendirmeler' }] : []),
     ...(can(r, 'finance:read') ? [{ href: '/admin/payments', label: 'Ödemeler & Finans' }] : []),
+    ...(can(r, 'finance:refund_approve') ? [{ href: '/admin/payouts', label: 'Para Çekme' }] : []),
     ...(can(r, 'roles:manage') ? [{ href: '/admin/roles', label: 'Rol Yönetimi' }] : []),
     ...(can(r, 'store:manage') ? [{ href: '/admin/store', label: 'Mağaza' }] : []),
     ...(can(r, 'creators:manage') ? [{ href: '/admin/branches', label: 'Branşlar' }] : []),

@@ -1,0 +1,122 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 36_payout — Kazanç Bakiyesi + IBAN Hesabı + Para Çekme (Payout) Sistemi
+//
+// Dijital Cüzdan DEĞİLDİR.
+// Para yükleme / kullanıcılar arası transfer / stored-value YOK.
+// Yalnızca: Satış → Komisyon → Net Kazanç → Bakiye → Payout → IBAN
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Koç, işletme veya etkinlik organizatörünün kazanç bakiye defteri.
+/// Her gelir sahibi için TEK kayıt; birden fazla bakiye kaydı oluşturma.
+model EarningsBalance {
+  id               String             @id @default(cuid())
+  /// Bakiye sahibi kullanıcı (koç, işletme sahibi, etkinlik organizatörü)
+  userId           String             @unique
+  user             User               @relation("UserEarningsBalance", fields: [userId], references: [id], onDelete: Cascade)
+  accountType      BalanceAccountType
+  /// İşletme bağlantısı (işletme hesabı için)
+  businessId       String?            @unique
+  business         BusinessAccount?   @relation("BusinessEarningsBalance", fields: [businessId], references: [id], onDelete: SetNull)
+  /// Tüm zamanlar toplam brüt kazanç (kuruş)
+  totalEarningsKurus    Int           @default(0)
+  /// Ödemeyi bekleyen (settlement bekleyen) kazanç (kuruş)
+  pendingKurus          Int           @default(0)
+  /// Çekilebilir bakiye (kuruş)
+  availableKurus        Int           @default(0)
+  /// Toplam ödenmiş (kuruş)
+  totalPaidOutKurus     Int           @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  payouts          Payout[]
+
+  @@index([accountType])
+  @@map("earnings_balances")
+}
+
+/// Onaylı IBAN / banka hesabı bilgisi.
+/// Koç yalnızca kendi adına kayıtlı hesaba payout alabilir.
+/// IBAN değişince yeni kayıt oluşturulur; eski payout kaydı eski hesaba bağlı kalır.
+model PayoutAccount {
+  id                String             @id @default(cuid())
+  userId            String
+  user              User               @relation("UserPayoutAccounts", fields: [userId], references: [id], onDelete: Cascade)
+  /// IBAN şifreli saklanır; sadece payout işlemi sırasında çözülür
+  ibanEnc           String
+  /// HMAC — tekillik ve arama için
+  ibanHash          String
+  /// Hesap sahibi adı (kullanıcı beyanı; KYC/sağlayıcı doğrulamasında karşılaştırılır)
+  accountHolderName String
+  bankName          String?
+  status            PayoutAccountStatus @default(PENDING_VERIFICATION)
+  /// Sağlayıcı (iyzico vb.) tarafından verilen doğrulama referansı
+  providerRef       String?
+  verifiedAt        DateTime?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  /// Aktif hesap; kullanıcının tek aktif IBAN'ı olabilir
+  isActive          Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  payouts           Payout[]
+
+  @@index([userId, isActive])
+  @@index([ibanHash])
+  @@map("payout_accounts")
+}
+
+/// Para çekme talebi.
+/// Concurrency guard: availableKurus atomik transaction ile rezerve edilir.
+/// Idempotency: idempotencyKey benzersizliği ile çift işlem engellenir.
+model Payout {
+  id               String        @id @default(cuid())
+  balanceId        String
+  balance          EarningsBalance @relation(fields: [balanceId], references: [id])
+  payoutAccountId  String
+  payoutAccount    PayoutAccount @relation(fields: [payoutAccountId], references: [id])
+  /// Para çeken kullanıcı (hızlı lookup)
+  requestedById    String
+  requestedBy      User          @relation("UserPayouts", fields: [requestedById], references: [id])
+  /// Çekilmek istenen tutar (kuruş)
+  amountKurus      Int
+  status           PayoutStatus  @default(PENDING)
+  /// Sağlayıcıya gönderilen benzersiz idempotency anahtarı
+  idempotencyKey   String        @unique @default(cuid())
+  /// Sağlayıcı payout ID / transaction ID
+  providerPayoutId String?
+  /// Sağlayıcıdan gelen ham yanıt (audit için)
+  providerResponse Json?
+  failureReason    String?
+  /// Admin onayı (otomatik payout kapalıysa)
+  approvedById     String?
+  approvedBy       User?         @relation("PayoutApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt       DateTime?
+  processedAt      DateTime?
+  paidAt           DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([requestedById, status])
+  @@index([balanceId, status])
+  @@index([status, createdAt])
+  @@map("payouts")
+}
+
+/// Webhook olayı — idempotency: eventId benzersiz; aynı olay iki kez işlenmez.
+model PayoutWebhookEvent {
+  id           String   @id @default(cuid())
+  /// Sağlayıcının gönderdiği benzersiz olay ID'si
+  eventId      String   @unique
+  provider     String
+  eventType    String
+  payoutId     String?
+  /// Ham webhook gövdesi (imza doğrulama için)
+  rawPayload   Json
+  processedAt  DateTime?
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([payoutId])
+  @@map("payout_webhook_events")
+}

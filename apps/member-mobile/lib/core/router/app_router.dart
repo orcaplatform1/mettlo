@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/admin/moderation_page.dart';
 import '../../features/business/business_checkin_page.dart';
+import '../../features/earnings/earnings_page.dart';
 import '../../features/business/business_list_page.dart';
 import '../../features/business/business_profile_page.dart';
 import '../../features/business/coach_workplace_page.dart';
@@ -92,6 +93,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/coaching/clients', builder: (_, _) => const ClientsPage()),
       GoRoute(path: '/coaching/clients/:memberId', builder: (_, s) => ClientWorkspacePage(memberId: s.pathParameters['memberId']!)),
       GoRoute(path: '/video-sessions', builder: (_, _) => const VideoSessionsPage()),
+      GoRoute(path: '/earnings', builder: (_, _) => const EarningsPage()),
     ],
   );
 });

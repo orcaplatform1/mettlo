@@ -398,6 +398,8 @@ enum PaymentKind {
   BUNDLE
   LIVE_CREDIT
   ADVERTISING
+  EVENT_TICKET
+  FOOD_ORDER
 }
 
 // ── İşletme ──────────────────────────────────────────────────────────────────
@@ -414,7 +416,118 @@ enum BusinessCategory {
   NUTRITION_CLINIC
   RECOVERY_STUDIO
   SPORTS_CLUB
+  // Sağlıklı beslenme işletmeleri
+  HEALTHY_FOOD
+  SMOOTHIE_BAR
+  MEAL_PREP
+  PROTEIN_BAR
+  HEALTHY_CAFE
+  SPORTS_NUTRITION
+  VEGAN
+  VEGETARIAN
+  GLUTEN_FREE
+  RAW_FOOD
+  FUNCTIONAL_NUTRITION
+  FUNCTIONAL_BEVERAGES
+  SPECIAL_DIET
   OTHER
+}
+
+enum CoachWorkMode {
+  FREELANCE
+  BUSINESS
+  MULTI_BUSINESS
+  HYBRID
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+  POSTPONED
+}
+
+enum EventTicketStatus {
+  ACTIVE
+  USED
+  CANCELLED
+  REFUNDED
+  EXPIRED
+}
+
+enum EventRegistrationStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  ATTENDED
+  NO_SHOW
+}
+
+enum JobPostStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  FILLED
+  CANCELLED
+}
+
+enum JobApplicationStatus {
+  APPLIED
+  REVIEWING
+  SHORTLISTED
+  INTERVIEW
+  OFFERED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum FoodItemStatus {
+  ACTIVE
+  PAUSED
+  DISCONTINUED
+}
+
+enum FoodOrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum DeliveryMode {
+  PICKUP
+  DELIVERY
+  BOTH
+}
+
+// ── Para çekme / kazanç bakiyesi ────────────────────────────────────────────
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  RETURNED
+  CANCELLED
+}
+
+enum PayoutAccountStatus {
+  UNVERIFIED
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum BalanceAccountType {
+  CREATOR
+  BUSINESS
+  EVENT_ORGANIZER
 }
 
 /// PENDING_DOCS = vergi levhası bekleniyor; OPEN = yüklendi ama doğrulanmadı; SUSPENDED/CLOSED yönetim kararı

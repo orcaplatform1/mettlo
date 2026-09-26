@@ -143,6 +143,17 @@ model User {
   adReviews                Advertisement[]           @relation("AdReviewer")
   adsAsCoach               Advertisement[]           @relation("CoachAdOwner")
   adFrequencyRecords       AdFrequencyRecord[]       @relation("AdFrequencyUser")
+  // --- Yeni modüller (35_extensions + 36_payout) ---
+  foodOrders               FoodOrder[]               @relation("UserFoodOrders")
+  eventTickets             EventTicket[]             @relation("UserTickets")
+  eventRegistrations       EventRegistration[]       @relation("UserEventRegistrations")
+  organizedEvents          Event[]                   @relation("UserEvents")
+  aiMatchingLogs           AiMatchingLog[]           @relation("UserAiMatchingLogs")
+  configUpdates            PlatformConfig[]          @relation("ConfigUpdater")
+  earningsBalance          EarningsBalance?          @relation("UserEarningsBalance")
+  payoutAccounts           PayoutAccount[]           @relation("UserPayoutAccounts")
+  payouts                  Payout[]                  @relation("UserPayouts")
+  approvedPayouts          Payout[]                  @relation("PayoutApprovedBy")
 
   @@index([role, status])
   @@index([createdAt])

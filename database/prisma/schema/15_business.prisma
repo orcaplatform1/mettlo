@@ -50,6 +50,13 @@ model BusinessAccount {
   checkIns           BusinessCheckIn[]
   coachWorkplaces    CoachWorkplace[]           @relation("CoachWorkplaceBusiness")
   advertisements     Advertisement[]           @relation("BusinessAds")
+  foodCategories     FoodCategory[]            @relation("BusinessFoodCategories")
+  foodItems          FoodItem[]                @relation("BusinessFoodItems")
+  foodOrders         FoodOrder[]               @relation("BusinessFoodOrders")
+  events             Event[]                   @relation("BusinessEvents")
+  jobPosts           JobPost[]                 @relation("BusinessJobPosts")
+  jobOffersSent      BusinessOffer[]           @relation("BusinessOffersSent")
+  earningsBalance    EarningsBalance?          @relation("BusinessEarningsBalance")
 
   @@index([slug])
   @@index([status, verificationStatus])
@@ -150,6 +157,7 @@ model CoachWorkplace {
   business         BusinessAccount?        @relation("CoachWorkplaceBusiness", fields: [businessId], references: [id], onDelete: SetNull)
   /// Direktoğru bağlantı yoksa serbest metin işyeri adı
   customName       String?
+  workMode         CoachWorkMode?
   status           CoachWorkplaceStatus    @default(ACTIVE)
   isMainWorkplace  Boolean                 @default(false)
   startedAt        DateTime                @default(now())

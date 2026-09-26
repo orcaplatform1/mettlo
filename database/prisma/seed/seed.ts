@@ -75,15 +75,43 @@ async function main() {
     }
   }
 
-  // Komisyon ayarları: sabit %20; canlı kredi %100 Mettlo (altyapı; koça ödeme yok)
-  await prisma.commission.upsert({
-    where: { key: 'default' }, update: {},
-    create: { key: 'default', platformPct: 20, creatorPct: 80, description: 'Tüm koç satışları: sabit %20 (kaynağa göre indirim yok)' },
-  });
-  await prisma.commission.upsert({
-    where: { key: 'live_credit' }, update: {},
-    create: { key: 'live_credit', platformPct: 100, creatorPct: 0, description: 'Canlı kredi: altyapı ücreti, koça ödeme yapılmaz (%100 Mettlo)' },
-  });
+  // Komisyon ayarları
+  const commissions = [
+    { key: 'default', platformPct: 10, creatorPct: 90, description: 'Varsayılan: abonelik + 1:1 koçluk — %10 Mettlo / %90 koç' },
+    { key: 'SUBSCRIPTION_PLAN', platformPct: 10, creatorPct: 90, description: 'İçerik erişimi aboneliği — %10' },
+    { key: 'ONE_TO_ONE_COACHING', platformPct: 10, creatorPct: 90, description: '1:1 koçluk paketi — %10' },
+    { key: 'PROGRAM', platformPct: 10, creatorPct: 90, description: 'Program satışı — %10' },
+    { key: 'CHALLENGE', platformPct: 10, creatorPct: 90, description: 'Meydan okuma — %10' },
+    { key: 'SESSION', platformPct: 0, creatorPct: 100, description: 'Oturum seansları — %0 (koçun geliri)' },
+    { key: 'live_credit', platformPct: 100, creatorPct: 0, description: 'Canlı kredi: altyapı ücreti, koça ödeme yapılmaz (%100 Mettlo)' },
+    { key: 'EVENT_TICKET', platformPct: 10, creatorPct: 90, description: 'Etkinlik bileti — %10' },
+    { key: 'FOOD_ORDER', platformPct: 10, creatorPct: 90, description: 'Yiyecek siparişi — %10' },
+  ];
+  for (const c of commissions) {
+    await prisma.commission.upsert({
+      where: { key: c.key }, update: { description: c.description },
+      create: { key: c.key, platformPct: c.platformPct, creatorPct: c.creatorPct, description: c.description },
+    });
+  }
+  console.log('Komisyon ayarları güncellendi.');
+
+  // Platform yapılandırma bayrakları
+  const platformConfigs = [
+    { key: 'ENABLE_FOOD_BUSINESS', value: 'false', description: 'Sağlıklı beslenme işletmesi modülü' },
+    { key: 'ENABLE_EVENTS', value: 'false', description: 'Etkinlik modülü' },
+    { key: 'ENABLE_COACH_JOBS', value: 'false', description: 'Koç iş ilanı panosu' },
+    { key: 'ENABLE_AI_MATCHING', value: 'false', description: 'AI eşleştirme (Claude Haiku)' },
+    { key: 'AUTO_PAYOUT_ENABLED', value: 'false', description: 'Otomatik payout — false = admin manuel onaylar' },
+    { key: 'PAYOUT_MIN_AMOUNT_KURUS', value: '10000', description: 'Minimum para çekme tutarı (kuruş) — varsayılan 100 TL' },
+    { key: 'PAYOUT_SETTLEMENT_DAYS', value: '7', description: 'Satıştan bakiye kullanılabilir hale gelene kadar bekleme süresi (gün)' },
+  ];
+  for (const c of platformConfigs) {
+    await prisma.platformConfig.upsert({
+      where: { key: c.key }, update: { description: c.description },
+      create: { key: c.key, value: c.value, description: c.description },
+    });
+  }
+  console.log('Platform yapılandırma bayrakları eklendi.');
 
   // Superadmin (yoksa oluştur; şifre bir kez dosyaya yazılır)
   const email = 'admin@mettlo.tr';
