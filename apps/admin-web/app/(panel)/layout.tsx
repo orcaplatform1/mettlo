@@ -20,7 +20,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(can(r, 'roles:manage') ? [{ href: '/admin/roles', label: 'Rol Yönetimi' }] : []),
     ...(can(r, 'store:manage') ? [{ href: '/admin/store', label: 'Mağaza' }] : []),
     ...(can(r, 'creators:manage') ? [{ href: '/admin/branches', label: 'Branşlar' }] : []),
-    ...(can(r, 'system:settings') ? [{ href: '/admin/sub-categories', label: 'Alt Kategoriler' }] : []),
+    ...(can(r, 'system:settings') ? [
+      { href: '/admin/sub-categories', label: 'Alt Kategoriler' },
+      { href: '/admin/settings/commission', label: 'Komisyon Oranları' },
+      { href: '/admin/settings/features', label: 'Özellik Bayrakları' },
+    ] : []),
     ...(can(r, 'business:verify') || can(r, 'business:manage') ? [{ href: '/admin/businesses', label: 'İşletmeler' }] : []),
     ...(can(r, 'ads:moderate') ? [{ href: '/admin/ads', label: 'Reklamlar' }] : []),
     ...(can(r, 'audit:read') ? [{ href: '/admin/audit', label: 'Denetim Logları' }] : []),

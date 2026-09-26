@@ -167,3 +167,21 @@ export async function cancelPayoutAction(payoutId: string, _p: FormState, fd: Fo
   revalidatePath('/admin/payouts');
   return { ok: 'Para çekme iptal edildi.' };
 }
+
+export async function updateCommissionAction(key: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const platformPct = num(fd, 'platformPct');
+  const creatorPct = num(fd, 'creatorPct');
+  if (platformPct === undefined || creatorPct === undefined) return { error: 'Oran değerleri zorunlu.' };
+  if (Math.abs(platformPct + creatorPct - 100) > 0.01) return { error: 'platformPct + creatorPct toplamı 100 olmalı.' };
+  try { await authed(`/admin/commission/${key}`, { method: 'PATCH', body: { platformPct, creatorPct } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/settings/commission');
+  return { ok: 'Komisyon oranı güncellendi.' };
+}
+
+export async function updatePlatformConfigAction(key: string, _p: FormState, fd: FormData): Promise<FormState> {
+  const value = str(fd, 'value');
+  if (value === '') return { error: 'Değer zorunludur.' };
+  try { await authed(`/admin/platform-config/${key}`, { method: 'PATCH', body: { value } }); } catch (e) { return fail(e); }
+  revalidatePath('/admin/settings/features');
+  return { ok: 'Ayar güncellendi.' };
+}

@@ -39,6 +39,7 @@ import { CoachWorkplaceController } from './business/coach-workplace.controller'
 import { AdvertisingController } from './advertising/advertising.controller';
 import { EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController } from './payout/payout.controller';
 import { PayoutService } from './payout/payout.service';
+import { AdminCommissionController, AdminPlatformConfigController } from './admin/settings.controller';
 
 @Module({
   imports: [
@@ -58,7 +59,7 @@ import { PayoutService } from './payout/payout.service';
       },
     }),
   ],
-  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController, EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController],
+  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController, EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController, AdminCommissionController, AdminPlatformConfigController],
   providers: [
     SupportService,
     PresenceService,
