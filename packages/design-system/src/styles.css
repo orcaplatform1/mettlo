@@ -244,6 +244,13 @@ a.card:hover, .card-hover:hover { transform: translateY(-2px); border-color: var
 .coach-cover { height: 96px; background: var(--gradient-sunrise-dark); position: relative; } .coach-cover img { width: 100%; height: 100%; object-fit: cover; }
 .coach-body { padding: 0 20px 20px; margin-top: -32px; display: flex; flex-direction: column; gap: 10px; }
 .stat-row { display: flex; gap: 20px; font-size: 13px; color: var(--color-text-secondary); } .stat-row b { color: var(--color-text-primary); display: block; font-size: 16px; }
+
+/* ---------- Yatay scroll şerit (landing page koç/program vb.) ---------- */
+.cards-scroll { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scrollbar-width: none; }
+.cards-scroll::-webkit-scrollbar { display: none; }
+.cards-scroll > * { flex: 0 0 280px; scroll-snap-align: start; }
+.cards-scroll > .coach-card { flex: 0 0 260px; }
+@media (max-width: 639px) { .cards-scroll > * { flex: 0 0 240px; } .cards-scroll > .coach-card { flex: 0 0 220px; } }
 .rating { display: inline-flex; gap: 4px; align-items: center; color: var(--color-highlight); font-size: 13px; font-weight: 600; }
 .progress { height: 8px; border-radius: 8px; background: var(--color-surface-2); overflow: hidden; } .progress > i { display: block; height: 100%; background: var(--gradient-sunrise-h); border-radius: 8px; }
 .empty { text-align: center; padding: 56px 24px; border: 1px dashed var(--border-subtle); border-radius: var(--radius-xl); color: var(--color-text-secondary); background: var(--gradient-sunrise-soft); }

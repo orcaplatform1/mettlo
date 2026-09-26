@@ -111,7 +111,7 @@ export default async function HomePage() {
             <Link href="/coaches" className="btn btn-secondary btn-pill btn-sm">Tüm Koçlar <ArrowRight size={16} aria-hidden /></Link>
           </div>
           {creators && creators.items.length > 0 ? (
-            <div className="grid grid-3">{creators.items.map((c: any) => <CoachCard key={c.user.username} c={c} />)}</div>
+            <div className="cards-scroll">{creators.items.map((c: any) => <CoachCard key={c.user.username} c={c} />)}</div>
           ) : (
             <EmptyState icon={<Handshake size={36} aria-hidden />} title="Koçlarımız çok yakında burada" action={<Link href="/become-a-coach" className="btn btn-primary btn-pill">Koç Olarak Başvur <ArrowRight size={16} aria-hidden /></Link>}>
               Fitness, yoga, pilates ve daha fazlası için doğrulanmış koçlar Mettlo&apos;ya katılıyor. Sen de kendi öğrencilerini tek platformda büyütmek istiyorsan başvur.
@@ -128,7 +128,7 @@ export default async function HomePage() {
             <Link href="/programs" className="btn btn-secondary btn-pill btn-sm">Tüm Programlar <ArrowRight size={16} aria-hidden /></Link>
           </div>
           {programs && programs.items.length > 0 ? (
-            <div className="grid grid-3">{programs.items.map((p: any) => <ProgramCard key={p.slug} p={p} />)}</div>
+            <div className="cards-scroll">{programs.items.map((p: any) => <ProgramCard key={p.slug} p={p} />)}</div>
           ) : (
             <EmptyState icon={<ClipboardList size={36} aria-hidden />} title="İlk programlar hazırlanıyor">7, 14, 30, 60 ve 90 günlük programlar koçlarımız tarafından yayınlandıkça burada listelenecek.</EmptyState>
           )}
