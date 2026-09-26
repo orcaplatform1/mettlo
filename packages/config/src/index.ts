@@ -31,6 +31,8 @@ const schema = z.object({
   IYZICO_API_KEY: z.string().optional(),
   IYZICO_SECRET_KEY: z.string().optional(),
   IYZICO_BASE_URL: z.string().url().default('https://sandbox-api.iyzipay.com'),
+  /** Anthropic API (AI eşleştirme — Claude Haiku) */
+  ANTHROPIC_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

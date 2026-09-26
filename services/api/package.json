@@ -10,6 +10,7 @@
     "dev": "tsx watch src/main.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "@mettlo/auth": "workspace:*",
     "@mettlo/config": "workspace:*",
     "@mettlo/database": "workspace:*",

@@ -40,6 +40,10 @@ import { AdvertisingController } from './advertising/advertising.controller';
 import { EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController } from './payout/payout.controller';
 import { PayoutService } from './payout/payout.service';
 import { AdminCommissionController, AdminPlatformConfigController } from './admin/settings.controller';
+import { PublicFoodMenuController, BusinessFoodMenuController, FoodOrderController } from './food/food.controller';
+import { PublicEventsController, OrganizerEventsController, EventRegistrationController, AdminEventsController } from './events/events.controller';
+import { PublicJobsController, BusinessJobsController, CoachJobApplicationController, AdminJobsController } from './jobs/jobs.controller';
+import { AiMatchingController } from './ai/ai-matching.controller';
 
 @Module({
   imports: [
@@ -59,7 +63,7 @@ import { AdminCommissionController, AdminPlatformConfigController } from './admi
       },
     }),
   ],
-  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController, EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController, AdminCommissionController, AdminPlatformConfigController],
+  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController, EarningsController, PayoutAccountController, PayoutController, AdminPayoutController, PayoutWebhookController, AdminCommissionController, AdminPlatformConfigController, PublicFoodMenuController, BusinessFoodMenuController, FoodOrderController, PublicEventsController, OrganizerEventsController, EventRegistrationController, AdminEventsController, PublicJobsController, BusinessJobsController, CoachJobApplicationController, AdminJobsController, AiMatchingController],
   providers: [
     SupportService,
     PresenceService,
