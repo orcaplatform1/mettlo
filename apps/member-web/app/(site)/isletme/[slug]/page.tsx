@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils } from 'lucide-react';
-import { apiTry } from '@mettlo/web-core';
+import { apiTry, getAccessToken } from '@mettlo/web-core';
+import { Megaphone } from 'lucide-react';
 
 type BusinessProfile = {
   id: string; name: string; slug: string; category: string;
@@ -47,11 +48,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BusinessProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const ba = await apiTry<BusinessProfile>(`/business/${encodeURIComponent(slug)}`);
+  const [ba, token] = await Promise.all([
+    apiTry<BusinessProfile>(`/business/${encodeURIComponent(slug)}`),
+    getAccessToken().catch(() => null),
+  ]);
   if (!ba) notFound();
 
   const isVerified = ba.verificationStatus === 'APPROVED';
   const mainLocation = ba.locations.find(l => l.isMain) ?? ba.locations[0];
+
+  // Sahibi mi kontrolü (API'den owner bilgisi geliyorsa)
+  const isOwner = !!(token && (ba as any).ownerId);
 
   return (
     <div>
@@ -95,6 +102,16 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             </div>
           </div>
         </div>
+
+        {/* İşletme sahibi yönetim araç çubuğu */}
+        {isOwner && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '10px 16px', background: 'var(--surface-2)', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '20px' }}>
+            <span className="caption text-secondary" style={{ alignSelf: 'center', marginRight: '4px' }}>Yönet:</span>
+            <Link href={`/app/advertising?businessId=${ba.id}`} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px' }}>
+              <Megaphone size={14} aria-hidden /> Reklamlar
+            </Link>
+          </div>
+        )}
 
         {/* Menü linki (yemek kategorileri için) */}
         {['NUTRITION_CLINIC', 'WELLNESS_CENTER'].includes(ba.category) || ba.category.includes('FOOD') ? (

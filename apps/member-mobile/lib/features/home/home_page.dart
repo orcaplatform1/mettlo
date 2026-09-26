@@ -92,6 +92,13 @@ class HomePage extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(child: OutlinedButton.icon(onPressed: () => context.push('/challenges'), icon: const Icon(Icons.emoji_events_outlined, size: 16), label: const Text("Challenge'lar"))),
         ]),
+        const SectionTitle('Keşfet'),
+        Wrap(spacing: 10, runSpacing: 10, children: [
+          _Quick(Icons.event_outlined, 'Etkinlikler', () => context.push('/events')),
+          _Quick(Icons.work_outline, 'İş İlanları', () => context.push('/jobs')),
+          _Quick(Icons.store_outlined, 'İşletmeler', () => context.push('/business')),
+          _Quick(Icons.psychology_outlined, 'AI Eşleştirme', () => context.push('/ai/matching')),
+        ]),
         const SectionTitle('Hızlı erişim'),
         Wrap(spacing: 10, runSpacing: 10, children: [
           _Quick(Icons.monitor_heart_outlined, 'Sağlık & İlerleme', () => context.push('/health')),

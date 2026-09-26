@@ -4,6 +4,7 @@ import { MapPin, Star, Users, CheckCircle, Search, Store } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { PageHead, Pagination, pageOf, qs, LIMIT } from '@/app/components/list';
 import { getBusinesses, getCities } from '@/app/lib/data';
+import { AdBanner } from '@/app/components/ad-banner';
 
 const CATEGORY_TR: Record<string, string> = {
   FITNESS_GYM: 'Spor Salonu', PILATES_STUDIO: 'Pilates', YOGA_STUDIO: 'Yoga', DANCE_STUDIO: 'Dans',
@@ -115,6 +116,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
           </EmptyState>
         )}
 
+        <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
         <Pagination base="/isletme" page={page} total={total} params={{ q: sp.q, category: sp.category, cityId: sp.cityId }} />
       </div>
     </>

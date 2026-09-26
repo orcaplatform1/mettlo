@@ -4,6 +4,7 @@ import { EmptyState } from '@mettlo/ui';
 import { ProgramCard } from '@/app/components/cards';
 import { FilterChips, LIMIT, PageHead, Pagination, pageOf } from '@/app/components/list';
 import { getBranches, getPrograms } from '@/app/lib/data';
+import { AdBanner } from '@/app/components/ad-banner';
 
 type Props = { searchParams: Promise<{ branch?: string; page?: string }> };
 
@@ -25,6 +26,7 @@ export default async function ProgramsPage({ searchParams }: Props) {
         {branches && <FilterChips base="/programs" active={sp.branch} items={branches} />}
         {items.length ? <div className="grid grid-3">{items.map((p: any) => <ProgramCard key={p.slug} p={p} />)}</div>
           : <EmptyState icon={<ClipboardList size={36} aria-hidden />} title="Henüz program yayınlanmadı">Koçlar programlarını yayınladıkça burada görünecek.</EmptyState>}
+        <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
         <Pagination base="/programs" page={page} total={list?.total ?? 0} params={{ branch: sp.branch }} />
       </div>
     </>

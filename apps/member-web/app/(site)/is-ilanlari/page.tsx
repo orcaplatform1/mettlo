@@ -4,6 +4,7 @@ import { Briefcase, MapPin, Monitor } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { getJobs, getCities } from '@/app/lib/data';
 import { PageHead, Pagination, pageOf, LIMIT } from '@/app/components/list';
+import { AdBanner } from '@/app/components/ad-banner';
 
 export const metadata: Metadata = {
   title: 'Koç İş İlanları — Fitness ve Spor Sektörü',
@@ -171,6 +172,7 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
           </div>
         )}
 
+        <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
         <Pagination base="/is-ilanlari" page={page} total={total} params={{ cityId: sp.cityId, workMode: sp.workMode, branch: sp.branch }} />
       </div>
     </>

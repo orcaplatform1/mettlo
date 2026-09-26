@@ -129,6 +129,35 @@ export class CheckoutService {
     }
 
     const meta = payment.meta as Record<string, string>;
+
+    // Etkinlik bileti ödeme akışı
+    if (payment.kind === 'EVENT_TICKET') {
+      const eventId = meta.eventId;
+      const event = await this.prisma.event.findUnique({ where: { id: eventId }, select: { id: true, ticketPriceKurus: true, organizerId: true } });
+      if (!event) { this.log.error(`Callback: event bulunamadı eventId=${eventId}`); return { ok: false }; }
+
+      const qrToken = randomUUID();
+      const split = splitSale(event.ticketPriceKurus);
+      const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+      await this.prisma.$transaction([
+        this.prisma.eventTicket.create({ data: { userId: payment.userId, eventId, status: 'ACTIVE', qrToken, checkedInAt: null } }),
+        this.prisma.payment.update({ where: { id: payment.id }, data: { status: 'SUCCEEDED', providerRef: detail.paymentId } }),
+        this.prisma.creatorEarning.create({ data: {
+          creatorId: event.organizerId,
+          paymentId: payment.id, type: 'SALE',
+          gross: String(event.ticketPriceKurus / 100),
+          net: String(split.netKurus / 100),
+          platformShare: String(split.platformKurus / 100),
+          creatorShare: String(split.creatorKurus / 100),
+          period,
+        }}),
+      ]);
+
+      await this.audit.record({ actorId: payment.userId, action: 'checkout.event_ticket.succeeded', targetType: 'Event', targetId: eventId, metadata: { eventId } });
+      return { ok: true, type: 'event' };
+    }
+
     const planId = meta.planId;
 
     const plan = await this.prisma.subscriptionPlan.findUnique({
@@ -205,6 +234,101 @@ export class CheckoutService {
     await this.audit.record({ actorId: payment.userId, action: 'checkout.subscription.succeeded', targetType: 'Subscription', targetId: subscription.id, metadata: { planId, creatorId: plan.creatorId, periodEnd: periodEnd.toISOString() } });
 
     return { ok: true, subscriptionId: subscription.id };
+  }
+
+  async initEventTicket(memberId: string, eventId: string, memberIp: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true, title: true, ticketPriceKurus: true, status: true,
+        capacityLimit: true, _count: { select: { tickets: { where: { status: 'ACTIVE' } }, registrations: true } },
+        organizer: { select: { id: true, name: true, email: true, createdAt: true } },
+      },
+    });
+    if (!event || event.status !== 'PUBLISHED') throw new NotFoundException('Etkinlik bulunamadı.');
+    if (event.ticketPriceKurus === 0) throw new BadRequestException('Bu etkinlik ücretsizdir; ödeme gerekmez.');
+
+    const spotsLeft = event.capacityLimit
+      ? event.capacityLimit - (event._count.tickets + event._count.registrations)
+      : null;
+    if (spotsLeft !== null && spotsLeft <= 0) throw new BadRequestException('Bu etkinliğin kapasitesi doldu.');
+
+    // Mevcut aktif bilet kontrolü
+    const existingTicket = await this.prisma.eventTicket.findFirst({
+      where: { userId: memberId, eventId, status: 'ACTIVE' },
+    });
+    if (existingTicket) throw new ConflictException('Bu etkinlik için zaten biletiniz var.');
+
+    const member = await this.prisma.user.findUniqueOrThrow({ where: { id: memberId }, select: { id: true, name: true, email: true, createdAt: true } });
+    const nameParts = member.name.trim().split(' ');
+    const firstName = nameParts[0] ?? 'Üye';
+    const lastName = nameParts.slice(1).join(' ') || 'Kullanıcı';
+
+    const conversationId = randomUUID();
+    const priceKurus = event.ticketPriceKurus;
+    const priceStr = (priceKurus / 100).toFixed(2);
+
+    const callbackUrl = `${env.APP_URL}/api/checkout/callback`;
+
+    const result = await this.iyzico.initCheckoutForm({
+      conversationId,
+      price: priceStr,
+      paidPrice: priceStr,
+      basketId: `evt_${event.id}_${memberId.slice(0, 8)}`,
+      callbackUrl,
+      buyer: {
+        id: memberId,
+        name: firstName,
+        surname: lastName,
+        gsmNumber: '+905350000000',
+        email: member.email,
+        identityNumber: '11111111110',
+        registrationAddress: 'Türkiye',
+        ip: memberIp || '127.0.0.1',
+        city: 'Istanbul',
+        country: 'Turkey',
+      },
+      shippingAddress: { contactName: `${firstName} ${lastName}`, city: 'Istanbul', country: 'Turkey', address: 'Türkiye' },
+      billingAddress: { contactName: `${firstName} ${lastName}`, city: 'Istanbul', country: 'Turkey', address: 'Türkiye' },
+      basketItems: [{
+        id: event.id,
+        name: event.title,
+        category1: 'Etkinlik Bileti',
+        itemType: 'VIRTUAL',
+        price: priceStr,
+      }],
+    });
+
+    if (result.status !== 'success' || !result.token) {
+      throw new BadRequestException(result.errorMessage ?? 'Ödeme formu başlatılamadı');
+    }
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        userId: memberId,
+        kind: 'EVENT_TICKET',
+        channel: 'WEB_IYZICO',
+        status: 'PENDING',
+        amount: String(priceKurus / 100),
+        currency: 'TRY',
+        meta: { conversationId, eventId: event.id, token: result.token },
+      },
+    });
+
+    await this.prisma.checkoutAcknowledgement.create({
+      data: {
+        userId: memberId,
+        paymentId: payment.id,
+        productRef: `event:${event.id}`,
+        contractVersion: CONTRACT_VERSION,
+        textAccepted: DSA_TEXT_ACCEPTED,
+        ip: memberIp || null,
+      },
+    });
+
+    await this.audit.record({ actorId: memberId, actorRole: 'MEMBER', action: 'checkout.event_ticket.init', targetType: 'Event', targetId: event.id, ip: memberIp, metadata: { eventId: event.id, conversationId } });
+
+    return { checkoutFormContent: result.checkoutFormContent!, token: result.token, paymentId: payment.id };
   }
 
   async getPaymentStatus(paymentId: string, memberId: string) {

@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 
 interface Props {
   eventId: string;
+  slug: string;
   isFree: boolean;
   priceKurus: number;
 }
 
-export function EventRegisterButton({ eventId, isFree, priceKurus }: Props) {
+export function EventRegisterButton({ eventId, slug, isFree, priceKurus }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -19,6 +20,10 @@ export function EventRegisterButton({ eventId, isFree, priceKurus }: Props) {
     new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(k / 100);
 
   const handleRegister = async () => {
+    if (!isFree) {
+      router.push(`/checkout/event/${slug}`);
+      return;
+    }
     setLoading(true);
     setError('');
     try {

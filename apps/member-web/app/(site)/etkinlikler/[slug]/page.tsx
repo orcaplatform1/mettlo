@@ -94,7 +94,7 @@ export default async function EventDetailPage({ params }: Props) {
 
         {/* Kayıt / bilet alma butonu */}
         {!isFull ? (
-          <EventRegisterButton eventId={ev.id} isFree={isFree} priceKurus={ev.ticketPriceKurus} />
+          <EventRegisterButton eventId={ev.id} slug={ev.slug} isFree={isFree} priceKurus={ev.ticketPriceKurus} />
         ) : (
           <div style={{ padding: '14px 20px', background: 'var(--surface-2)', borderRadius: '10px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
             Bu etkinliğin kapasitesi doldu.

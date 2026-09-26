@@ -13,9 +13,24 @@ const initSchema = z.object({
   ackAccepted: z.literal(true, { error: 'Mesafeli Satış Sözleşmesi\'ni kabul etmelisiniz.' }),
 });
 
+const eventTicketSchema = z.object({
+  eventId: z.string().min(1),
+  ackAccepted: z.literal(true, { error: 'Mesafeli Satış Sözleşmesi\'ni kabul etmelisiniz.' }),
+});
+
 @Controller('checkout')
 export class CheckoutController {
   constructor(private readonly service: CheckoutService) {}
+
+  /** Etkinlik bileti ödeme formu başlat */
+  @Post('event-ticket')
+  async initEventTicket(
+    @CurrentUser() me: AuthUser,
+    @Body(new ZodPipe(eventTicketSchema)) body: z.infer<typeof eventTicketSchema>,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.service.initEventTicket(me.id, body.eventId, clientIp(req) ?? '127.0.0.1');
+  }
 
   /** Abonelik ödeme formu başlat — üye kimlik doğrulaması gerekli */
   @Post('subscription')
@@ -41,6 +56,9 @@ export class CheckoutController {
     }
     const result = await this.service.processCallback(token, conversationId);
     if (result.ok) {
+      if ((result as any).type === 'event') {
+        return res.redirect(`${env.APP_URL}/checkout/success?type=event`);
+      }
       return res.redirect(`${env.APP_URL}/checkout/success?ref=${result.subscriptionId}`);
     }
     return res.redirect(`${env.APP_URL}/checkout/failed?reason=payment_failed`);
