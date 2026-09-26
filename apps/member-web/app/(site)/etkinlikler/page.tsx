@@ -4,6 +4,7 @@ import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { getEvents, getCities } from '@/app/lib/data';
 import { PageHead, Pagination, pageOf, LIMIT } from '@/app/components/list';
+import { AdBanner } from '@/app/components/ad-banner';
 
 export const metadata: Metadata = {
   title: 'Etkinlikler — Fitness, Yoga ve Spor Etkinlikleri',
@@ -123,6 +124,7 @@ export default async function EtkinliklerPage({ searchParams }: Props) {
           </div>
         )}
 
+        <AdBanner placement="FEED" style={{ margin: '24px 0 0' }} />
         <Pagination base="/etkinlikler" page={page} total={total} params={{ cityId: sp.cityId }} />
       </div>
     </>
