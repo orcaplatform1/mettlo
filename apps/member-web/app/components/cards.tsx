@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ArrowRight, Dumbbell, Flame, Flower2, Brain, Mountain, Salad, Sparkles, Star, Swords, Footprints, Music2, type LucideIcon } from 'lucide-react';
-import { Avatar, TenureBadge, VerifiedBadge } from '@mettlo/ui';
+import { Avatar, TenureBadge } from '@mettlo/ui';
 import { formatTRY } from '@mettlo/utils';
 import { BRANCH_STYLE } from '../lib/data';
 
@@ -51,11 +51,10 @@ export function CoachCard({ c }: { c: any }) {
       <div className="coach-body">
         <Avatar name={c.displayName} src={avatar} size={64} verified={!!c.verified} />
         <div>
-          <h3 className="h5 row" style={{ gap: 6 }}>{c.displayName}{c.verified && <VerifiedBadge size={18} />}</h3>
+          <h3 className="h5">{c.displayName}</h3>
           <p className="caption text-tertiary">@{username}</p>
         </div>
         {c.headline && <p className="body-sm text-secondary">{c.headline}</p>}
-        <div className="row row-wrap" style={{ gap: 6 }}>{(c.branches ?? []).slice(0, 3).map((b: any) => <span key={b.slug} className="badge">{b.name}</span>)}{(c.subCategories ?? []).slice(0, 3).map((s: any) => <span key={s.slug} className="badge badge-premium">{s.name}</span>)}</div>
         <div className="stat-row">
           <span><b>{c.subscribersCount ?? 0}</b>Üye</span>
           <Rating value={c.ratingAvg ?? 0} count={c.ratingCount} />
