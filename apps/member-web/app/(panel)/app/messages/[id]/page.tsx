@@ -17,10 +17,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
       <Link href="/app/messages" className="body-sm text-secondary row" style={{ gap: 6 }}><ArrowLeft size={16} aria-hidden /> Mesajlar</Link>
       {other ? (
         <div className="row" style={{ gap: 12, alignItems: 'center' }}>
-          <div>
+          <Link href={`/profile/${other.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className="h3">{other.name}</div>
             <div className="caption text-tertiary" style={{ marginTop: 2 }}>@{other.username}</div>
-          </div>
+          </Link>
           <OnlineStatus username={other.username} label={false} size={12} />
         </div>
       ) : null}

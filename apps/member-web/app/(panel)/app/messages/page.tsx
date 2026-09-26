@@ -61,17 +61,18 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
             {list.map((c) => {
               const other = c.with[0];
               return (
-                <a key={c.id} href={`/app/messages/${c.id}`} className="card row" style={{ padding: 14, gap: 14, alignItems: 'center' }}>
-                  {/* Avatar + aktiflik nokta (yalnızca renkli nokta, yazı yok) */}
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                <div key={c.id} className="card row" style={{ padding: 14, gap: 14, alignItems: 'center', cursor: 'default' }}>
+                  {/* Avatar — profil linki */}
+                  <Link href={`/profile/${other?.username}`} style={{ position: 'relative', flexShrink: 0 }} title={`${other?.name} profiline git`}>
                     <Avatar name={other?.name ?? '?'} src={other?.avatarUrl} size={46} />
                     {other?.username && (
                       <span style={{ position: 'absolute', bottom: 1, right: 1, lineHeight: 0 }}>
                         <OnlineStatus username={other.username} label={false} size={11} />
                       </span>
                     )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  </Link>
+                  {/* İsim + son mesaj — konuşmaya link */}
+                  <a href={`/app/messages/${c.id}`} style={{ flex: 1, minWidth: 0, textDecoration: 'none', color: 'inherit' }}>
                     <div className="row" style={{ gap: 6, alignItems: 'baseline' }}>
                       <b className="body-sm" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{other?.name ?? '?'}</b>
                       <span className="caption text-tertiary" style={{ flexShrink: 0 }}>@{other?.username}</span>
@@ -79,12 +80,13 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     <p className="caption text-secondary" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
                       {c.lastMessage ? `${c.lastMessage.mine ? 'Sen: ' : ''}${c.lastMessage.body}` : 'Mesaj yok'}
                     </p>
-                  </div>
-                  <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                  </a>
+                  {/* Saat + yeni badge — konuşmaya link */}
+                  <a href={`/app/messages/${c.id}`} style={{ flexShrink: 0, textAlign: 'right', textDecoration: 'none' }}>
                     {c.lastMessage?.createdAt && <p className="caption text-tertiary" style={{ fontSize: 11 }}>{fmt(c.lastMessage.createdAt)}</p>}
                     {c.unread && <span className="badge badge-live" style={{ marginTop: 4 }}>Yeni</span>}
-                  </div>
-                </a>
+                  </a>
+                </div>
               );
             })}
           </div>
