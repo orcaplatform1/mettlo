@@ -6,6 +6,7 @@ import { slugify } from '../../../packages/utils/dist';
 import { PrismaClient } from '../../../packages/database/generated/client';
 import { hashPassword } from '../../../packages/auth/dist';
 import { ROLES, ALL_PERMISSIONS, permissionsOf, requiresTwoFactor } from '../../../packages/types/dist';
+import { TURKEY_CITIES, slugify as locSlugify } from './turkey-locations';
 
 const prisma = new PrismaClient();
 
@@ -102,6 +103,45 @@ async function main() {
   } else if (!existsSync('/root/mettlo-superadmin.txt')) {
     console.log('Superadmin zaten var.');
   }
+  // Türkiye il ve ilçe canonical verisi
+  console.log('Türkiye il/ilçe seed başlıyor...');
+  for (const cityData of TURKEY_CITIES) {
+    const citySlug = locSlugify(cityData.name);
+    const city = await prisma.turkeyCity.upsert({
+      where: { slug: citySlug },
+      update: { name: cityData.name, plateCode: cityData.plateCode },
+      create: { name: cityData.name, slug: citySlug, plateCode: cityData.plateCode },
+    });
+    for (const districtName of cityData.districts) {
+      const districtSlug = locSlugify(districtName);
+      await prisma.turkeyDistrict.upsert({
+        where: { cityId_slug: { cityId: city.id, slug: districtSlug } },
+        update: { name: districtName },
+        create: { cityId: city.id, name: districtName, slug: districtSlug },
+      });
+    }
+  }
+  console.log(`${TURKEY_CITIES.length} il eklendi.`);
+
+  // Varsayılan reklam fiyat konfigürasyonu
+  const adPrices = [
+    { key: 'ad_feed_weekly_try', value: { price: 150, currency: 'TRY', period: 'weekly', placement: 'FEED' }, desc: 'Feed reklamı — haftalık fiyat' },
+    { key: 'ad_feed_monthly_try', value: { price: 500, currency: 'TRY', period: 'monthly', placement: 'FEED' }, desc: 'Feed reklamı — aylık fiyat' },
+    { key: 'ad_story_daily_try', value: { price: 80, currency: 'TRY', period: 'daily', placement: 'STORY' }, desc: 'Story reklamı — günlük fiyat' },
+    { key: 'ad_story_weekly_try', value: { price: 450, currency: 'TRY', period: 'weekly', placement: 'STORY' }, desc: 'Story reklamı — haftalık fiyat' },
+    { key: 'ad_map_monthly_try', value: { price: 300, currency: 'TRY', period: 'monthly', placement: 'MAP' }, desc: 'Harita reklamı — aylık fiyat' },
+    { key: 'ad_search_weekly_try', value: { price: 200, currency: 'TRY', period: 'weekly', placement: 'SEARCH' }, desc: 'Arama reklamı — haftalık fiyat' },
+    { key: 'ad_branch_weekly_try', value: { price: 120, currency: 'TRY', period: 'weekly', placement: 'BRANCH' }, desc: 'Branş sayfası reklamı — haftalık fiyat' },
+  ];
+  for (const ap of adPrices) {
+    await prisma.pricingConfig.upsert({
+      where: { key: ap.key },
+      update: { valueJson: ap.value as any, description: ap.desc },
+      create: { key: ap.key, valueJson: ap.value as any, description: ap.desc },
+    });
+  }
+  console.log('Reklam fiyat konfigürasyonu eklendi.');
+
   console.log('Seed tamam.');
 }
 

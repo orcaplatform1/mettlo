@@ -32,6 +32,11 @@ import { CheckoutController } from './checkout/checkout.controller';
 import { LiveController } from './live/live.controller';
 import { CheckoutService } from './checkout/checkout.service';
 import { IyzicoService } from './checkout/iyzico.service';
+import { LocationController } from './location/location.controller';
+import { BusinessController } from './business/business.controller';
+import { AdminBusinessController } from './business/admin-business.controller';
+import { CoachWorkplaceController } from './business/coach-workplace.controller';
+import { AdvertisingController } from './advertising/advertising.controller';
 
 @Module({
   imports: [
@@ -51,7 +56,7 @@ import { IyzicoService } from './checkout/iyzico.service';
       },
     }),
   ],
-  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController],
+  controllers: [PublicController, CreatorsController, AdminController, CoachingController, MessagingController, AccountController, ReviewsController, SupportController, AdminTicketsController, MeController, CreatorToolsController, InvitesController, AdminExtraController, ReportsController, CreatorContentController, MemberController, PublicFormsController, AdminFormsController, AdminSubCategoriesController, SportsMemberController, SportsCoachController, PresenceController, HealthController, CheckoutController, BlocksController, LiveController, LocationController, BusinessController, AdminBusinessController, CoachWorkplaceController, AdvertisingController],
   providers: [
     SupportService,
     PresenceService,

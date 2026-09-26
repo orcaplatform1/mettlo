@@ -1,0 +1,196 @@
+// ============ İŞLETME SİSTEMİ ============
+// BusinessAccount        — sahipli işletme profili
+// BusinessDirectoryEntry — klaymsiz dizin girişi (coach referansı için)
+// BusinessLocation       — fiziksel şube / QR giriş noktası
+// BusinessVerification   — vergi levhası + onay akışı
+// CoachWorkplace         — coach N:M işyeri (freelance + çoklu)
+// BusinessFollow         — üye → işletme takip (Follow extend edilemiyor, bkz. karar notu)
+// BusinessCheckIn        — QR tabanlı işletme girişi
+
+/// Vergi levhası yüklenince isOpen=true (BusinessStatus=OPEN).
+/// Admin/superadmin APPROVED onayından sonra verificationStatus=APPROVED → Verified rozet.
+model BusinessAccount {
+  id                 String                    @id @default(cuid())
+  ownerId            String
+  owner              User                      @relation("BusinessOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  name               String
+  /// /isletme/{slug} — URL
+  slug               String                    @unique
+  category           BusinessCategory
+  description        String?                   @db.Text
+  shortDesc          String?                   @db.VarChar(160)
+  logoUrl            String?
+  coverUrl           String?
+  website            String?
+  /// Şifreli — yalnızca işletme yöneticisi ve super_admin okuyabilir
+  phoneEnc           String?
+  emailEnc           String?
+  /// true = vergi levhası yüklendi; profil görünür ama UNVERIFIED rozet yok
+  isOpen             Boolean                   @default(false)
+  status             BusinessStatus            @default(PENDING_DOCS)
+  verificationStatus BusinessVerificationStatus @default(UNVERIFIED)
+  verifiedAt         DateTime?
+  verifiedById       String?
+  verifiedBy         User?                     @relation("BusinessVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  cityId             Int?
+  districtId         Int?
+  city               TurkeyCity?               @relation("BusinessCity", fields: [cityId], references: [id], onDelete: SetNull)
+  district           TurkeyDistrict?           @relation("BusinessDistrict", fields: [districtId], references: [id], onDelete: SetNull)
+  followersCount     Int                       @default(0)
+  ratingAvg          Decimal                   @default(0) @db.Decimal(3, 2)
+  ratingCount        Int                       @default(0)
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  /// Klaymlediği dizin girişi — BusinessDirectoryEntry.businessAccountId ile 1:1
+  claimedEntry       BusinessDirectoryEntry?   @relation("ClaimedByBA")
+  locations          BusinessLocation[]
+  verificationDocs   BusinessVerification[]
+  follows            BusinessFollow[]
+  checkIns           BusinessCheckIn[]
+  coachWorkplaces    CoachWorkplace[]           @relation("CoachWorkplaceBusiness")
+  advertisements     Advertisement[]           @relation("BusinessAds")
+
+  @@index([slug])
+  @@index([status, verificationStatus])
+  @@index([cityId, category])
+  @@map("business_accounts")
+}
+
+/// Platform dizini girişi.
+/// İşletme klaim etmemişse businessAccountId=null → Coach profilde işyeri adı statik görünür, clickable profil YOK.
+/// Klaim edilince businessAccountId set edilir → tüm CoachWorkplace bağlantıları otomatik yönlenir.
+model BusinessDirectoryEntry {
+  id                String           @id @default(cuid())
+  name              String
+  slug              String           @unique
+  category          BusinessCategory
+  address           String?
+  cityId            Int?
+  districtId        Int?
+  city              TurkeyCity?      @relation("DirectoryEntryCity", fields: [cityId], references: [id], onDelete: SetNull)
+  district          TurkeyDistrict?  @relation("DirectoryEntryDistrict", fields: [districtId], references: [id], onDelete: SetNull)
+  lat               Float?
+  lng               Float?
+  website           String?
+  /// Herkese açık telefon (şifreli değil — sadece dizin)
+  phone             String?
+  /// Klaim edilmiş BusinessAccount (1:1, unique)
+  businessAccountId String?          @unique
+  businessAccount   BusinessAccount? @relation("ClaimedByBA", fields: [businessAccountId], references: [id], onDelete: SetNull)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  coachWorkplaces   CoachWorkplace[] @relation("CoachWorkplaceDirectory")
+
+  @@index([cityId, category])
+  @@index([slug])
+  @@map("business_directory_entries")
+}
+
+/// Fiziksel şube / QR giriş noktası.
+/// Her şubenin kendi UUID qrToken'ı var → mobil uygulama bu token'ı okur → /business/checkin endpoint'i işler.
+model BusinessLocation {
+  id            String          @id @default(cuid())
+  businessId    String
+  business      BusinessAccount @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /// "Ana Şube", "Kadıköy", vb.
+  name          String
+  address       String?
+  cityId        Int?
+  districtId    Int?
+  city          TurkeyCity?     @relation("BusinessLocationCity", fields: [cityId], references: [id], onDelete: SetNull)
+  district      TurkeyDistrict? @relation("BusinessLocationDistrict", fields: [districtId], references: [id], onDelete: SetNull)
+  lat           Float?
+  lng           Float?
+  isMain        Boolean         @default(false)
+  /// QR kod üretmek için benzersiz token — yenileme mümkün (rotate endpoint)
+  qrToken       String          @unique @default(uuid())
+  qrRotatedAt   DateTime        @default(now())
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+
+  checkIns      BusinessCheckIn[]
+
+  @@index([businessId, isActive])
+  @@map("business_locations")
+}
+
+/// Vergi levhası ve diğer doğrulama belgeleri.
+/// taxDocUrlEnc şifreli — yalnızca admin/superadmin erişebilir; herkese açık URL asla oluşturulmamalı.
+model BusinessVerification {
+  id               String                    @id @default(cuid())
+  businessId       String
+  business         BusinessAccount           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  taxDocUrlEnc     String?
+  taxDocUploadedAt DateTime?
+  notes            String?                   @db.Text
+  status           BusinessVerificationStatus @default(PENDING)
+  reviewerId       String?
+  reviewer         User?                     @relation("BVReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewNote       String?
+  reviewedAt       DateTime?
+  createdAt        DateTime                  @default(now())
+
+  @@index([businessId, status])
+  @@map("business_verifications")
+}
+
+/// Coach N:M işyeri ilişkisi.
+/// Freelance = hiç kayıt yok veya directoryEntryId=null && name doldurulmuş.
+/// businessId = denormalize; directoryEntry claim edilince sync tutulur.
+model CoachWorkplace {
+  id               String                  @id @default(cuid())
+  creatorId        String
+  creator          CreatorProfile          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  directoryEntryId String?
+  directoryEntry   BusinessDirectoryEntry? @relation("CoachWorkplaceDirectory", fields: [directoryEntryId], references: [id], onDelete: SetNull)
+  /// directory entry → Business claim edilince otomatik doldurulur
+  businessId       String?
+  business         BusinessAccount?        @relation("CoachWorkplaceBusiness", fields: [businessId], references: [id], onDelete: SetNull)
+  /// Direktoğru bağlantı yoksa serbest metin işyeri adı
+  customName       String?
+  status           CoachWorkplaceStatus    @default(ACTIVE)
+  isMainWorkplace  Boolean                 @default(false)
+  startedAt        DateTime                @default(now())
+  endedAt          DateTime?
+
+  @@index([creatorId, status])
+  @@map("coach_workplaces")
+}
+
+/// BusinessFollow — kullanıcı → işletme takip.
+/// Neden ayrı model: Follow.@@id([followerId, creatorId]) — creatorId zorunlu FK to User.
+/// Business, User değil; non-destructive migration ile Follow extend edilemiyor.
+model BusinessFollow {
+  followerId String
+  businessId String
+  follower   User            @relation("UserBusinessFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  business   BusinessAccount @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@id([followerId, businessId])
+  @@index([businessId])
+  @@map("business_follows")
+}
+
+/// QR tabanlı işletme girişi.
+/// member → QR okutarak BusinessLocation'a check-in yapar.
+/// method: "QR" (gelecekte NFC, MANUAL eklenebilir).
+model BusinessCheckIn {
+  id         String           @id @default(cuid())
+  memberId   String
+  member     User             @relation("UserBusinessCheckIns", fields: [memberId], references: [id], onDelete: Cascade)
+  businessId String
+  business   BusinessAccount  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  locationId String
+  location   BusinessLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  method     String           @default("QR")
+  platform   DevicePlatform?
+  createdAt  DateTime         @default(now())
+
+  @@index([memberId, createdAt])
+  @@index([businessId, createdAt])
+  @@index([locationId, createdAt])
+  @@map("business_check_ins")
+}

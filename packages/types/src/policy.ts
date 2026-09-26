@@ -36,7 +36,10 @@ export type Permission =
   | 'store:manage'           // Mettlo Mağaza ürün/marka/kategori yönetimi (ödeme detayı yok)
   | 'tickets:handle'
   | 'account_deletion:view'
-  | 'kvkk:manage';
+  | 'kvkk:manage'
+  | 'business:verify'    // işletme doğrulama belge onay/red (ADMIN + SUPER_ADMIN)
+  | 'business:manage'    // işletme askıya alma / restore (ADMIN + SUPER_ADMIN)
+  | 'ads:moderate';      // reklam onay/red (ADMIN + SUPER_ADMIN)
 
 const SUPER: Permission[] = [
   'personal_info:read', 'coach_inbox:read', 'health_data:read', 'users:read_masked', 'users:manage', 'creators:manage',
@@ -44,6 +47,7 @@ const SUPER: Permission[] = [
   'sanction:ban', 'sanction:lift', 'orders:read', 'finance:read', 'finance:refund_request',
   'finance:refund_approve', 'audit:read', 'audit:read_staff', 'users:edit', 'users:delete', 'roles:manage', 'system:settings', 'analytics:aggregate',
   'tickets:handle', 'account_deletion:view', 'kvkk:manage', 'store:manage', 'contact:handle', 'careers:manage',
+  'business:verify', 'business:manage', 'ads:moderate',
 ];
 
 const MATRIX: Record<Role, Permission[]> = {
@@ -52,7 +56,7 @@ const MATRIX: Record<Role, Permission[]> = {
     'users:read_masked', 'users:manage', 'creators:manage', 'content:moderate', 'reports:manage',
     'sanction:warn', 'orders:read',
     'finance:refund_request', 'analytics:aggregate', 'tickets:handle', 'account_deletion:view', 'store:manage', 'contact:handle',
-    'users:edit',
+    'users:edit', 'business:verify', 'business:manage', 'ads:moderate',
   ],
   MODERATOR: [
     'users:read_masked', 'content:moderate', 'reports:manage', 'sanction:warn',

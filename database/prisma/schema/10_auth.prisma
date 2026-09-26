@@ -134,6 +134,15 @@ model User {
   assessmentTemplates      AssessmentTemplate[]      @relation("AssessmentTemplateCreator")
   checkinTemplates         CheckinTemplate[]         @relation("CheckinTemplateCreator")
   clientAlerts             ClientAlert[]             @relation("ClientAlertCreator")
+  // --- Business & Advertising ---
+  ownedBusinessAccounts    BusinessAccount[]         @relation("BusinessOwner")
+  verifiedBusinessAccounts BusinessAccount[]         @relation("BusinessVerifiedBy")
+  businessFollows          BusinessFollow[]          @relation("UserBusinessFollows")
+  businessCheckIns         BusinessCheckIn[]         @relation("UserBusinessCheckIns")
+  businessVerificationReviews BusinessVerification[] @relation("BVReviewer")
+  adReviews                Advertisement[]           @relation("AdReviewer")
+  adsAsCoach               Advertisement[]           @relation("CoachAdOwner")
+  adFrequencyRecords       AdFrequencyRecord[]       @relation("AdFrequencyUser")
 
   @@index([role, status])
   @@index([createdAt])
@@ -154,6 +163,11 @@ model UserPersonalInfo {
   city                  String?
   district              String?
   postalCode            String?
+  /// Canonical il — kayıt sırasında zorunlu, eski kayıtlarda null
+  cityId                Int?
+  districtId            Int?
+  canonicalCity         TurkeyCity?     @relation("UserPersonalInfoCity", fields: [cityId], references: [id], onDelete: SetNull)
+  canonicalDistrict     TurkeyDistrict? @relation("UserPersonalInfoDistrict", fields: [districtId], references: [id], onDelete: SetNull)
   gender                Gender   @default(UNSPECIFIED)
   emergencyContactEnc   String?
   registrationIp        String?

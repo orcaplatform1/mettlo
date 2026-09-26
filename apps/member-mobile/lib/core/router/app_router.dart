@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/moderation_page.dart';
+import '../../features/business/business_checkin_page.dart';
+import '../../features/business/business_list_page.dart';
+import '../../features/business/business_profile_page.dart';
+import '../../features/business/coach_workplace_page.dart';
 import '../../features/coaching/subscriber_history_page.dart';
 import '../../features/coaching/clients_page.dart';
 import '../../features/coaching/client_workspace_page.dart';
@@ -79,6 +83,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/sports/hiit', builder: (_, _) => const PracticeLogPage(branch: 'hiit-cardio', title: 'HIIT & Kardiyo Günlüğü')),
       GoRoute(path: '/sports/dance', builder: (_, _) => const PracticeLogPage(branch: 'dance-aerobics', title: 'Dans & Aerobik Günlüğü')),
       GoRoute(path: '/sports/pilates', builder: (_, _) => const PracticeLogPage(branch: 'pilates-core', title: 'Pilates & Core Günlüğü')),
+      GoRoute(path: '/business', builder: (_, _) => const BusinessListPage()),
+      GoRoute(path: '/business/checkin', builder: (_, _) => const BusinessCheckInPage()),
+      GoRoute(path: '/business/:slug', builder: (_, s) => BusinessProfilePage(slug: s.pathParameters['slug']!)),
+      GoRoute(path: '/coach/workplaces', builder: (_, _) => const CoachWorkplacePage()),
       GoRoute(path: '/moderation', builder: (_, _) => const ModerationPage()),
       GoRoute(path: '/subscribers', builder: (_, _) => const SubscriberHistoryPage()),
       GoRoute(path: '/coaching/clients', builder: (_, _) => const ClientsPage()),

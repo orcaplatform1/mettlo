@@ -1,0 +1,134 @@
+// ============ REKLAM SİSTEMİ ============
+// PricingConfig      — admin yönetimli fiyatlandırma (hardcode değil)
+// Advertisement      — reklam kampanyası
+// AdCreative         — görsel + metin içerik (V1: statik görsel)
+// AdTarget           — il/ilçe/branş hedefleme
+// AdEvent            — agregat impression/click izleme (PII yok)
+// AdFrequencyRecord  — kullanıcı başına frekans kapısı (kişisel veri yok paylaşım)
+
+/// Admin panelinden yönetilen fiyat tablosu.
+/// key örnekleri: "ad_feed_weekly_try", "ad_story_daily_try", "ad_map_monthly_try"
+model PricingConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  /// { price: 150, currency: "TRY", period: "weekly", placement: "FEED" }
+  valueJson   Json
+  description String?
+  isActive    Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@map("pricing_configs")
+}
+
+/// Reklam kampanyası.
+/// DRAFT → PAYMENT_PENDING → SUBMITTED → UNDER_REVIEW → APPROVED → ACTIVE → COMPLETED/CANCELLED
+/// Ödeme: Payment.kind=ADVERTISING + paymentId FK ile mevcut ödeme altyapısı kullanılır.
+/// APPROVED öncesi Super Admin onayı zorunlu.
+model Advertisement {
+  id               String        @id @default(cuid())
+  ownerType        AdOwnerType
+  /// ownerType=BUSINESS ise doldurulur
+  businessId       String?
+  business         BusinessAccount? @relation("BusinessAds", fields: [businessId], references: [id], onDelete: SetNull)
+  /// ownerType=COACH ise doldurulur (User.id — CREATOR rolü)
+  coachUserId      String?
+  coachUser        User?         @relation("CoachAdOwner", fields: [coachUserId], references: [id], onDelete: SetNull)
+  placement        AdPlacement[]
+  status           AdStatus      @default(DRAFT)
+  title            String?       @db.VarChar(100)
+  budget           Decimal       @db.Decimal(10, 2)
+  currency         String        @default("TRY") @db.VarChar(3)
+  startAt          DateTime?
+  endAt            DateTime?
+  /// 24 saatlik pencerede kullanıcı başına maksimum gösterim
+  freqCapPerUser   Int           @default(3)
+  /// Story için: her 8 hikayede max 1 sponsorlu — platform kuralı
+  storySlotRule    Int           @default(8)
+  totalImpressions Int           @default(0)
+  totalClicks      Int           @default(0)
+  paymentId        String?       @unique
+  reviewerId       String?
+  reviewer         User?         @relation("AdReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewNote       String?       @db.Text
+  rejectionReason  String?       @db.Text
+  reviewedAt       DateTime?
+  approvedAt       DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  creatives        AdCreative[]
+  targets          AdTarget[]
+  events           AdEvent[]
+  frequencyRecords AdFrequencyRecord[]
+
+  @@index([status, startAt, endAt])
+  @@index([businessId, status])
+  @@map("advertisements")
+}
+
+/// Statik görsel + metin içerik (V1 — Reels/video reklam yok).
+/// "SPONSORLU" etiketi: frontend tarafında zorunlu — backend'den placement ile birlikte gelir.
+model AdCreative {
+  id        String        @id @default(cuid())
+  adId      String
+  ad        Advertisement @relation(fields: [adId], references: [id], onDelete: Cascade)
+  imageUrl  String
+  headline  String        @db.VarChar(60)
+  body      String?       @db.VarChar(150)
+  ctaLabel  String        @db.VarChar(30)
+  ctaUrl    String?
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+
+  @@map("ad_creatives")
+}
+
+/// İl/ilçe/branş bazlı hedefleme.
+/// Sağlık/koçluk özel verisi asla hedefleme kriteri olarak kullanılamaz.
+model AdTarget {
+  id         String          @id @default(cuid())
+  adId       String
+  ad         Advertisement   @relation(fields: [adId], references: [id], onDelete: Cascade)
+  cityId     Int?
+  city       TurkeyCity?     @relation("AdTargetCity", fields: [cityId], references: [id], onDelete: SetNull)
+  districtId Int?
+  district   TurkeyDistrict? @relation("AdTargetDistrict", fields: [districtId], references: [id], onDelete: SetNull)
+  branchSlug String?
+  minAge     Int?
+  maxAge     Int?
+  gender     Gender?
+
+  @@map("ad_targets")
+}
+
+/// Agregat event takibi — PII içermez, kullanıcı kimliği saklanmaz.
+/// Reklamverenler yalnızca toplu istatistik görür.
+model AdEvent {
+  id         String         @id @default(cuid())
+  adId       String
+  ad         Advertisement  @relation(fields: [adId], references: [id], onDelete: Cascade)
+  type       AdEventType
+  /// Anonim session — User.id değil
+  sessionKey String?
+  cityId     Int?
+  platform   DevicePlatform?
+  createdAt  DateTime       @default(now())
+
+  @@index([adId, type, createdAt])
+  @@map("ad_events")
+}
+
+/// Kullanıcı başına frekans kapısı — freqCapPerUser aşılmasını önler.
+/// userId = sistem içi kontrol; reklamverene ifşa edilmez.
+model AdFrequencyRecord {
+  id      String        @id @default(cuid())
+  adId    String
+  ad      Advertisement @relation(fields: [adId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User          @relation("AdFrequencyUser", fields: [userId], references: [id], onDelete: Cascade)
+  shownAt DateTime      @default(now())
+
+  @@index([adId, userId, shownAt])
+  @@map("ad_frequency_records")
+}

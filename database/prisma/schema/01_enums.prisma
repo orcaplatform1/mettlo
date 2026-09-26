@@ -397,6 +397,85 @@ enum PaymentKind {
   PRODUCT
   BUNDLE
   LIVE_CREDIT
+  ADVERTISING
+}
+
+// ── İşletme ──────────────────────────────────────────────────────────────────
+
+enum BusinessCategory {
+  FITNESS_GYM
+  PILATES_STUDIO
+  YOGA_STUDIO
+  DANCE_STUDIO
+  HIIT_STUDIO
+  BOXING_GYM
+  RUNNING_CLUB
+  WELLNESS_CENTER
+  NUTRITION_CLINIC
+  RECOVERY_STUDIO
+  SPORTS_CLUB
+  OTHER
+}
+
+/// PENDING_DOCS = vergi levhası bekleniyor; OPEN = yüklendi ama doğrulanmadı; SUSPENDED/CLOSED yönetim kararı
+enum BusinessStatus {
+  PENDING_DOCS
+  OPEN
+  SUSPENDED
+  CLOSED
+}
+
+enum BusinessVerificationStatus {
+  UNVERIFIED
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_MORE_INFO
+}
+
+enum CoachWorkplaceStatus {
+  PENDING
+  ACTIVE
+  ENDED
+}
+
+// ── Reklam ───────────────────────────────────────────────────────────────────
+
+enum AdStatus {
+  DRAFT
+  PAYMENT_PENDING
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum AdPlacement {
+  FEED
+  STORY
+  SEARCH
+  MAP
+  BRANCH
+}
+
+enum AdOwnerType {
+  BUSINESS
+  COACH
+}
+
+enum AdEventType {
+  IMPRESSION
+  CLICK
+  PROFILE_VISIT
+  MAP_VIEW
+  DIRECTIONS_CLICK
+  SERVICE_VIEW
+  BOOKING
+  FOLLOW
 }
 
 enum PaymentStatus {
@@ -493,6 +572,7 @@ enum ReviewTarget {
   PROGRAM
   CLASS_SESSION
   PRODUCT
+  BUSINESS
 }
 
 enum ReviewStatus {

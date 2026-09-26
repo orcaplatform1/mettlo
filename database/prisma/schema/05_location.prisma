@@ -1,0 +1,39 @@
+// ============ TÜRKİYE LOKASYON DİREKTORİSİ ============
+// 81 il + resmi ilçe — canonical dataset.
+// Üye/koç/işletme/reklam hedefleme için TEK kaynak.
+
+model TurkeyCity {
+  id        Int    @id @default(autoincrement())
+  name      String @unique
+  /// lowercase, ASCII (ç→c, ş→s, vb.) — URL-safe slug
+  slug      String @unique
+  plateCode Int    @unique
+
+  districts         TurkeyDistrict[]
+  userPersonalInfos UserPersonalInfo[]   @relation("UserPersonalInfoCity")
+  businessAccounts  BusinessAccount[]    @relation("BusinessCity")
+  businessLocations BusinessLocation[]   @relation("BusinessLocationCity")
+  directoryEntries  BusinessDirectoryEntry[] @relation("DirectoryEntryCity")
+  adTargets         AdTarget[]           @relation("AdTargetCity")
+
+  @@index([slug])
+  @@map("turkey_cities")
+}
+
+model TurkeyDistrict {
+  id     Int        @id @default(autoincrement())
+  cityId Int
+  city   TurkeyCity @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  name   String
+  slug   String
+
+  userPersonalInfos UserPersonalInfo[]   @relation("UserPersonalInfoDistrict")
+  businessAccounts  BusinessAccount[]    @relation("BusinessDistrict")
+  businessLocations BusinessLocation[]   @relation("BusinessLocationDistrict")
+  directoryEntries  BusinessDirectoryEntry[] @relation("DirectoryEntryDistrict")
+  adTargets         AdTarget[]           @relation("AdTargetDistrict")
+
+  @@unique([cityId, slug])
+  @@index([cityId])
+  @@map("turkey_districts")
+}
