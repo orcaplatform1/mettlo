@@ -445,7 +445,7 @@ class _WorkplaceCard extends StatelessWidget {
     final slug = w['slug'] as String?;
 
     return GestureDetector(
-      onTap: slug != null ? () => context.push('/businesses/$slug') : null,
+      onTap: slug != null ? () => context.push('/business/$slug') : null,
       child: Container(
         width: 180,
         margin: const EdgeInsets.only(right: 10),
