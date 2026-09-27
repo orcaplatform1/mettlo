@@ -17,8 +17,7 @@ function useUsernameCheck(username: string) {
     setStatus('checking');
     timer.current = setTimeout(async () => {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-        const r = await fetch(`${apiBase}/public/check-username?username=${encodeURIComponent(username)}`);
+        const r = await fetch(`/v1/public/check-username?username=${encodeURIComponent(username)}`);
         const data = await r.json();
         setStatus(data.available ? 'available' : 'taken');
         setMessage(data.message ?? '');
@@ -87,14 +86,12 @@ function CityDistrictFields({ state }: { state: FieldState }) {
   const [cityId, setCityId] = useState('');
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-    fetch(`${apiBase}/location/cities`).then(r => r.json()).then(setCities).catch(() => {});
+    fetch('/v1/location/cities').then(r => r.json()).then(setCities).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (!cityId) { setDistricts([]); return; }
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-    fetch(`${apiBase}/location/districts/${cityId}`).then(r => r.json()).then(setDistricts).catch(() => {});
+    fetch(`/v1/location/districts/${cityId}`).then(r => r.json()).then(setDistricts).catch(() => {});
   }, [cityId]);
 
   if (cities.length === 0) return null;

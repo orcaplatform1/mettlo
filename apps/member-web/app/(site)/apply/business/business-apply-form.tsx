@@ -50,8 +50,7 @@ function SlugChecker({ slug }: { slug: string }) {
     setStatus('checking');
     timer.current = setTimeout(async () => {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-        const r = await fetch(`${apiBase}/public/check-slug?slug=${encodeURIComponent(slug)}`);
+        const r = await fetch(`/v1/public/check-slug?slug=${encodeURIComponent(slug)}`);
         const d = await r.json();
         setStatus(d.available ? 'available' : 'taken');
         setMessage(d.message ?? '');
@@ -89,14 +88,12 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-    fetch(`${apiBase}/location/cities`).then(r => r.json()).then(setCities).catch(() => {});
+    fetch(`/v1/location/cities`).then(r => r.json()).then(setCities).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (!cityId) { setDistricts([]); return; }
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-    fetch(`${apiBase}/location/districts/${cityId}`).then(r => r.json()).then(setDistricts).catch(() => {});
+    fetch(`/v1/location/districts/${cityId}`).then(r => r.json()).then(setDistricts).catch(() => {});
   }, [cityId]);
 
   const toggleCategory = (v: string) => {
@@ -123,10 +120,8 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
 
     setSubmitting(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
-
       // 1. İşletme oluştur
-      const createRes = await fetch(`${apiBase}/business`, {
+      const createRes = await fetch(`/v1/business`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -146,7 +141,7 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
       const { id: businessId } = await createRes.json();
 
       // 2. İşletme bilgilerini güncelle (saatler + branşlar)
-      await fetch(`${apiBase}/business/${businessId}`, {
+      await fetch(`/v1/business/${businessId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -161,7 +156,7 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
         reader.readAsDataURL(taxDocFile);
       });
 
-      const verRes = await fetch(`${apiBase}/business/${businessId}/verification`, {
+      const verRes = await fetch(`/v1/business/${businessId}/verification`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
       })),
     ];
   },
+  async rewrites() {
+    return [{ source: '/v1/:path*', destination: 'http://127.0.0.1:3301/v1/:path*' }];
+  },
   async redirects() {
     // Tüm roller için tek profil adresi: /profile/{username}
     return [
