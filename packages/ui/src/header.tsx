@@ -123,9 +123,7 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
         {/* 3. Ana keşif menüsü */}
         <div className="mobile-nav-divider" />
         {NAV.map((n) => (
-          n.href.includes('?')
-            ? <a key={n.href} href={n.href}>{n.label}</a>
-            : <Link key={n.href} href={n.href}>{n.label}</Link>
+          <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</Link>
         ))}
       </div>
     </header>
