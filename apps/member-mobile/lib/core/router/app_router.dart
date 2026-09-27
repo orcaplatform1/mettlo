@@ -5,6 +5,8 @@ import 'badge_counts_provider.dart';
 
 import '../../features/admin/moderation_page.dart';
 import '../../features/advertising/advertising_page.dart';
+import '../../features/community/community_page.dart';
+import '../../features/live/live_sessions_page.dart';
 import '../../features/business/business_checkin_page.dart';
 import '../../features/earnings/earnings_page.dart';
 import '../../features/ai/ai_matching_page.dart';
@@ -113,6 +115,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/business/:slug/menu', builder: (_, s) => FoodMenuPage(businessId: s.pathParameters['slug']!, businessName: 'Menü')),
       GoRoute(path: '/ai/matching', builder: (_, _) => const AiMatchingPage()),
       GoRoute(path: '/advertising', builder: (_, _) => const AdvertisingPage()),
+      GoRoute(path: '/community', builder: (_, _) => const CommunityPage()),
+      GoRoute(path: '/live', builder: (_, _) => const LiveSessionsPublicPage()),
     ],
   );
 });

@@ -129,6 +129,9 @@ class HomePage extends ConsumerWidget {
             const SectionTitle('Keşfet'),
             Wrap(spacing: 10, runSpacing: 10, children: [
               _Quick(Icons.event_outlined, 'Etkinlikler', () => context.push('/events')),
+              _Quick(Icons.radio_outlined, 'Canlı Dersler', () => context.push('/live')),
+              _Quick(Icons.people_outline, 'Topluluk', () => context.push('/community')),
+              _Quick(Icons.emoji_events_outlined, "Challenge'lar", () => context.push('/challenges')),
               _Quick(Icons.work_outline, 'İş İlanları', () => context.push('/jobs')),
               _Quick(Icons.store_outlined, 'İşletmeler', () => context.push('/business')),
               _Quick(Icons.restaurant_menu_outlined, 'Restoranlar', () => context.push('/restaurants')),
