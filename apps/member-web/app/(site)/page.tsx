@@ -249,7 +249,7 @@ export default async function HomePage() {
                     {b.logoUrl ? <img src={b.logoUrl} alt={b.name} style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--color-surface-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={22} className="text-secondary" /></div>}
                     <div style={{ minWidth: 0 }}>
                       <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
-                      {b.city && <p className="caption text-tertiary" style={{ margin: 0 }}>{b.city}</p>}
+                      {b.city && <p className="caption text-tertiary" style={{ margin: 0 }}>📍 {b.city?.name ?? b.city}</p>}
                     </div>
                   </div>
                   {b.description && <p className="body-sm text-secondary" style={{ margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{b.description}</p>}
