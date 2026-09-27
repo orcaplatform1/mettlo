@@ -15,6 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: '/app/programs', label: 'Programlarım' },
     { href: '/app/challenges', label: "Challenge'lar" },
     { href: '/app/bookings', label: 'Rezervasyonlar' },
+    { href: '/app/events', label: 'Etkinliklerim' },
     { href: '/app/health', label: 'Sağlık & İlerleme' },
     ...(memberBranches.includes('running') ? [{ href: '/app/running', label: 'Koşu Günlüğüm' }] : []),
     ...(memberBranches.includes('boxing-kickboxing') ? [{ href: '/app/boxing', label: 'Boks Günlüğüm' }] : []),

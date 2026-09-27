@@ -62,6 +62,22 @@ export class MessagingController {
       if (business) return { allowed: true };
     }
 
+    // MEMBER → etkinlik organizatörü: kullanıcının o organizatörün etkinliğine bileti/kaydı varsa serbest
+    if (senderRole === 'MEMBER') {
+      const events = await this.prisma.event.findMany({
+        where: { organizerId: recipientId, status: 'PUBLISHED' },
+        select: { id: true },
+      });
+      if (events.length > 0) {
+        const eventIds = events.map((e) => e.id);
+        const [ticket, reg] = await Promise.all([
+          this.prisma.eventTicket.findFirst({ where: { holderId: senderId, eventId: { in: eventIds }, status: 'ACTIVE' }, select: { id: true } }),
+          this.prisma.eventRegistration.findFirst({ where: { userId: senderId, eventId: { in: eventIds }, status: 'CONFIRMED' }, select: { id: true } }),
+        ]);
+        if (ticket || reg) return { allowed: true };
+      }
+    }
+
     // MEMBER → CREATOR veya SUBSCRIBER: engel
     return { allowed: false, reason: 'subscription_required' };
   }

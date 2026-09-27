@@ -319,6 +319,24 @@ export class MeController {
     return { ok: true };
   }
 
+  /** Kullanıcının aldığı etkinlik biletleri ve ücretsiz kayıtları. */
+  @Get('event-tickets')
+  async myEventTickets(@CurrentUser() me: AuthUser) {
+    const [tickets, registrations] = await Promise.all([
+      this.prisma.eventTicket.findMany({
+        where: { holderId: me.id, status: 'ACTIVE' },
+        include: { event: { include: { organizer: { select: { id: true, name: true, username: true, avatarUrl: true } }, city: { select: { name: true } } } } },
+        orderBy: { event: { startsAt: 'asc' } },
+      }),
+      this.prisma.eventRegistration.findMany({
+        where: { userId: me.id, status: 'CONFIRMED' },
+        include: { event: { include: { organizer: { select: { id: true, name: true, username: true, avatarUrl: true } }, city: { select: { name: true } } } } },
+        orderBy: { event: { startsAt: 'asc' } },
+      }),
+    ]);
+    return { tickets, registrations };
+  }
+
   /** BUSINESS hesapları için 1 kerelik kullanıcı adı değişikliği (admin onayı gerekmez). */
   @Patch('username')
   async changeUsername(@Body() body: { username: string }, @CurrentUser() me: AuthUser) {
