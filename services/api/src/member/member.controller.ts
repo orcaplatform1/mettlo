@@ -55,7 +55,7 @@ const CONTENT_SELECT = {
 } as const;
 
 /** Üye tarafı: program/antrenman, challenge, topluluk, rezervasyon, sağlık verisi, oyunlaştırma. Erişim kuralları her uçta uygulanır. */
-@Roles('MEMBER', 'CREATOR')
+@Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
 @Controller()
 export class MemberController {
   constructor(private readonly prisma: PrismaService) {}

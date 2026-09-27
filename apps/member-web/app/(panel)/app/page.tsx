@@ -68,7 +68,7 @@ export default async function AppHome() {
           </div>
         </section>
       )}
-      {subscriptions.length === 0 && s.role === 'MEMBER' && (
+      {subscriptions.length === 0 && ['MEMBER', 'SUBSCRIBER'].includes(s.role) && (
         <section>
           <h2 className="h4" style={{ marginBottom: 14 }}>Aboneliklerim</h2>
           <EmptyState icon={<Users size={32} aria-hidden />} title="Henüz bir koça abone değilsin" action={<Link href="/coaches" className="btn btn-primary btn-pill">Koçları Keşfet <ArrowRight size={16} aria-hidden /></Link>}>Abone olduğunda koçun tüm içeriklerine, programlarına ve canlı derslerine erişirsin.</EmptyState>

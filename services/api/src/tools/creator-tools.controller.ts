@@ -229,7 +229,7 @@ export class InvitesController {
     return { days: g.days, coach: { username: g.creator.username, displayName: g.creator.creatorProfile?.displayName } };
   }
 
-  @Roles('MEMBER')
+  @Roles('MEMBER', 'SUBSCRIBER')
   @Post(':token/accept')
   async accept(@CurrentUser() me: AuthUser, @Param('token') token: string) {
     const g = await this.prisma.creatorInviteGrant.findUnique({ where: { token } });
@@ -240,6 +240,8 @@ export class InvitesController {
     if (!claimed.count) throw new NotFoundException('Davet zaten kullanılmış');
     const ent = await this.prisma.entitlement.create({ data: { userId: me.id, creatorId: g.creatorId, source: 'CREATOR_INVITE_GRANT', status: 'ACTIVE', endsAt, events: { create: { toStatus: 'ACTIVE', reason: `Koç daveti (${g.days} gün)` } } }, select: { id: true } });
     await recountSubscribers(this.prisma, g.creatorId);
+    // Koç daveti ile erişim kazanan üye de SUBSCRIBER olur
+    await this.prisma.user.updateMany({ where: { id: me.id, role: 'MEMBER' }, data: { role: 'SUBSCRIBER' } });
     const u = await this.prisma.user.findUniqueOrThrow({ where: { id: g.creatorId }, select: { username: true } });
     this.seo.notify([`/profile/${u.username}`]);
     return { entitlementId: ent.id, endsAt, coach: u.username };

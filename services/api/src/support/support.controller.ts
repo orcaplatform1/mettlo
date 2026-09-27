@@ -37,7 +37,7 @@ export class SupportController {
     return t;
   }
 
-  @Roles('MEMBER', 'CREATOR')
+  @Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
   @Throttle({ default: { limit: 10, ttl: 3600_000 } })
   @Post('tickets')
   async create(@CurrentUser() me: AuthUser, @Body(new ZodPipe(createSchema)) b: z.infer<typeof createSchema>) {
@@ -49,14 +49,14 @@ export class SupportController {
     return view(t);
   }
 
-  @Roles('MEMBER', 'CREATOR')
+  @Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
   @Get('tickets')
   async list(@CurrentUser() me: AuthUser) {
     const rows = await this.prisma.supportTicket.findMany({ where: { userId: me.id }, orderBy: { lastMessageAt: 'desc' }, take: 100 });
     return rows.map(view);
   }
 
-  @Roles('MEMBER', 'CREATOR')
+  @Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
   @Get('tickets/:id')
   async get(@CurrentUser() me: AuthUser, @Param('id') id: string) {
     const t = await this.own(me, id);
@@ -68,7 +68,7 @@ export class SupportController {
     };
   }
 
-  @Roles('MEMBER', 'CREATOR')
+  @Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
   @Throttle({ default: { limit: 30, ttl: 3600_000 } })
   @Post('tickets/:id/messages')
   async reply(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body(new ZodPipe(messageSchema)) b: z.infer<typeof messageSchema>) {
@@ -83,7 +83,7 @@ export class SupportController {
     return { ok: true, status: 'OPEN' };
   }
 
-  @Roles('MEMBER', 'CREATOR')
+  @Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
   @Post('tickets/:id/close')
   async close(@CurrentUser() me: AuthUser, @Param('id') id: string) {
     const t = await this.own(me, id);

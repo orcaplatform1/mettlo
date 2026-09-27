@@ -34,7 +34,7 @@ export class PresenceController {
     const names = usernames.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 50);
     if (!names.length) return {};
     const users = await this.prisma.user.findMany({
-      where: { username: { in: names }, role: { in: ['MEMBER', 'CREATOR'] }, status: 'ACTIVE' },
+      where: { username: { in: names }, role: { in: ['MEMBER', 'SUBSCRIBER', 'CREATOR'] }, status: 'ACTIVE' },
       select: { id: true, username: true, privacySetting: { select: { showOnlineStatus: true } } },
     });
     const out: Record<string, 'online' | 'offline' | null> = Object.fromEntries(names.map((n) => [n, null]));
@@ -48,18 +48,12 @@ export class PresenceController {
   async adminPresence() {
     const ids = this.presence.onlineUserIds();
     const users = ids.length ? await this.prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, role: true } }) : [];
-    const memberIds = users.filter((u) => u.role === 'MEMBER').map((u) => u.id);
-    const now = new Date();
-    const subs = memberIds.length
-      ? await this.prisma.entitlement.findMany({ where: { userId: { in: memberIds }, creatorId: { not: null }, status: { in: ['ACTIVE', 'GRACE'] }, startsAt: { lte: now }, OR: [{ endsAt: null }, { endsAt: { gt: now } }] }, distinct: ['userId'], select: { userId: true } })
-      : [];
-    const subscribers = subs.length;
     return {
       visitors: this.presence.visitorCount(),
-      members: memberIds.length - subscribers,
-      subscribers,
+      members: users.filter((u) => u.role === 'MEMBER').length,
+      subscribers: users.filter((u) => u.role === 'SUBSCRIBER').length,
       coaches: users.filter((u) => u.role === 'CREATOR').length,
-      staff: users.filter((u) => !['MEMBER', 'CREATOR'].includes(u.role)).length,
+      staff: users.filter((u) => !['MEMBER', 'SUBSCRIBER', 'CREATOR'].includes(u.role)).length,
       windowSeconds: 90,
       at: new Date().toISOString(),
     };

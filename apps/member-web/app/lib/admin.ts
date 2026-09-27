@@ -27,7 +27,7 @@ export const getStaffSummary = cache(async (username: string) => {
   const token = await getAccessToken();
   try {
     const u = await apiFetch<any>(`/admin/profiles/${encodeURIComponent(username)}/staff`, { token });
-    if (!['MEMBER', 'CREATOR'].includes(u.role) || u.id === session.id) return null; // yönetim hesapları ve kendi profil düzenlenemez
+    if (!['MEMBER', 'SUBSCRIBER', 'CREATOR'].includes(u.role) || u.id === session.id) return null; // yönetim hesapları ve kendi profil düzenlenemez
     return { ...u, viewerRole: session.role as string };
   } catch (e) {
     if (e instanceof ApiError) return null;

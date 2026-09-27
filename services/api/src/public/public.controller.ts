@@ -166,12 +166,11 @@ export class PublicController {
       };
     }
 
-    if (u.role === 'MEMBER') {
-      const hasSubscription = (u.subscriptions?.length ?? 0) > 0;
+    if (u.role === 'MEMBER' || u.role === 'SUBSCRIBER') {
       return {
         type: 'member', username: u.username, name: u.name, avatarUrl: u.avatarUrl,
-        coverUrl: hasSubscription ? (u.memberProfile?.coverUrl ?? null) : null,
-        hasSubscription, memberSince: u.createdAt, streak: u.streak, achievements: u.achievements,
+        coverUrl: u.role === 'SUBSCRIBER' ? (u.memberProfile?.coverUrl ?? null) : null,
+        hasSubscription: u.role === 'SUBSCRIBER', memberSince: u.createdAt, streak: u.streak, achievements: u.achievements,
       };
     }
 

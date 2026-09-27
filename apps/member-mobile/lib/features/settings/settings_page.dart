@@ -104,7 +104,7 @@ class SettingsPage extends ConsumerWidget {
       if (isCoach) ListTile(leading: const Icon(Icons.supervised_user_circle_outlined), title: const Text('Müşterilerim'), subtitle: const Text('Hedefler, metrikler, check-in ve değerlendirmeler'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/coaching/clients')),
       if (isCoach) ListTile(leading: const Icon(Icons.campaign_outlined, color: MettloColors.primary), title: const Text('Reklamlarım'), subtitle: const Text('Reklam oluştur ve performansı takip et'), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/advertising')),
       if (isCoach) ListTile(leading: const Icon(Icons.dashboard_customize_outlined), title: const Text('Koç paneli (web)'), subtitle: const Text('İçerik, plan ve öğrenci yönetimi web panelinde'), onTap: () => _open('/creator')),
-      if (user?.role == 'MEMBER') ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Koç ol (web)'), onTap: () => _open('/app/become-coach')),
+      if (user?.role == 'MEMBER' || user?.role == 'SUBSCRIBER') ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Koç ol (web)'), onTap: () => _open('/app/become-coach')),
       ListTile(leading: const Icon(Icons.download_outlined), title: const Text('Verilerimi indir (KVKK)'), subtitle: const Text('Web sitesi > Ayarlar'), onTap: () => _open('/app/settings')),
       ListTile(leading: const Icon(Icons.delete_outline, color: MettloColors.error), title: const Text('Hesabımı sil', style: TextStyle(color: MettloColors.error)), onTap: () => _confirmDelete(context, ref)),
       const SizedBox(height: 12),

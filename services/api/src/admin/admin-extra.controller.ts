@@ -177,7 +177,7 @@ export class AdminExtraController {
     const target = await this.prisma.user.findUnique({ where: { id }, select: { id: true, role: true, username: true } });
     if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
     if (target.id === me.id) throw new ForbiddenException('Kendi hesabınızı burada düzenleyemezsiniz');
-    if (!['MEMBER', 'CREATOR'].includes(target.role)) throw new ForbiddenException('Yalnızca üye ve koç profilleri düzenlenebilir');
+    if (!['MEMBER', 'SUBSCRIBER', 'CREATOR'].includes(target.role)) throw new ForbiddenException('Yalnızca üye ve koç profilleri düzenlenebilir');
     const { reason, removeAvatar, name, ...coach } = b;
     const changed: string[] = [];
     await this.prisma.$transaction(async (tx) => {
@@ -204,7 +204,7 @@ export class AdminExtraController {
     const target = await this.prisma.user.findUnique({ where: { id }, select: { id: true, role: true, username: true } });
     if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
     if (target.id === me.id) throw new ForbiddenException('Kendi hesabınızı silemezsiniz');
-    if (!['MEMBER', 'CREATOR'].includes(target.role)) throw new ForbiddenException('Yönetim hesapları bu yolla silinemez');
+    if (!['MEMBER', 'SUBSCRIBER', 'CREATOR'].includes(target.role)) throw new ForbiddenException('Yönetim hesapları bu yolla silinemez');
     // Audit önce yazılır: kullanıcı adı silme sonrası değişir
     await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'user.delete', targetType: 'user', targetId: id, subjectUserId: id, metadata: { reason: b.reason, username: target.username, role: target.role }, ip: clientIp(req), userAgent: userAgent(req) });
     const ok = await this.maintenance.purgeAccount(id, new Date(), undefined, true);

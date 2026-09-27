@@ -33,16 +33,25 @@ export class MaintenanceService implements OnModuleInit, OnModuleDestroy {
 
   /** Süresi dolan ACTIVE erişimler EXPIRED olur (iptal edilmiş olanlar dönem sonunda da kapanır). */
   async expireEntitlements(now = new Date()): Promise<number> {
-    const due = await this.prisma.entitlement.findMany({ where: { status: { in: ['ACTIVE', 'CANCELLED', 'GRACE'] }, endsAt: { lt: now } }, select: { id: true, status: true, creatorId: true }, take: 1000 });
+    const due = await this.prisma.entitlement.findMany({ where: { status: { in: ['ACTIVE', 'CANCELLED', 'GRACE'] }, endsAt: { lt: now } }, select: { id: true, status: true, creatorId: true, userId: true }, take: 1000 });
     const creators = new Set<string>();
+    const affectedUsers = new Set<string>();
     for (const e of due) {
       const r = await this.prisma.entitlement.updateMany({ where: { id: e.id, status: e.status }, data: { status: 'EXPIRED' } });
       if (r.count) {
         await this.prisma.entitlementEvent.create({ data: { entitlementId: e.id, fromStatus: e.status, toStatus: 'EXPIRED', reason: 'süre doldu' } });
         if (e.creatorId) creators.add(e.creatorId);
+        affectedUsers.add(e.userId);
       }
     }
     for (const c of creators) await recountSubscribers(this.prisma, c);
+    // Artık aktif entitlement'ı kalmayan SUBSCRIBER'ları MEMBER'a düşür
+    for (const userId of affectedUsers) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+      if (user?.role !== 'SUBSCRIBER') continue;
+      const remaining = await this.prisma.entitlement.count({ where: { userId, creatorId: { not: null }, status: { in: ['ACTIVE', 'GRACE'] }, OR: [{ endsAt: null }, { endsAt: { gt: now } }] } });
+      if (remaining === 0) await this.prisma.user.update({ where: { id: userId }, data: { role: 'MEMBER' } });
+    }
     return due.length;
   }
 
@@ -78,7 +87,7 @@ export class MaintenanceService implements OnModuleInit, OnModuleDestroy {
   async purgeAccount(uid: string, now = new Date(), requestId?: string, allowCreator = false): Promise<boolean> {
     return this.prisma.$transaction(async (tx) => {
       const u = await tx.user.findUnique({ where: { id: uid }, select: { role: true } });
-      if (!u || !(u.role === 'MEMBER' || (allowCreator && u.role === 'CREATOR'))) return false;
+      if (!u || !(['MEMBER', 'SUBSCRIBER'].includes(u.role) || (allowCreator && u.role === 'CREATOR'))) return false;
       const tag = uid.slice(-8);
       await tx.healthRecord.deleteMany({ where: { userId: uid } }); await tx.activityRecord.deleteMany({ where: { userId: uid } });
       await tx.sleepRecord.deleteMany({ where: { userId: uid } }); await tx.progressRecord.deleteMany({ where: { userId: uid } });

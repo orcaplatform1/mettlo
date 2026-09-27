@@ -216,6 +216,12 @@ export class CheckoutService {
       },
     });
 
+    // Üyeyi SUBSCRIBER rolüne yükselt (henüz değilse)
+    await this.prisma.user.updateMany({
+      where: { id: payment.userId, role: 'MEMBER' },
+      data: { role: 'SUBSCRIBER' },
+    });
+
     // Komisyon kaydı
     const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     await this.prisma.creatorEarning.create({

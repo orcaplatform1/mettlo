@@ -93,7 +93,7 @@ export class SocialService {
     if (!user && id.emailVerified) {
       const byEmail = await this.prisma.user.findUnique({ where: { email: id.email } });
       if (byEmail) {
-        if (byEmail.role !== 'MEMBER') throw new ForbiddenException('Bu e-posta bir koç veya yönetim hesabına ait; şifreyle giriş yapmalısın');
+        if (!['MEMBER', 'SUBSCRIBER'].includes(byEmail.role)) throw new ForbiddenException('Bu e-posta bir koç veya yönetim hesabına ait; şifreyle giriş yapmalısın');
         user = await this.prisma.user.update({ where: { id: byEmail.id }, data: { [col]: id.sub } as any });
       }
     }

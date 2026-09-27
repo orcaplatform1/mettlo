@@ -1,6 +1,7 @@
 // ---------- Kimlik / kullanıcı ----------
 enum UserRole {
   MEMBER
+  SUBSCRIBER
   CREATOR
   ADMIN
   MODERATOR

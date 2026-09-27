@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Panelim', robots: { index: false, fo
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession('/app');
-  const overview = s.role === 'MEMBER' ? await authed<any>('/me/overview').catch(() => null) : null;
+  const overview = ['MEMBER', 'SUBSCRIBER'].includes(s.role) ? await authed<any>('/me/overview').catch(() => null) : null;
   const memberBranches: string[] = overview?.branchSlugs ?? [];
   const links: PanelLink[] = [
     { href: '/app', label: 'Panelim', exact: true },
@@ -24,11 +24,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(memberBranches.includes('meditation') ? [{ href: '/app/meditation', label: 'Meditasyon Günlüğüm' }] : []),
     ...(memberBranches.includes('dance') ? [{ href: '/app/dance', label: 'Dans Günlüğüm' }] : []),
     ...(memberBranches.includes('nutrition') ? [{ href: '/app/nutrition', label: 'Beslenme Günlüğüm' }] : []),
-    ...(s.role === 'MEMBER' ? [{ href: '/app/ai-matching', label: 'AI Koç Eşleştirme' }] : []),
+    ...(['MEMBER', 'SUBSCRIBER'].includes(s.role) ? [{ href: '/app/ai-matching', label: 'AI Koç Eşleştirme' }] : []),
     { href: '/app/support', label: 'Destek Merkezi' },
     { href: '/app/settings', label: 'Ayarlar' },
     { href: '/app/settings/blocks', label: 'Engellenenler' },
-    ...(s.role === 'MEMBER' && !s.creator ? [{ href: '/app/become-coach', label: 'Koç Ol' }] : []),
+    ...(['MEMBER', 'SUBSCRIBER'].includes(s.role) && !s.creator ? [{ href: '/app/become-coach', label: 'Koç Ol' }] : []),
     ...(s.role === 'CREATOR' ? [
       { href: '/creator/clients', label: 'Danışanlarım' },
       { href: '/app/assessments', label: 'Formlar' },
@@ -40,5 +40,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ] : []),
     ...(isAdminRole(s.role) ? [{ href: '/admin', label: 'Yönetim Paneli' }] : []),
   ];
-  return <PanelShell title={s.role === 'CREATOR' ? 'Koç' : 'Üye'} user={s} links={links} logoutAction="/logout">{children}</PanelShell>;
+  return <PanelShell title={s.role === 'CREATOR' ? 'Koç' : s.role === 'SUBSCRIBER' ? 'Abone' : 'Üye'} user={s} links={links} logoutAction="/logout">{children}</PanelShell>;
 }

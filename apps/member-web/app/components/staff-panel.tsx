@@ -19,7 +19,7 @@ export async function StaffPanel({ username }: { username: string }) {
       <div className="staff-panel stack" style={{ ['--stack' as string]: '16px' }}>
         <div className="title"><UserCog size={18} aria-hidden /> SÜPER ADMIN / ADMIN GÖRÜNÜMÜ</div>
         <div className="row row-wrap" style={{ gap: 10 }}>
-          <span className="badge">{u.role === 'CREATOR' ? 'Koç' : c ? 'Koç adayı' : 'Üye / abone'}</span><StatusBadge status={u.status} />
+          <span className="badge">{u.role === 'CREATOR' ? 'Koç' : u.role === 'SUBSCRIBER' ? 'Abone' : c ? 'Koç adayı' : 'Üye'}</span><StatusBadge status={u.status} />
           {c && <StatusBadge status={c.status} />}
         </div>
 

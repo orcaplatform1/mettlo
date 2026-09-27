@@ -171,7 +171,7 @@ export class AuthService {
     if (user.status === 'BANNED') throw new ForbiddenException('Hesabınız kalıcı olarak kapatılmıştır');
     if (user.status === 'SUSPENDED') throw new ForbiddenException('Hesabınız geçici olarak askıya alınmıştır');
     if (user.status === 'DELETED') throw new UnauthorizedException();
-    if (user.role !== 'MEMBER') throw new ForbiddenException('Koç ve yönetim hesapları şifre ve doğrulama koduyla giriş yapmalıdır');
+    if (!['MEMBER', 'SUBSCRIBER'].includes(user.role)) throw new ForbiddenException('Koç ve yönetim hesapları şifre ve doğrulama koduyla giriş yapmalıdır');
     if (user.twoFactorEnabled) throw new ForbiddenException('Bu hesapta iki adımlı doğrulama açık; kullanıcı adı ve şifrenle giriş yap');
     await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
     const tokens = await this.issue(user.id, user.role as Role, 'full', ip, ua);

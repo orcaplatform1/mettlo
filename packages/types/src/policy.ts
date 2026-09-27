@@ -65,6 +65,7 @@ const MATRIX: Record<Role, Permission[]> = {
     'users:read_masked', 'orders:read', 'finance:refund_request', 'tickets:handle', 'account_deletion:view', 'contact:handle',
   ],
   CREATOR: [],
+  SUBSCRIBER: [],
   MEMBER: [],
 };
 

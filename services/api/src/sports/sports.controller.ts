@@ -62,7 +62,7 @@ const nutritionProfileSchema = z.object({
 });
 
 /** Üye tarafı: koşu ve boks & kickboks verileri. Yalnızca üyenin kendi kayıtları. */
-@Roles('MEMBER')
+@Roles('MEMBER', 'SUBSCRIBER')
 @Controller()
 export class SportsMemberController {
   constructor(private readonly prisma: PrismaService, private readonly running: RunningService) {}

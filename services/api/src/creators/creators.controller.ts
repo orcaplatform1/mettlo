@@ -54,7 +54,7 @@ export class CreatorsController {
   /** Üye, koç olmak için başvurur; admin onaylayana kadar herkese açık değildir. */
   @Post('apply')
   async apply(@CurrentUser() u: AuthUser, @Body(new ZodPipe(applySchema)) b: z.infer<typeof applySchema>, @Req() req: AuthedRequest) {
-    if (u.role !== 'MEMBER') throw new BadRequestException('Zaten koç veya yönetici hesabı');
+    if (!['MEMBER', 'SUBSCRIBER'].includes(u.role)) throw new BadRequestException('Zaten koç veya yönetici hesabı');
     const existing = await this.prisma.creatorProfile.findUnique({ where: { userId: u.id } });
     if (existing) throw new ConflictException('Başvurunuz zaten mevcut');
 
