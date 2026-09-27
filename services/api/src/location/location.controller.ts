@@ -9,10 +9,14 @@ export class LocationController {
 
   @Get('cities')
   async getCities() {
-    return this.prisma.turkeyCity.findMany({
+    const all = await this.prisma.turkeyCity.findMany({
       orderBy: { name: 'asc' },
       select: { id: true, name: true, slug: true, plateCode: true },
     });
+    const pinned = ['İstanbul', 'Ankara', 'İzmir'];
+    const pinnedCities = pinned.map(n => all.find(c => c.name === n)).filter(Boolean);
+    const rest = all.filter(c => !pinned.includes(c.name));
+    return [...pinnedCities, ...rest];
   }
 
   @Get('districts/:cityId')
