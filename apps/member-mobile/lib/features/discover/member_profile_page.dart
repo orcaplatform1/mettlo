@@ -38,7 +38,7 @@ class MemberProfilePage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator(color: MettloColors.primary)),
         error: (e, _) {
           if (e is ApiException && e.status == 404) return const Padding(padding: EdgeInsets.all(24), child: InfoBanner('Bu kullanıcı bulunamadı.'));
-          return Padding(padding: const EdgeInsets.all(24), child: InfoBanner(e is ApiException ? (e as ApiException).message : 'Bir hata oluştu.', error: true));
+          return Padding(padding: const EdgeInsets.all(24), child: InfoBanner(e is ApiException ? e.message : 'Bir hata oluştu.', error: true));
         },
         data: (p) {
           // Koç ise coach_profile_page'e yönlendir — bu sayfa sadece member/subscriber

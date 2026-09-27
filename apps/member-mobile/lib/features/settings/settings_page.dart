@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_controller.dart';
@@ -17,6 +18,82 @@ class SettingsPage extends ConsumerWidget {
 
   Future<void> _open(String path) => launchUrl(Uri.parse('${Env.siteUrl}$path'), mode: LaunchMode.externalApplication);
 
+  Future<void> _editProfile(BuildContext context, WidgetRef ref, String currentName, String? currentBio) async {
+    final nameCtrl = TextEditingController(text: currentName);
+    final bioCtrl = TextEditingController(text: currentBio ?? '');
+    bool saving = false;
+    String? error;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (_, setS) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.viewInsetsOf(ctx).bottom + 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const Text('Profili Düzenle', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Ad Soyad', border: OutlineInputBorder()),
+              maxLength: 60,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: bioCtrl,
+              decoration: const InputDecoration(labelText: 'Hakkında', border: OutlineInputBorder()),
+              maxLines: 4,
+              maxLength: 500,
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 8),
+              InfoBanner(error!, error: true),
+            ],
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: saving ? null : () async {
+                setS(() { saving = true; error = null; });
+                try {
+                  await ref.read(apiClientProvider).patch('/me/profile', body: {
+                    'name': nameCtrl.text.trim(),
+                    'bio': bioCtrl.text.trim(),
+                  });
+                  await ref.read(authControllerProvider.notifier).bootstrap();
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil güncellendi.')));
+                } on ApiException catch (e) {
+                  setS(() { error = e.message; saving = false; });
+                }
+              },
+              style: FilledButton.styleFrom(backgroundColor: MettloColors.primary),
+              child: saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Kaydet'),
+            ),
+          ]),
+        ),
+      ),
+    );
+    nameCtrl.dispose();
+    bioCtrl.dispose();
+  }
+
+  Future<void> _uploadAvatar(BuildContext context, WidgetRef ref) async {
+    final picker = ImagePicker();
+    final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800, imageQuality: 85);
+    if (img == null) return;
+    try {
+      await ref.read(apiClientProvider).uploadFile(
+        '/me/avatar',
+        filePath: img.path,
+        fileName: 'avatar.jpg',
+        mimeType: 'image/jpeg',
+      );
+      await ref.read(authControllerProvider.notifier).bootstrap();
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil fotoğrafı güncellendi.')));
+    } on ApiException catch (e) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
@@ -25,9 +102,23 @@ class SettingsPage extends ConsumerWidget {
     final isCoach = user?.role == 'CREATOR';
     return ListView(padding: const EdgeInsets.all(20), children: [
       Row(children: [
-        UserAvatar(name: user?.name ?? '?', url: user?.avatarUrl, size: 64),
+        GestureDetector(
+          onTap: () => _uploadAvatar(context, ref),
+          child: Stack(children: [
+            UserAvatar(name: user?.name ?? '?', url: user?.avatarUrl, size: 68),
+            Positioned(right: 0, bottom: 0, child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: MettloColors.primary, shape: BoxShape.circle),
+              child: const Icon(Icons.camera_alt, size: 13, color: Colors.white),
+            )),
+          ]),
+        ),
         const SizedBox(width: 16),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user?.name ?? '', style: Theme.of(context).textTheme.titleLarge), Text('@${user?.username ?? ''}', style: const TextStyle(color: MettloColors.textTertiary))])),
+        TextButton(
+          onPressed: () => _editProfile(context, ref, user?.name ?? '', null),
+          child: const Text('Düzenle'),
+        ),
       ]),
       const SizedBox(height: 8),
       Text('Profil adresin: mettlo.tr/profile/${user?.username}', style: const TextStyle(color: MettloColors.textSecondary, fontSize: 12.5)),

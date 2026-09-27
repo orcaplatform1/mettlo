@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/common.dart';
 
 // ── Abonelik planı satın alma sayfası ─────────────────────────────────────────
 // Ödeme gerçek iyzico entegrasyonu hazır olana kadar web'e yönlendirir.

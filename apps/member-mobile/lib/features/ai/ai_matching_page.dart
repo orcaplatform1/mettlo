@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
-import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
 const _fitnessLevels = {'BEGINNER': 'Başlangıç', 'INTERMEDIATE': 'Orta', 'ADVANCED': 'İleri'};

@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/auth/auth_controller.dart';
-import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart'; // imgUrl, imgUrlOrNull
 

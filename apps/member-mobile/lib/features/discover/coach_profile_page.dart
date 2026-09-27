@@ -29,6 +29,7 @@ String _tenure(int months) {
 
 void _showReplyBox(BuildContext context, WidgetRef ref, String reviewId, String coachUsername) {
   final ctrl = TextEditingController();
+  bool busy = false;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -36,7 +37,6 @@ void _showReplyBox(BuildContext context, WidgetRef ref, String reviewId, String 
       padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(ctx).bottom + 16),
       child: StatefulBuilder(
         builder: (_, setS) {
-          bool busy = false;
           return Column(mainAxisSize: MainAxisSize.min, children: [
             const Text('Yorumu Yanıtla', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
             const SizedBox(height: 12),
@@ -110,7 +110,7 @@ class CoachProfilePage extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              InfoBanner(e is ApiException ? (e as ApiException).message : 'Bir hata oluştu.', error: true),
+              InfoBanner(e is ApiException ? e.message : 'Bir hata oluştu.', error: true),
               const SizedBox(height: 12),
               MettloButton(label: 'Tekrar Dene', secondary: true, onPressed: () => ref.invalidate(coachProfileProvider(username))),
             ]),

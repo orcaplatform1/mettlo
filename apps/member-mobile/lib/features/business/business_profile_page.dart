@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_controller.dart';
-import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
 
@@ -402,7 +401,7 @@ class _CoachTile extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 10),
         child: Row(children: [
           avatarUrl != null
-              ? ClipOval(child: Image.network(avatarUrl!, width: 44, height: 44, fit: BoxFit.cover))
+              ? ClipOval(child: Image.network(avatarUrl, width: 44, height: 44, fit: BoxFit.cover))
               : Container(width: 44, height: 44, decoration: BoxDecoration(
                   color: MettloColors.primary.withOpacity(.1), shape: BoxShape.circle),
                   child: Center(child: Text((creator['displayName'] as String)[0],

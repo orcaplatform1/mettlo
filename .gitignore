@@ -12,3 +12,5 @@ database/backups/*
 .DS_Store
 # uploads / ozel dosyalar
 storage-data/
+*.apk
+uploads/

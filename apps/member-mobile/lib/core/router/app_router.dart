@@ -6,7 +6,6 @@ import 'badge_counts_provider.dart';
 
 import '../../features/admin/moderation_page.dart';
 import '../../features/advertising/advertising_page.dart';
-import '../../features/advertising/new_ad_page.dart';
 import '../../features/coaching/alerts_page.dart';
 import '../../features/coaching/assessments_page.dart';
 import '../../features/community/community_page.dart';
