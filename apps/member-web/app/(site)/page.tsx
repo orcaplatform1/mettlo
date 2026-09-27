@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
-  Activity, ArrowRight, BrainCircuit, Briefcase, Building2, CalendarDays, ClipboardList, Crown, Handshake, HeartPulse, Play, Radio, Salad, ShoppingBag, Trophy, UserRound, Users, Video, MessageSquare,
+  Activity, ArrowRight, BadgeCheck, BrainCircuit, Briefcase, Building2, CalendarDays, ClipboardList, Crown, Handshake, HeartPulse, Play, Radio, Salad, ShoppingBag, Star, Trophy, UserRound, Users, Video, MessageSquare,
 } from 'lucide-react';
 import { EmptyState } from '@mettlo/ui';
 import { SITE } from '@mettlo/types';
@@ -10,6 +10,33 @@ import { BranchCard, CoachCard, ProductCard, ProgramCard } from '@/app/component
 import { DEFAULT_BRANCHES, getAllBranches, getProducts, getEvents, type Page } from '@/app/lib/data';
 
 const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+
+function getOpenStatus(businessHours: any): { label: string; color: string } {
+  if (!businessHours) return { label: '', color: '' };
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+  const dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  const todayHours = businessHours[dayKeys[now.getDay()]];
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const toMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  if (todayHours?.open && todayHours?.close) {
+    const openMins = toMins(todayHours.open);
+    const closeMins = toMins(todayHours.close);
+    if (nowMins >= openMins && nowMins < closeMins) {
+      return nowMins >= closeMins - 60
+        ? { label: 'Kapanmak Üzere', color: '#f59e0b' }
+        : { label: 'Açık', color: '#22c55e' };
+    }
+    if (nowMins < openMins) return { label: `Bugün ${todayHours.open}'de Açılacak`, color: '#94a3b8' };
+  }
+  const tomorrowHours = businessHours[dayKeys[(now.getDay() + 1) % 7]];
+  if (tomorrowHours?.open) {
+    const label = now.getHours() < 5
+      ? `Bugün ${tomorrowHours.open}'de Açılacak`
+      : `Yarın ${tomorrowHours.open}'de Açılacak`;
+    return { label, color: '#94a3b8' };
+  }
+  return { label: 'Kapalı', color: '#ef4444' };
+}
 
 export const metadata: Metadata = {
   title: { absolute: `Mettlo — Bugün Başla. Kendini Yeniden Keşfet.` },
@@ -40,19 +67,21 @@ const FEATURES = [
 ];
 
 export default async function HomePage() {
-  const [branches, creatorsRaw, programsRaw, products, eventsRaw, businessesRaw] = await Promise.all([
+  const [branches, creatorsRaw, programsRaw, products, eventsRaw, businessesRaw, restaurantsRaw] = await Promise.all([
     getAllBranches(),
     apiTry<Page<any>>('/public/creators?limit=8'),
     apiTry<Page<any>>('/public/programs?limit=8'),
     getProducts('?limit=4'),
     getEvents('?limit=4&status=UPCOMING'),
     apiTry<Page<any>>('/business?limit=6'),
+    apiTry<Page<any>>('/business?limit=6&category=HEALTHY_FOOD,HEALTHY_CAFE,SMOOTHIE_BAR,VEGAN,MEAL_PREP,PROTEIN_BAR,VEGETARIAN,GLUTEN_FREE,RAW_FOOD,FUNCTIONAL_NUTRITION,FUNCTIONAL_BEVERAGES,SPECIAL_DIET,SPORTS_NUTRITION'),
   ]);
   const creators = creatorsRaw ? { ...creatorsRaw, items: shuffle(creatorsRaw.items).slice(0, 6) } : null;
   const programs = programsRaw ? { ...programsRaw, items: shuffle(programsRaw.items).slice(0, 6) } : null;
   const cats = branches && branches.length ? branches : DEFAULT_BRANCHES;
   const events = eventsRaw?.items ?? [];
   const businesses = businessesRaw?.items ?? [];
+  const restaurants = restaurantsRaw?.items ?? [];
 
   return (
     <>
@@ -214,17 +243,48 @@ export default async function HomePage() {
           </div>
           {events.length > 0 ? (
             <div className="grid grid-3">
-              {events.map((e: any) => (
-                <Link key={e.slug ?? e.id} href={`/events/${e.slug ?? e.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
-                  {e.coverUrl && <img src={e.coverUrl} alt={e.title} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }} />}
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                    <CalendarDays size={15} className="text-primary-c" aria-hidden />
-                    <span className="caption text-secondary">{e.startsAt ? new Date(e.startsAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}</span>
-                  </div>
-                  <h3 className="h5" style={{ margin: '0 0 6px' }}>{e.title}</h3>
-                  {e.location && <p className="caption text-tertiary">{e.location}</p>}
-                </Link>
-              ))}
+              {events.map((e: any) => {
+                const org = e.organizer;
+                const biz = e.business;
+                const isVerified = biz ? biz.verificationStatus === 'VERIFIED' : org?.creatorProfile?.verified;
+                const displayName = biz ? biz.name : org?.name;
+                const displayHandle = biz ? biz.slug : org?.username;
+                const displayAvatar = biz ? biz.logoUrl : org?.avatarUrl;
+                return (
+                  <Link key={e.slug ?? e.id} href={`/events/${e.slug ?? e.id}`} className="card card-hover" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {e.coverImageUrl && <img src={e.coverImageUrl} alt={e.title} style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }} />}
+                    {/* Organizer/business row */}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                      {displayAvatar
+                        ? <img src={displayAvatar} alt={displayName} style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                        : <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--color-surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><UserRound size={16} className="text-secondary" aria-hidden /></div>
+                      }
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                          <span className="caption" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
+                          {isVerified && <BadgeCheck size={13} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
+                        </div>
+                        <span className="caption text-tertiary">@{displayHandle}</span>
+                      </div>
+                    </div>
+                    {/* Date */}
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                      <CalendarDays size={14} className="text-primary-c" aria-hidden />
+                      <span className="caption text-secondary">{e.startsAt ? new Date(e.startsAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}</span>
+                    </div>
+                    <h3 className="h5" style={{ margin: '0 0 6px' }}>{e.title}</h3>
+                    {(e.locationName || e.city) && (
+                      <p className="caption text-tertiary" style={{ margin: '0 0 10px' }}>📍 {[e.locationName, e.city?.name].filter(Boolean).join(', ')}</p>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 8 }}>
+                      <span className="body-sm" style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                        {e.ticketPriceKurus > 0 ? `${(e.ticketPriceKurus / 100).toLocaleString('tr-TR')} ₺` : 'Ücretsiz'}
+                      </span>
+                      <span className="btn btn-primary btn-sm btn-pill" style={{ fontSize: 12, padding: '4px 14px', pointerEvents: 'none' }}>Etkinliğe Katıl</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <EmptyState icon={<CalendarDays size={36} aria-hidden />} title="Yaklaşan etkinlik yok" action={<Link href="/events" className="btn btn-secondary btn-pill btn-sm">Etkinlikleri Keşfet <ArrowRight size={16} aria-hidden /></Link>}>
@@ -243,18 +303,37 @@ export default async function HomePage() {
           </div>
           {businesses.length > 0 ? (
             <div className="grid grid-3">
-              {businesses.map((b: any) => (
-                <Link key={b.slug ?? b.id} href={`/businesses/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-                    {b.logoUrl ? <img src={b.logoUrl} alt={b.name} style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--color-surface-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={22} className="text-secondary" /></div>}
-                    <div style={{ minWidth: 0 }}>
-                      <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
-                      {b.city && <p className="caption text-tertiary" style={{ margin: 0 }}>📍 {b.city?.name ?? b.city}</p>}
+              {businesses.map((b: any) => {
+                const openStatus = getOpenStatus(b.businessHours);
+                return (
+                  <Link key={b.slug ?? b.id} href={`/business/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, var(--color-surface-1) 0%, var(--color-surface-2) 100%)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
+                      {b.logoUrl
+                        ? <img src={b.logoUrl} alt={b.name} style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+                        : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'var(--color-surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={24} className="text-secondary" aria-hidden /></div>
+                      }
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
+                          {b.verificationStatus === 'VERIFIED' && <BadgeCheck size={15} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
+                        </div>
+                        <p className="caption text-tertiary" style={{ margin: '2px 0 0' }}>@{b.slug}</p>
+                      </div>
                     </div>
-                  </div>
-                  {b.description && <p className="body-sm text-secondary" style={{ margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{b.description}</p>}
-                </Link>
-              ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      {openStatus.label ? <span className="caption" style={{ color: openStatus.color, fontWeight: 600 }}>{openStatus.label}</span> : <span />}
+                      {b.city && <span className="caption text-tertiary">📍 {b.city?.name ?? b.city}</span>}
+                    </div>
+                    {(b.ratingAvg > 0 || b.ratingCount > 0) && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Star size={13} style={{ color: '#f59e0b', fill: '#f59e0b' }} aria-hidden />
+                        <span className="caption" style={{ fontWeight: 600 }}>{b.ratingAvg?.toFixed(1) ?? '—'}</span>
+                        <span className="caption text-tertiary">({b.ratingCount ?? 0} yorum)</span>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <EmptyState icon={<Building2 size={36} aria-hidden />} title="İşletmeler çok yakında" action={<Link href="/businesses" className="btn btn-secondary btn-pill btn-sm">İşletmeleri Gör <ArrowRight size={16} aria-hidden /></Link>}>
@@ -274,23 +353,45 @@ export default async function HomePage() {
             </div>
             <Link href="/businesses?category=HEALTHY_FOOD" className="btn btn-secondary btn-pill btn-sm">Tüm Restoranlar <ArrowRight size={16} aria-hidden /></Link>
           </div>
-          <div className="grid grid-4">
-            {([
-              ['/businesses?category=HEALTHY_FOOD', 'Sağlıklı Restoran'],
-              ['/businesses?category=HEALTHY_CAFE', 'Sağlıklı Kafe'],
-              ['/businesses?category=SMOOTHIE_BAR', 'Smoothie Bar'],
-              ['/businesses?category=VEGAN', 'Vegan'],
-              ['/businesses?category=MEAL_PREP', 'Meal Prep'],
-              ['/businesses?category=PROTEIN_BAR', 'Protein Bar'],
-              ['/businesses?category=VEGETARIAN', 'Vejetaryen'],
-              ['/businesses?category=GLUTEN_FREE', 'Glütensiz'],
-            ] as [string, string][]).map(([href, label]) => (
-              <Link key={label} href={href} className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px' }}>
-                <Salad size={20} className="text-primary-c" aria-hidden style={{ flexShrink: 0 }} />
-                <span className="body-sm" style={{ fontWeight: 600 }}>{label}</span>
-              </Link>
-            ))}
-          </div>
+          {restaurants.length > 0 ? (
+            <div className="grid grid-3">
+              {restaurants.map((b: any) => {
+                const openStatus = getOpenStatus(b.businessHours);
+                return (
+                  <Link key={b.slug ?? b.id} href={`/business/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, var(--color-surface-1) 0%, var(--color-surface-2) 100%)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
+                      {b.logoUrl
+                        ? <img src={b.logoUrl} alt={b.name} style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+                        : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'var(--color-surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Salad size={24} className="text-secondary" aria-hidden /></div>
+                      }
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
+                          {b.verificationStatus === 'VERIFIED' && <BadgeCheck size={15} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
+                        </div>
+                        <p className="caption text-tertiary" style={{ margin: '2px 0 0' }}>@{b.slug}</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      {openStatus.label ? <span className="caption" style={{ color: openStatus.color, fontWeight: 600 }}>{openStatus.label}</span> : <span />}
+                      {b.city && <span className="caption text-tertiary">📍 {b.city?.name ?? b.city}</span>}
+                    </div>
+                    {(b.ratingAvg > 0 || b.ratingCount > 0) && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Star size={13} style={{ color: '#f59e0b', fill: '#f59e0b' }} aria-hidden />
+                        <span className="caption" style={{ fontWeight: 600 }}>{b.ratingAvg?.toFixed(1) ?? '—'}</span>
+                        <span className="caption text-tertiary">({b.ratingCount ?? 0} yorum)</span>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState icon={<Salad size={36} aria-hidden />} title="Sağlıklı restoran &amp; kafe yakında">
+              Sağlıklı restoranlar, kafeler, smoothie barlar ve daha fazlası Mettlo&apos;da listelenecek.
+            </EmptyState>
+          )}
         </div>
       </section>
 
