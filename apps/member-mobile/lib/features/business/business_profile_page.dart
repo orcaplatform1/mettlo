@@ -53,6 +53,7 @@ class BusinessProfilePage extends ConsumerWidget {
           final coaches = ba['coachWorkplaces'] as List<dynamic>? ?? [];
           final category = ba['category'] as String? ?? '';
           final isFood = _kFoodCategories.contains(category);
+          final isFitness = !isFood;
 
           return CustomScrollView(
             slivers: [

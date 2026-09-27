@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
@@ -46,7 +47,7 @@ class _AiMatchingPageState extends ConsumerState<AiMatchingPage> {
     if (_goals.isEmpty) { setState(() => _error = 'En az bir hedef ekleyin.'); return; }
     setState(() { _loading = true; _error = null; _result = null; });
     try {
-      final res = await ref.read(apiClientProvider).post('/ai/matching/coach', {
+      final res = await ref.read(apiClientProvider).post('/ai/matching/coach', body: {
         'goals': _goals,
         if (_fitnessLevel != null) 'fitnessLevel': _fitnessLevel,
         if (_selectedBranches.isNotEmpty) 'branchPreferences': _selectedBranches.toList(),

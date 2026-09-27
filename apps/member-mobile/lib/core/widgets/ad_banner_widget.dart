@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../auth/auth_controller.dart';
 import '../network/api_client.dart';
 import '../theme/tokens.dart';
 
@@ -29,7 +30,7 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
   void _recordClick(String adId, Map<String, dynamic> creative) {
     if (_clicked) return;
     _clicked = true;
-    ref.read(apiClientProvider).post('/advertising/$adId/click', {'platform': 'MOBILE'}).catchError((_) {});
+    ref.read(apiClientProvider).post('/advertising/$adId/click', body: {'platform': 'MOBILE'}).catchError((_) {});
     final url = creative['ctaUrl'] as String?;
     if (url != null && url.isNotEmpty) {
       // URL açma için url_launcher kullanılabilir; şimdilik sadece click kaydediyoruz

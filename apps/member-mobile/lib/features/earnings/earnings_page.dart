@@ -296,7 +296,7 @@ class _PayoutRequestCardState extends ConsumerState<_PayoutRequestCard> {
     setState(() { _error = null; _loading = true; });
     try {
       final client = ref.read(apiClientProvider);
-      await client.post('/payouts', data: {'amountKurus': kurus, 'payoutAccountId': widget.account['id']});
+      await client.post('/payouts', body: {'amountKurus': kurus, 'payoutAccountId': widget.account['id']});
       _ctrl.clear();
       widget.onSuccess();
       if (mounted) {

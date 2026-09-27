@@ -13,7 +13,7 @@ class BadgeCounts {
       );
 }
 
-class BadgeCountsNotifier extends AutoDisposeAsyncNotifier<BadgeCounts> {
+class BadgeCountsNotifier extends AsyncNotifier<BadgeCounts> {
   Timer? _timer;
 
   @override

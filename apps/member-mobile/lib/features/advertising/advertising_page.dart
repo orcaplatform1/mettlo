@@ -248,7 +248,7 @@ class _NewAdPageState extends ConsumerState<NewAdPage> {
         },
       };
 
-      await ref.read(apiClientProvider).post('/advertising', body);
+      await ref.read(apiClientProvider).post('/advertising', body: body);
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() => _error = e.toString().replaceFirst('Exception: ', ''));

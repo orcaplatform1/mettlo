@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
@@ -12,8 +13,9 @@ final foodMenuProvider = FutureProvider.autoDispose.family<Map<String, dynamic>,
 
 // ── Sepet state ───────────────────────────────────────────────────────────────
 
-class CartNotifier extends StateNotifier<List<Map<String, dynamic>>> {
-  CartNotifier() : super([]);
+class CartNotifier extends Notifier<List<Map<String, dynamic>>> {
+  @override
+  List<Map<String, dynamic>> build() => [];
 
   void add(Map<String, dynamic> item) {
     final idx = state.indexWhere((i) => i['id'] == item['id']);
@@ -48,8 +50,8 @@ class CartNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   int get totalKurus => state.fold(0, (s, i) => s + (i['priceKurus'] as int) * (i['qty'] as int));
 }
 
-final cartProvider = StateNotifierProvider.autoDispose.family<CartNotifier, List<Map<String, dynamic>>, String>(
-  (ref, _) => CartNotifier(),
+final cartProvider = NotifierProvider.autoDispose.family<CartNotifier, List<Map<String, dynamic>>, String>(
+  CartNotifier.new,
 );
 
 // ── Sayfa ─────────────────────────────────────────────────────────────────────
@@ -83,7 +85,7 @@ class _FoodMenuPageState extends ConsumerState<FoodMenuPage> {
     if (cart.isEmpty) return;
     setState(() { _ordering = true; _orderError = null; });
     try {
-      await ref.read(apiClientProvider).post('/food-orders', {
+      await ref.read(apiClientProvider).post('/food-orders', body: {
         'businessId': widget.businessId,
         'items': cart.map((i) => { 'foodItemId': i['id'], 'quantity': i['qty'] }).toList(),
         if (_noteCtrl.text.trim().isNotEmpty) 'note': _noteCtrl.text.trim(),

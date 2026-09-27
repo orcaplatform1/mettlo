@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
@@ -194,7 +195,7 @@ class _EventDetailPageState extends ConsumerState<EventDetailPage> {
   Future<void> _register() async {
     setState(() { _loading = true; _error = null; });
     try {
-      await ref.read(apiClientProvider).post('/events/${widget.event['id']}/register', {});
+      await ref.read(apiClientProvider).post('/events/${widget.event['id']}/register', body: {});
       if (mounted) setState(() { _registered = true; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
