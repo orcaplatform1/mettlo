@@ -83,7 +83,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
           <form method="get" action="/businesses">
             {sp.q && <input type="hidden" name="q" value={sp.q} />}
             {sp.category && <input type="hidden" name="category" value={sp.category} />}
-            <select name="cityId" className="input" style={{ minWidth: 140 }} onChange={() => {}} defaultValue={sp.cityId ?? ''}>
+            <select name="cityId" className="input" style={{ minWidth: 140 }} defaultValue={sp.cityId ?? ''}>
               <option value="">Tüm İller</option>
               {cityList.map((c: any) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
             </select>
