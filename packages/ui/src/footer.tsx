@@ -55,7 +55,7 @@ export function SiteFooter() {
           koçların içeriklerinden doğan sonuçların garantisini vermez ve bu içeriklerin kullanımından veya bunlara güvenilmesinden kaynaklanan doğrudan ya da
           dolaylı zararlardan, yürürlükteki mevzuatın izin verdiği ölçüde sorumlu tutulamaz.
         </p>
-        <div className="footer-bottom"><Copyright /></div>
+<div className="footer-bottom"><Copyright /></div>
       </div>
     </footer>
   );
