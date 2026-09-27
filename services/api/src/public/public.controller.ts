@@ -414,4 +414,24 @@ export class PublicController {
       ...lives.map((l) => u(`/live/${l.slug}`, l.updatedAt, 0.6, 'daily')),
     ].slice(0, 45000);
   }
+
+  @SkipThrottle()
+  @Get('check-username')
+  async checkUsername(@Query('username') username: string) {
+    const u = (username ?? '').toLowerCase().trim();
+    if (!u || !/^[a-z0-9_]{3,30}$/.test(u)) return { available: false, message: 'Geçersiz kullanıcı adı formatı.' };
+    const existing = await this.prisma.user.findUnique({ where: { username: u }, select: { id: true } });
+    if (existing) return { available: false, message: `@${u} Mettlo'da kayıtlı ve alınamaz.` };
+    return { available: true, message: `@${u} şu an kullanılabilir.` };
+  }
+
+  @SkipThrottle()
+  @Get('check-slug')
+  async checkSlug(@Query('slug') slug: string) {
+    const s = (slug ?? '').toLowerCase().trim();
+    if (!s || !/^[a-z0-9-]{3,50}$/.test(s)) return { available: false, message: 'Geçersiz işletme URL formatı.' };
+    const existing = await this.prisma.businessAccount.findUnique({ where: { slug: s }, select: { id: true } });
+    if (existing) return { available: false, message: `/${s} adresi zaten kullanımda.` };
+    return { available: true, message: `/${s} adresi kullanılabilir.` };
+  }
 }

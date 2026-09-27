@@ -1,14 +1,39 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PasswordInput, PhoneInput, DateField } from '@mettlo/ui';
 import { ConsentGate } from './consent-gate';
 
 export interface FieldState { fieldErrors?: Record<string, string>; values?: Record<string, string> }
 const err = (s: FieldState, k: string) => s.fieldErrors?.[k];
 
+function useUsernameCheck(username: string) {
+  const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [message, setMessage] = useState('');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (timer.current) clearTimeout(timer.current);
+    if (!username || username.length < 3) { setStatus('idle'); setMessage(''); return; }
+    setStatus('checking');
+    timer.current = setTimeout(async () => {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3301/v1';
+        const r = await fetch(`${apiBase}/public/check-username?username=${encodeURIComponent(username)}`);
+        const data = await r.json();
+        setStatus(data.available ? 'available' : 'taken');
+        setMessage(data.message ?? '');
+      } catch { setStatus('idle'); }
+    }, 400);
+    return () => { if (timer.current) clearTimeout(timer.current); };
+  }, [username]);
+
+  return { status, message };
+}
+
 /** Üyelik hesabı alanları (kayıt ve koç başvurusu formlarında ortak). */
 export function AccountFields({ state }: { state: FieldState }) {
   const [username, setUsername] = useState(state.values?.username ?? '');
+  const { status, message } = useUsernameCheck(username);
   const today = new Date();
   const maxBirth = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate()).toISOString().slice(0, 10);
   return (
@@ -21,11 +46,19 @@ export function AccountFields({ state }: { state: FieldState }) {
       <div className="field">
         <label htmlFor="username">Kullanıcı adı</label>
         <input id="username" name="username" className="input" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-          minLength={3} maxLength={30} required value={username} aria-invalid={!!err(state, 'username')}
+          minLength={3} maxLength={30} required value={username} aria-invalid={!!err(state, 'username') || status === 'taken'}
           onChange={(e) => setUsername(e.currentTarget.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} />
-        {err(state, 'username')
-          ? <p className="field-error" role="alert">{err(state, 'username')}</p>
-          : <p className="field-hint">Profil adresin: <b className="text-secondary">mettlo.tr/profile/{username || 'kullaniciadi'}</b> · Girişte de bunu kullanacaksın. Yalnızca a-z, 0-9 ve _</p>}
+        {err(state, 'username') ? (
+          <p className="field-error" role="alert">{err(state, 'username')}</p>
+        ) : status === 'taken' ? (
+          <p className="field-error" role="alert" style={{ color: '#ef4444' }}>⊘ {message}</p>
+        ) : status === 'available' ? (
+          <p className="field-hint" style={{ color: '#22c55e' }}>✓ {message}</p>
+        ) : status === 'checking' ? (
+          <p className="field-hint" style={{ color: '#94a3b8' }}>Kontrol ediliyor…</p>
+        ) : (
+          <p className="field-hint">Profil adresin: <b className="text-secondary">mettlo.tr/profile/{username || 'kullaniciadi'}</b> · Yalnızca a-z, 0-9 ve _</p>
+        )}
       </div>
       <PasswordInput name="password" label="Şifre" autoComplete="new-password" required error={err(state, 'password')} hint="En az 6, en fazla 20 karakter" />
       <PasswordInput name="passwordConfirm" label="Şifre (tekrar)" autoComplete="new-password" required error={err(state, 'passwordConfirm')} />

@@ -318,6 +318,20 @@ export class MeController {
     await this.prisma.user.update({ where: { id: me.id }, data: { avatarUrl: null } });
     return { ok: true };
   }
+
+  /** BUSINESS hesapları için 1 kerelik kullanıcı adı değişikliği (admin onayı gerekmez). */
+  @Patch('username')
+  async changeUsername(@Body() body: { username: string }, @CurrentUser() me: AuthUser) {
+    if (me.role !== 'BUSINESS') throw new ForbiddenException('Yalnızca işletme hesapları kullanıcı adını değiştirebilir.');
+    const user = await this.prisma.user.findUnique({ where: { id: me.id }, select: { usernameChangedAt: true } });
+    if (user?.usernameChangedAt) throw new BadRequestException('Kullanıcı adı değiştirme hakkını daha önce kullandın. Bu hak yalnızca 1 kereliğine kullanılabilir.');
+    const newUsername = (body.username ?? '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!newUsername || !/^[a-z0-9_]{3,30}$/.test(newUsername)) throw new BadRequestException('Geçersiz kullanıcı adı formatı. Yalnızca a-z, 0-9 ve _ kullanılabilir (3-30 karakter).');
+    const taken = await this.prisma.user.findUnique({ where: { username: newUsername }, select: { id: true } });
+    if (taken) throw new BadRequestException('Bu kullanıcı adı zaten alınmış.');
+    await this.prisma.user.update({ where: { id: me.id }, data: { username: newUsername, usernameChangedAt: new Date() } });
+    return { ok: true, username: newUsername };
+  }
 }
 
 export { BadRequestException, recountSubscribers };

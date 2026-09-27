@@ -218,12 +218,31 @@ export class BusinessController {
   async updateBusiness(@Param('id') id: string, @Body() body: {
     name?: string; description?: string; shortDesc?: string;
     logoUrl?: string; coverUrl?: string; website?: string;
-    cityId?: number; districtId?: number;
+    cityId?: number; districtId?: number; phonePublic?: string;
+    businessHours?: any; fitnessBranches?: string[];
   }, @CurrentUser() me: AuthUser) {
     const ba = await this.prisma.businessAccount.findUnique({ where: { id }, select: { ownerId: true } });
     if (!ba) throw new NotFoundException();
     if (ba.ownerId !== me.id) throw new ForbiddenException();
     return this.prisma.businessAccount.update({ where: { id }, data: body as any, select: { id: true, name: true, slug: true, updatedAt: true } });
+  }
+
+  /** İşletme sahibi için 1 kerelik slug (URL) değişikliği. Admin onayı gerekmez. */
+  @Patch(':id/slug')
+  async changeSlug(@Param('id') id: string, @Body() body: { slug: string }, @CurrentUser() me: AuthUser) {
+    const ba = await this.prisma.businessAccount.findUnique({ where: { id }, select: { ownerId: true, slugChangedAt: true } });
+    if (!ba) throw new NotFoundException();
+    if (ba.ownerId !== me.id) throw new ForbiddenException();
+    if ((ba as any).slugChangedAt) throw new BadRequestException('URL değiştirme hakkını daha önce kullandın. Bu hak yalnızca 1 kereliğine kullanılabilir.');
+    const newSlug = (body.slug ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!newSlug || !/^[a-z0-9-]{3,50}$/.test(newSlug)) throw new BadRequestException('Geçersiz URL formatı. Yalnızca a-z, 0-9 ve - kullanılabilir (3-50 karakter).');
+    const taken = await this.prisma.businessAccount.findUnique({ where: { slug: newSlug }, select: { id: true } });
+    if (taken) throw new BadRequestException('Bu URL adresi zaten kullanımda.');
+    return this.prisma.businessAccount.update({
+      where: { id },
+      data: { slug: newSlug, slugChangedAt: new Date() } as any,
+      select: { id: true, name: true, slug: true },
+    });
   }
 
   // ── Şubeler ───────────────────────────────────────────────────────────────

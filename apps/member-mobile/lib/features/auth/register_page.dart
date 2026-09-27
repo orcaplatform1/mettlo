@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,13 +32,40 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _terms = false, _kvkk = false, _marketing = false, _busy = false, _submitted = false;
   String? _error;
   Map<String, String> _server = {};
+  // Username availability check
+  Timer? _usernameTimer;
+  String _usernameCheckStatus = 'idle'; // idle | checking | available | taken
+  String _usernameCheckMsg = '';
 
   @override
   void dispose() {
+    _usernameTimer?.cancel();
     for (final c in [_name, _username, _email, _phone, _pass, _pass2]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  void _onUsernameChanged(String value) {
+    _usernameTimer?.cancel();
+    if (value.length < 3) {
+      setState(() { _usernameCheckStatus = 'idle'; _usernameCheckMsg = ''; });
+      return;
+    }
+    setState(() => _usernameCheckStatus = 'checking');
+    _usernameTimer = Timer(const Duration(milliseconds: 400), () async {
+      try {
+        final client = ref.read(apiClientProvider);
+        final r = await client.get('/public/check-username?username=${Uri.encodeComponent(value)}') as Map;
+        if (!mounted) return;
+        setState(() {
+          _usernameCheckStatus = r['available'] == true ? 'available' : 'taken';
+          _usernameCheckMsg = r['message'] ?? '';
+        });
+      } catch (_) {
+        if (mounted) setState(() => _usernameCheckStatus = 'idle');
+      }
+    });
   }
 
   Future<void> _pickBirth() async {
@@ -48,6 +77,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Future<void> _submit() async {
     setState(() => _submitted = true);
     if (!_form.currentState!.validate() || Validators.birthDate(_birth) != null || !_terms || !_kvkk) return;
+    if (_usernameCheckStatus == 'taken') return;
     setState(() {
       _busy = true;
       _error = null;
@@ -95,9 +125,25 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 enableSuggestions: false,
                 maxLength: 30,
                 inputFormatters: [_UsernameFormatter()],
-                onChanged: (_) => setState(() {}),
-                validator: (v) => Validators.username(v) ?? _server['username'],
-                decoration: InputDecoration(labelText: 'Kullanıcı adı', counterText: '', helperMaxLines: 3, helperText: 'Profil adresin: mettlo.tr/profile/${_username.text.isEmpty ? 'kullaniciadi' : _username.text} · Girişte de bunu kullanacaksın'),
+                onChanged: (v) { setState(() {}); _onUsernameChanged(v); },
+                validator: (v) {
+                  if (_usernameCheckStatus == 'taken') return _usernameCheckMsg;
+                  return Validators.username(v) ?? _server['username'];
+                },
+                decoration: InputDecoration(
+                  labelText: 'Kullanıcı adı',
+                  counterText: '',
+                  helperMaxLines: 3,
+                  helperStyle: TextStyle(
+                    color: _usernameCheckStatus == 'available' ? const Color(0xFF22c55e)
+                        : _usernameCheckStatus == 'taken' ? const Color(0xFFef4444)
+                        : MettloColors.textMuted,
+                  ),
+                  helperText: _usernameCheckStatus == 'checking' ? 'Kontrol ediliyor…'
+                      : _usernameCheckStatus == 'available' ? '✓ $_usernameCheckMsg'
+                      : _usernameCheckStatus == 'taken' ? '⊘ $_usernameCheckMsg'
+                      : 'Profil adresin: mettlo.tr/profile/${_username.text.isEmpty ? 'kullaniciadi' : _username.text}',
+                ),
               ),
               const SizedBox(height: 16),
               PasswordField(controller: _pass, validator: (v) => Validators.password(v) ?? _server['password']),

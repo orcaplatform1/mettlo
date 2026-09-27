@@ -47,6 +47,8 @@ model BusinessAccount {
   followersCount     Int                       @default(0)
   ratingAvg          Decimal                   @default(0) @db.Decimal(3, 2)
   ratingCount        Int                       @default(0)
+  /// İşletme sahibi 1 kerelik slug değişikliği hakkı; dolu ise hak kullanılmış
+  slugChangedAt      DateTime?
   createdAt          DateTime                  @default(now())
   updatedAt          DateTime                  @updatedAt
 

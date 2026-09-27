@@ -29,6 +29,8 @@ model User {
   googleId           String?    @unique
   appleId            String?    @unique
   lastLoginAt        DateTime?
+  /// BUSINESS hesapları için 1 kerelik kullanıcı adı değişikliği; dolu ise hak kullanılmış
+  usernameChangedAt  DateTime?
   deletedAt          DateTime?
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
