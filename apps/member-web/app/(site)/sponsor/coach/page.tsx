@@ -129,7 +129,7 @@ export default function CoachSponsorPage() {
           Koç Profilimi Öne Çıkar <ArrowRight size={18} aria-hidden />
         </Link>
         <div style={{ marginTop: 16 }}>
-          <Link href="/sponsor/businesses" className="body-sm text-secondary" style={{ textDecoration: 'underline' }}>
+          <Link href="/sponsor/business" className="body-sm text-secondary" style={{ textDecoration: 'underline' }}>
             İşletme reklamına mı bakıyorsunuz? →
           </Link>
         </div>

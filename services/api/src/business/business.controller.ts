@@ -290,6 +290,7 @@ export class BusinessController {
     return { following: !!record };
   }
 
+  @Public()
   @Get(':id/followers')
   async listFollowers(@Param('id') id: string) {
     const rows = await this.prisma.businessFollow.findMany({

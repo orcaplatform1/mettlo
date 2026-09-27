@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
@@ -56,7 +57,7 @@ class _CoachRedirect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) Navigator.of(context).pushReplacementNamed('/coach/$username');
+      if (context.mounted) context.pushReplacement('/coach/$username');
     });
     return const Center(child: CircularProgressIndicator(color: MettloColors.primary));
   }
@@ -162,7 +163,7 @@ class _MemberBody extends ConsumerWidget {
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final c in subscribedTo)
                 GestureDetector(
-                  onTap: () => Navigator.of(context).pushNamed('/coach/${c['username']}'),
+                  onTap: () => context.push('/coach/${c['username']}'),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(color: MettloColors.surface1, borderRadius: BorderRadius.circular(20), border: Border.all(color: MettloColors.borderSoft)),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/auth/auth_controller.dart';
 
 // ── Providers ────────────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ class EarningsPage extends ConsumerWidget {
                     final activeAccount = accounts.where((a) => a['isActive'] == true && a['status'] == 'VERIFIED').firstOrNull;
                     if (activeAccount == null) {
                       return OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).pushNamed('/earnings/add-bank'),
+                        onPressed: () => launchUrl(Uri.parse('https://mettlo.tr/app/earnings/bank-account'), mode: LaunchMode.externalApplication),
                         icon: const Icon(Icons.account_balance),
                         label: const Text('Banka Hesabı Ekle'),
                       );
