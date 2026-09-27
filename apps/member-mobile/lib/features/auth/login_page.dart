@@ -41,7 +41,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       final r = await ref.read(authControllerProvider.notifier).login(_user.text, _pass.text, totp: _totp.text);
       if (r.needsTwoFactorSetup && mounted) {
-        setState(() => _error = 'Koç ve yönetim hesapları için iki adımlı doğrulama (2FA) zorunludur. Kurulumu web sitesinden (mettlo.tr) yapıp tekrar giriş yap.');
+        setState(() => _error = 'Bu hesap için iki adımlı doğrulama (2FA) zorunludur. Kurulumu web sitesinden (mettlo.tr) yapıp tekrar giriş yap.');
       }
     } on ApiException catch (e) {
       if (e.code == 'TOTP_REQUIRED') {

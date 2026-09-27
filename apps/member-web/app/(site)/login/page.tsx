@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Alert } from '@mettlo/ui';
 import { getSession, homeForRole } from '@mettlo/web-core';
 import { SocialButtons } from '@/app/components/social-buttons';
 import { LoginForm } from './login-form';
 
-export const metadata: Metadata = { title: 'Üye Girişi', robots: { index: false, follow: false }, alternates: { canonical: '/login' } };
+export const metadata: Metadata = { title: 'Giriş Yap', robots: { index: false, follow: false }, alternates: { canonical: '/login' } };
 
 const NOTICE: Record<string, string> = {
   unconfigured: 'Bu giriş yöntemi henüz etkinleştirilmedi. Şimdilik kullanıcı adı ve şifrenle giriş yapabilirsin.',
@@ -22,8 +21,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="auth-wrap">
       <div className="card card-glass auth-card">
-        <h1 className="h3">Üye / Abone Girişi</h1>
-        <p className="text-secondary body-sm" style={{ margin: '6px 0 20px' }}>Kullanıcı adın ve şifrenle giriş yap.</p>
+        <h1 className="h3">Giriş Yap</h1>
+        <p className="text-secondary body-sm" style={{ margin: '6px 0 20px' }}>Kullanıcı adın ve şifrenle devam et.</p>
         {notice && <div style={{ marginBottom: 16 }}><Alert kind="error">{notice}</Alert></div>}
         <LoginForm next={safe} />
         <div className="row" style={{ alignItems: 'center', gap: 10, margin: '16px 0 4px' }}>
@@ -32,7 +31,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <hr style={{ flex: 1, border: 0, borderTop: '1px solid var(--border-soft)' }} />
         </div>
         <SocialButtons next={safe} />
-        <p className="body-sm text-secondary" style={{ textAlign: 'center', marginTop: 20 }}>Koç veya yönetici misin? <Link href="/login/coach" className="text-coral">Koç / Yönetim Girişi →</Link></p>
       </div>
     </div>
   );
