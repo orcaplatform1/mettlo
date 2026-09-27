@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils, Megaphone, Phone, Clock, Tag, Image as ImageIcon, MessageSquare } from 'lucide-react';
 import { apiTry, getAccessToken, getSession } from '@mettlo/web-core';
 import { BusinessFollowButton } from '@/app/components/business-follow-button';
+import { BusinessFollowStats } from '@/app/components/follow-button';
 import { MessageButton } from '@/app/components/message-button';
 import { ALL_CATEGORY_TR, FOOD_CATEGORIES } from '../page';
 
@@ -140,16 +141,8 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             </div>
           </div>
 
-          {/* Takipçi + Koç sayısı — koç profiliyle aynı büyüklük/layout */}
-          <div className="row" style={{ gap: 24, marginTop: 16 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-              <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.followersCount.toLocaleString('tr-TR')}</strong>
-              <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takipçi</span>
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-              <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.followingCount.toLocaleString('tr-TR')}</strong>
-              <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takip Edilenler</span>
-            </span>
+          <div style={{ marginTop: 16 }}>
+            <BusinessFollowStats businessId={ba.id} followersCount={ba.followersCount} followingCount={ba.followingCount} />
           </div>
         </div>
       </div>

@@ -290,6 +290,19 @@ export class BusinessController {
     return { following: !!record };
   }
 
+  @Get(':id/followers')
+  async listFollowers(@Param('id') id: string) {
+    const rows = await this.prisma.businessFollow.findMany({
+      where: { businessId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: {
+        follower: { select: { id: true, username: true, name: true, avatarUrl: true } },
+      },
+    });
+    return rows.map(r => r.follower);
+  }
+
   @Post(':id/follow')
   async follow(@Param('id') id: string, @CurrentUser() me: AuthUser) {
     const ba = await this.prisma.businessAccount.findUnique({ where: { id }, select: { id: true } });

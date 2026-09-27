@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_controller.dart';
+import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
 final businessProfileProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, slug) async =>
@@ -105,7 +106,8 @@ class BusinessProfilePage extends ConsumerWidget {
 
                       const SizedBox(height: 16),
                       Row(children: [
-                        _BigStat(label: 'Takipçi', value: '${ba['followersCount'] ?? 0}'),
+                        _BigStat(label: 'Takipçi', value: '${ba['followersCount'] ?? 0}',
+                          onTap: () => _showBusinessFollowers(context, ref, ba['id'] as String, ba['followersCount'] as int? ?? 0)),
                         const SizedBox(width: 24),
                         _BigStat(label: 'Takip Edilenler', value: '${ba['followingCount'] ?? 0}'),
                         if ((ba['ratingCount'] as int? ?? 0) > 0) ...[
@@ -438,15 +440,69 @@ class _Chip extends StatelessWidget {
 }
 
 class _BigStat extends StatelessWidget {
-  const _BigStat({required this.label, required this.value});
+  const _BigStat({required this.label, required this.value, this.onTap});
   final String label;
   final String value;
+  final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
-    Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
-    const SizedBox(width: 5),
-    Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: MettloColors.textSecondary)),
-  ]);
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+      const SizedBox(width: 5),
+      Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: MettloColors.textSecondary)),
+    ]),
+  );
+}
+
+void _showBusinessFollowers(BuildContext context, WidgetRef ref, String businessId, int count) async {
+  List<dynamic>? items;
+  try {
+    items = await ref.read(apiClientProvider).get('/business/$businessId/followers', auth: false) as List<dynamic>;
+  } catch (_) {}
+
+  if (!context.mounted) return;
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => DraggableScrollableSheet(
+      initialChildSize: 0.55,
+      maxChildSize: 0.9,
+      minChildSize: 0.3,
+      expand: false,
+      builder: (_, sc) => Column(children: [
+        const SizedBox(height: 12),
+        Container(width: 40, height: 4, decoration: BoxDecoration(color: MettloColors.border, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(height: 12),
+        Text('Takipçiler ($count)', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        const SizedBox(height: 8),
+        if (items == null || items.isEmpty)
+          const Padding(padding: EdgeInsets.all(24), child: Text('Henüz takipçi yok.', style: TextStyle(color: MettloColors.textSecondary)))
+        else
+          Expanded(child: ListView.separated(
+            controller: sc,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final f = items![i] as Map<String, dynamic>;
+              final uname = f['username'] as String? ?? '';
+              return ListTile(
+                onTap: () { Navigator.pop(ctx); context.push('/profile/$uname'); },
+                leading: CircleAvatar(
+                  backgroundImage: f['avatarUrl'] != null ? NetworkImage(f['avatarUrl'] as String) : null,
+                  backgroundColor: MettloColors.primary,
+                  child: f['avatarUrl'] == null ? Text((f['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)) : null,
+                ),
+                title: Text(f['name'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: Text('@$uname', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12)),
+                contentPadding: EdgeInsets.zero,
+              );
+            },
+          )),
+      ]),
+    ),
+  );
 }
 
 String _formatDate(String iso) {

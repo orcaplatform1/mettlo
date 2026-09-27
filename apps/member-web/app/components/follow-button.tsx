@@ -171,6 +171,75 @@ export function FollowersCount({ username, count }: { username: string; count: n
   return <FollowStats username={username} followersCount={count} followingCount={0} />;
 }
 
+export function BusinessFollowStats({ businessId, followersCount, followingCount }: { businessId: string; followersCount: number; followingCount: number }) {
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<'followers' | 'following'>('followers');
+  const [followers, setFollowers] = useState<Person[] | null>(null);
+  const [loadingF, setLoadingF] = useState(false);
+
+  const openModal = (t: 'followers' | 'following') => {
+    setTab(t);
+    setOpen(true);
+    if (t === 'followers' && !followers) {
+      setLoadingF(true);
+      fetch(`/api/business/${encodeURIComponent(businessId)}/followers`)
+        .then((r) => r.json()).then((d) => setFollowers(Array.isArray(d) ? d : []))
+        .finally(() => setLoadingF(false));
+    }
+  };
+
+  const TAB_STYLE = (active: boolean): React.CSSProperties => ({
+    flex: 1, padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer',
+    fontWeight: active ? 700 : 500, fontSize: 14, color: active ? 'var(--color-text)' : 'var(--color-text-tertiary)',
+    borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+    transition: 'all .15s',
+  });
+
+  return (
+    <>
+      <div className="row" style={{ gap: 24 }}>
+        <button onClick={() => openModal('followers')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+          <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{followersCount.toLocaleString('tr-TR')}</strong>
+          <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takipçi</span>
+        </button>
+        <button onClick={() => openModal('following')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+          <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{followingCount.toLocaleString('tr-TR')}</strong>
+          <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takip Edilenler</span>
+        </button>
+      </div>
+
+      {open && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setOpen(false)}>
+          <div style={{ background: 'var(--color-bg)', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 32px 80px rgba(0,0,0,.6)' }}
+            onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0' }}>
+              <span style={{ fontWeight: 700, fontSize: 16 }}>Takipçiler</span>
+              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', display: 'grid', placeItems: 'center', padding: 4, borderRadius: '50%' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-soft)', margin: '12px 0 0', padding: '0 24px' }}>
+              <button style={TAB_STYLE(tab === 'followers')} onClick={() => { setTab('followers'); if (!followers) { setLoadingF(true); fetch(`/api/business/${encodeURIComponent(businessId)}/followers`).then(r => r.json()).then(d => setFollowers(Array.isArray(d) ? d : [])).finally(() => setLoadingF(false)); } }}>
+                {followersCount.toLocaleString('tr-TR')} Takipçi
+              </button>
+              <button style={TAB_STYLE(tab === 'following')} onClick={() => setTab('following')}>
+                {followingCount.toLocaleString('tr-TR')} Takip Edilenler
+              </button>
+            </div>
+            <div style={{ overflowY: 'auto', padding: '8px 24px 20px' }}>
+              {tab === 'followers' && <PersonList items={followers} loading={loadingF} />}
+              {tab === 'following' && <p style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: '24px 0' }}>Henüz kimse yok.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function MutualFollowBadge({ username }: { username: string }) {
   const [mutual, setMutual] = useState(false);
 

@@ -74,6 +74,7 @@ export default async function ProfilePage({ params }: Props) {
 
   if (p.type === 'staff') {
     const isFounder = p.staffRole === 'founder';
+    const staffFollowStatus = token ? await apiTry<any>(`/social/following/status/${encodeURIComponent(p.username)}`, { token }) : null;
     const STAFF_LABEL: Record<string, string> = { founder: 'Kurucu', admin: 'Yönetici', moderator: 'Topluluk Kontrolörü', support: 'Müşteri İlişkileri' };
     const STAFF_COLOR: Record<string, string> = { founder: '#ef4444', admin: '#22c55e', moderator: '#f97316', support: '#a855f7' };
     const roleLabel = STAFF_LABEL[p.staffRole] ?? 'Mettlo Ekibi';
@@ -113,6 +114,9 @@ export default async function ProfilePage({ params }: Props) {
                 <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} />
               )}
             </div>
+          </div>
+          <div className="row row-wrap" style={{ gap: 16, marginTop: 16 }}>
+            <FollowStats username={p.username} followersCount={staffFollowStatus?.followers ?? 0} followingCount={staffFollowStatus?.following ?? 0} />
           </div>
         </div>
 
