@@ -28,7 +28,10 @@ export class BusinessController {
     const where: any = { status: 'OPEN', isOpen: true };
     if (cityId) where.cityId = parseInt(cityId);
     if (districtId) where.districtId = parseInt(districtId);
-    if (category) where.category = category;
+    if (category) {
+      const cats = category.split(',').map(c => c.trim()).filter(Boolean);
+      where.category = cats.length === 1 ? cats[0] : { in: cats };
+    }
     if (q) where.name = { contains: q, mode: 'insensitive' };
 
     const [items, total] = await Promise.all([
