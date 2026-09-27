@@ -217,11 +217,15 @@ class _JobDetailPageState extends ConsumerState<JobDetailPage> {
             if (_applied)
               Container(
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(10)),
-                child: const Row(children: [
-                  Icon(Icons.check_circle, color: Colors.green),
-                  SizedBox(width: 8),
-                  Text('Başvurunuz gönderildi!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                decoration: BoxDecoration(
+                  color: MettloColors.success.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: MettloColors.success.withOpacity(0.30)),
+                ),
+                child: Row(children: [
+                  Icon(Icons.check_circle, color: MettloColors.success),
+                  const SizedBox(width: 8),
+                  Text('Başvurunuz gönderildi!', style: TextStyle(color: MettloColors.success, fontWeight: FontWeight.w600)),
                 ]),
               )
             else ...[
@@ -238,7 +242,7 @@ class _JobDetailPageState extends ConsumerState<JobDetailPage> {
               const SizedBox(height: 10),
               if (_error != null) Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                child: Text(_error!, style: TextStyle(color: MettloColors.error, fontSize: 13)),
               ),
               SizedBox(
                 width: double.infinity,
@@ -266,12 +270,23 @@ class _FilterChip extends StatelessWidget {
         onTap: onTap,
         child: Container(
           margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(
-            color: active ? MettloColors.primary : Colors.grey.shade200,
+            color: active ? MettloColors.primary.withOpacity(0.12) : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: active ? MettloColors.primary : MettloColors.borderSubtle,
+              width: 1.5,
+            ),
           ),
-          child: Text(label, style: TextStyle(fontSize: 12, color: active ? Colors.white : Colors.black87, fontWeight: active ? FontWeight.w600 : FontWeight.normal)),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: active ? MettloColors.primary : MettloColors.textSecondary,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
         ),
       );
 }

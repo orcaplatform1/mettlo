@@ -1,16 +1,22 @@
 'use client';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useTransition } from 'react';
+import { useTransition, useState, useEffect } from 'react';
+import { CustomSelect } from '@/app/components/custom-select';
 
-const WORK_MODE_TR: Record<string, string> = {
-  ONLINE: 'Online', BUSINESS: 'İşletmede', HYBRID: 'Hibrit', OUTDOOR: 'Açık Hava',
-};
+const WORK_MODES = [
+  { value: '', label: 'Hepsi' },
+  { value: 'ONLINE', label: 'Online' },
+  { value: 'BUSINESS', label: 'İşletmede' },
+  { value: 'HYBRID', label: 'Hibrit' },
+  { value: 'OUTDOOR', label: 'Açık Hava' },
+];
 
 export function JobFilters({ cities, cityId, workMode }: { cities: any[]; cityId?: string; workMode?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
   const [, start] = useTransition();
+  const [city, setCity] = useState(cityId ?? '');
 
   const update = (key: string, val: string) => {
     start(() => {
@@ -21,22 +27,42 @@ export function JobFilters({ cities, cityId, workMode }: { cities: any[]; cityId
     });
   };
 
+  useEffect(() => { setCity(cityId ?? ''); }, [cityId]);
+
   return (
-    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
-      <div className="field" style={{ margin: 0, minWidth: 160 }}>
-        <label className="caption text-secondary" htmlFor="wm-filter" style={{ display: 'block', marginBottom: 4 }}>Çalışma Şekli</label>
-        <select id="wm-filter" className="select" value={workMode ?? ''} onChange={(e) => update('workMode', e.target.value)}>
-          <option value="">Tüm Modlar</option>
-          {Object.entries(WORK_MODE_TR).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
+      {/* Çalışma türü — chip butonlar */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {WORK_MODES.map(m => {
+          const active = (workMode ?? '') === m.value;
+          return (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => update('workMode', m.value)}
+              style={{
+                padding: '7px 16px', borderRadius: 20, fontSize: 13, cursor: 'pointer', fontWeight: active ? 700 : 500,
+                border: `1.5px solid ${active ? 'var(--color-primary)' : 'var(--border-subtle)'}`,
+                background: active ? 'rgba(249,115,22,0.12)' : 'transparent',
+                color: active ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                transition: 'all 0.12s',
+              }}
+            >
+              {m.label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Şehir filtresi */}
       {cities.length > 0 && (
-        <div className="field" style={{ margin: 0, minWidth: 180 }}>
-          <label className="caption text-secondary" htmlFor="city-filter" style={{ display: 'block', marginBottom: 4 }}>Şehir</label>
-          <select id="city-filter" className="select" value={cityId ?? ''} onChange={(e) => update('cityId', e.target.value)}>
-            <option value="">Tüm Şehirler</option>
-            {cities.map((c: any) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
-          </select>
+        <div style={{ maxWidth: 220 }}>
+          <CustomSelect
+            options={[{ value: '', label: 'Tüm Şehirler' }, ...cities.map((c: any) => ({ value: String(c.id), label: c.name }))]}
+            value={city}
+            onChange={v => { setCity(v); update('cityId', v); }}
+            placeholder="Tüm Şehirler"
+          />
         </div>
       )}
     </div>

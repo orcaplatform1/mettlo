@@ -6,6 +6,7 @@ import { PageHead, Pagination, pageOf, qs, LIMIT } from '@/app/components/list';
 import { getBusinesses, getCities } from '@/app/lib/data';
 import { AdBanner } from '@/app/components/ad-banner';
 import { BusinessCard, FOOD_CATEGORY_TR, FOOD_CATEGORIES, ALL_CATEGORY_TR } from '../business/page';
+import { CityFilter } from '@/app/components/city-filter';
 
 type Props = { searchParams: Promise<{ q?: string; category?: string; cityId?: string; page?: string }> };
 
@@ -57,15 +58,9 @@ export default async function RestaurantsPage({ searchParams }: Props) {
             <button className="btn btn-primary btn-sm" type="submit">Ara</button>
           </form>
 
-          <form method="get" action="/restaurants">
-            {sp.q && <input type="hidden" name="q" value={sp.q} />}
-            {sp.category && <input type="hidden" name="category" value={sp.category} />}
-            <select name="cityId" className="input" style={{ minWidth: 140 }} defaultValue={sp.cityId ?? ''}>
-              <option value="">Tüm İller</option>
-              {cityList.map((c: any) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
-            </select>
-            <noscript><button type="submit">Uygula</button></noscript>
-          </form>
+          <div style={{ minWidth: 180 }}>
+            <CityFilter cities={cityList} cityId={sp.cityId} />
+          </div>
         </div>
 
         <div className="row row-wrap" style={{ gap: 6, marginBottom: 24 }}>

@@ -5,6 +5,7 @@ import { EmptyState } from '@mettlo/ui';
 import { PageHead, Pagination, pageOf, qs, LIMIT } from '@/app/components/list';
 import { getBusinesses, getCities } from '@/app/lib/data';
 import { AdBanner } from '@/app/components/ad-banner';
+import { CityFilter } from '@/app/components/city-filter';
 
 export const CATEGORY_TR: Record<string, string> = {
   FITNESS_GYM: 'Spor Salonu', PILATES_STUDIO: 'Pilates', YOGA_STUDIO: 'Yoga', DANCE_STUDIO: 'Dans',
@@ -72,15 +73,9 @@ export default async function BusinessListPage({ searchParams }: Props) {
             <button className="btn btn-primary btn-sm" type="submit">Ara</button>
           </form>
 
-          <form method="get" action="/business">
-            {sp.q && <input type="hidden" name="q" value={sp.q} />}
-            {sp.category && <input type="hidden" name="category" value={sp.category} />}
-            <select name="cityId" className="input" style={{ minWidth: 140 }} defaultValue={sp.cityId ?? ''}>
-              <option value="">Tüm İller</option>
-              {cityList.map((c: any) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
-            </select>
-            <noscript><button type="submit">Uygula</button></noscript>
-          </form>
+          <div style={{ minWidth: 180 }}>
+            <CityFilter cities={cityList} cityId={sp.cityId} />
+          </div>
         </div>
 
         <div className="row row-wrap" style={{ gap: 6, marginBottom: 24 }}>
