@@ -21,7 +21,7 @@ export function EventRegisterButton({ eventId, slug, isFree, priceKurus }: Props
 
   const handleRegister = async () => {
     if (!isFree) {
-      router.push(`/checkout/event/${slug}`);
+      router.push(`/checkout/event-checkout/${slug}`);
       return;
     }
     setLoading(true);

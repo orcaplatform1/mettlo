@@ -41,6 +41,7 @@ export class BusinessController {
           id: true, name: true, slug: true, category: true, shortDesc: true,
           logoUrl: true, coverUrl: true, verificationStatus: true,
           followersCount: true, ratingAvg: true, ratingCount: true,
+          businessHours: true,
           city: { select: { id: true, name: true } },
           district: { select: { id: true, name: true } },
         },

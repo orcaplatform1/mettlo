@@ -64,7 +64,8 @@ Color _openStatusColor(String? status) {
 }
 
 class BusinessListPage extends ConsumerStatefulWidget {
-  const BusinessListPage({super.key});
+  const BusinessListPage({super.key, this.initialCategory = ''});
+  final String initialCategory;
 
   @override
   ConsumerState<BusinessListPage> createState() => _BusinessListPageState();
@@ -73,7 +74,7 @@ class BusinessListPage extends ConsumerStatefulWidget {
 class _BusinessListPageState extends ConsumerState<BusinessListPage> {
   final _searchCtrl = TextEditingController();
   String _query = '';
-  String _category = '';
+  late String _category = widget.initialCategory;
   String _cityId = '';
 
   @override

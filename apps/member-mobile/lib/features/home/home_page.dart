@@ -100,6 +100,7 @@ class HomePage extends ConsumerWidget {
           _Quick(Icons.event_outlined, 'Etkinlikler', () => context.push('/events')),
           _Quick(Icons.work_outline, 'İş İlanları', () => context.push('/jobs')),
           _Quick(Icons.store_outlined, 'İşletmeler', () => context.push('/business')),
+          _Quick(Icons.restaurant_menu_outlined, 'Restoranlar', () => context.push('/restaurants')),
           _Quick(Icons.psychology_outlined, 'AI Eşleştirme', () => context.push('/ai/matching')),
         ]),
         const SectionTitle('Hızlı erişim'),

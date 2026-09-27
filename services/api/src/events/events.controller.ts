@@ -32,7 +32,11 @@ export class PublicEventsController {
     const [items, total] = await Promise.all([
       this.prisma.event.findMany({
         where,
-        include: { organizer: { select: { name: true, username: true, avatarUrl: true } }, business: { select: { name: true, slug: true } } },
+        include: {
+          organizer: { select: { name: true, username: true, avatarUrl: true, creatorProfile: { select: { displayName: true, verified: true } } } },
+          business: { select: { name: true, slug: true, logoUrl: true, verificationStatus: true } },
+          city: { select: { name: true } },
+        },
         orderBy: { startsAt: 'asc' },
         skip,
         take: Number(limit ?? 20),

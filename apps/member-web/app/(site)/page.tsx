@@ -204,21 +204,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ---------- TOPLULUK ---------- */}
-      <section className="section-sm" aria-labelledby="community-title">
-        <div className="container">
-          <div className="section-head">
-            <div><span className="overline">TOPLULUK</span><h2 id="community-title" className="h2">Yalnız Değilsin</h2></div>
-            <Link href="/community" className="btn btn-secondary btn-pill btn-sm">Topluluğu Keşfet <ArrowRight size={16} aria-hidden /></Link>
-          </div>
-          <div className="grid grid-3">
-            {[[Trophy, 'Challenge\'lar', '7, 14 ve 30 günlük challenge\'larla toplulukla birlikte ilerle.', '/challenges'], [MessageSquare, 'Koç toplulukları', 'Abone olduğun koçun özel topluluğunda soru sor, deneyim paylaş.', '/community'], [Radio, 'Canlı dersler', 'Koçlarınla gerçek zamanlı derslere katıl, sorularını anında sor.', '/live']].map(([I, t, d, h]: any) => (
-              <Link key={t} href={h} className="card card-hover"><I size={26} className="text-coral" aria-hidden /><h3 className="h5" style={{ margin: '14px 0 6px' }}>{t}</h3><p className="body-sm text-secondary">{d}</p></Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ---------- MAĞAZA ---------- */}
       <section className="section-sm" aria-labelledby="store-title">
         <div className="container">
