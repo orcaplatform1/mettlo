@@ -65,6 +65,21 @@ export class SocialController {
     return rows.map((r) => ({ ...r.follower, followedAt: r.createdAt }));
   }
 
+  /** Koçun takip ettiği kişileri listele (profil sayfası popup) */
+  @Public()
+  @Get('following/:username')
+  async userFollowing(@Param('username') username: string) {
+    const user = await this.prisma.user.findFirst({ where: { username: username.toLowerCase() }, select: { id: true } });
+    if (!user) throw new NotFoundException();
+    const rows = await this.prisma.follow.findMany({
+      where: { followerId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: { creator: { select: { username: true, name: true, avatarUrl: true, creatorProfile: { select: { displayName: true } } } }, createdAt: true },
+    });
+    return rows.map((r) => ({ username: r.creator.username, name: r.creator.creatorProfile?.displayName ?? r.creator.name, avatarUrl: r.creator.avatarUrl, followedAt: r.createdAt }));
+  }
+
   /** Ortak takipler: ben de seni, sen de beni takip ediyor muyuz */
   @Get('mutual/:username')
   async mutual(@CurrentUser() me: AuthUser, @Param('username') username: string) {
@@ -147,7 +162,7 @@ export class SocialController {
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
       destination: (req, file, cb) => {
-        const dir = join(process.cwd(), '../../public/uploads/stories');
+        const dir = join(process.cwd(), '../../uploads/stories');
         if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
         cb(null, dir);
       },

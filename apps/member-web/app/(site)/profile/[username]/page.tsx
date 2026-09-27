@@ -17,7 +17,8 @@ import { BookButton } from '@/app/components/book-button';
 import { ReportButton } from '@/app/components/report-button';
 import { BlockButton } from '@/app/components/block-button';
 import { ReviewReplyButton } from '@/app/components/review-reply-button';
-import { FollowButton, FollowersCount, MutualFollowBadge } from '@/app/components/follow-button';
+import { FollowButton, FollowStats, MutualFollowBadge } from '@/app/components/follow-button';
+import { ProfileStories } from '@/app/components/stories';
 import { fmtHours, formatTenure } from '@/app/lib/format';
 
 type Props = { params: Promise<{ username: string }> };
@@ -230,29 +231,19 @@ export default async function ProfilePage({ params }: Props) {
             ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.coverUrl} alt="" />
             : <div style={{ width: '100%', height: '100%', background: 'var(--gradient-sunrise-dark)' }} />}
           {isOwn && (
-            <Link href="/creator/profile" className="btn btn-secondary btn-sm row" style={{ position: 'absolute', bottom: 12, right: 16, gap: 6, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,.45)', border: '1px solid rgba(255,255,255,.15)', zIndex: 2 }}>
-              <Camera size={14} aria-hidden /> Kapağı Düzenle
+            <Link href="/creator/profile" className="btn btn-secondary btn-sm row" style={{ position: 'absolute', bottom: 8, right: 10, gap: 5, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,.45)', border: '1px solid rgba(255,255,255,.15)', zIndex: 2, fontSize: 11, height: 30, paddingInline: 10 }}>
+              <Camera size={12} aria-hidden /> Kapağı Düzenle
             </Link>
           )}
         </div>
         <div className="container">
+          {/* Yalnızca avatar + butonlar kapak içinde/üzerinde kalıyor */}
           <div className="profile-head">
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <AvatarPopup name={p.displayName} src={p.avatarUrl} size={112} className="avatar-lg" />
               {p.verified && <span style={{ position: 'absolute', bottom: 4, right: 4 }}><VerifiedBadge size={22} /></span>}
             </div>
-            <div style={{ flex: 1, minWidth: 240, paddingBottom: 8 }}>
-              <h1 className="h2 row" style={{ gap: 8 }}>{p.displayName}<OnlineStatus username={p.username} label size={11} /></h1>
-              <p className="text-tertiary">@{p.username}</p>
-              {p.headline && <p className="text-secondary" style={{ marginTop: 6 }}>{p.headline}</p>}
-              {p.subCategories?.length > 0 && <div className="row row-wrap" style={{ marginTop: 10, gap: 6 }}>{p.subCategories.map((x: any) => <Link key={x.slug} href={`/coaches?branch=${p.branches?.[0]?.slug ?? ''}&sub=${x.slug}`} prefetch={false} className="badge badge-premium" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10, display: 'block' }}>{x.name}</Link>)}</div>}
-              <div className="row row-wrap" style={{ marginTop: 12, gap: 8 }}>
-                <TenureBadge badge={st.tenureBadge} />
-                {st.experienceYears && <span className="badge"><GraduationCap size={12} aria-hidden /> {st.experienceYears} yıldır eğitmen</span>}
-                <span className="badge"><Award size={12} aria-hidden /> Mettlo&apos;da {formatTenure(st.monthsOnMettlo)}</span>
-              </div>
-            </div>
-            <div className="row row-wrap" style={{ paddingBottom: 8, gap: 10 }}>
+            <div className="row row-wrap" style={{ marginLeft: 'auto', paddingBottom: 8, gap: 10 }}>
               <CoachInboxButton username={p.username} data={admin} />
               {!isOwn && session && <MessageButton username={p.username} subscribeHref={subscribeHref(p.plans[0]?.id)} />}
               {!isOwn && session && !isStaff && <FollowButton username={p.username} initialFollowing={followStatus?.isFollowing ?? false} />}
@@ -263,20 +254,34 @@ export default async function ProfilePage({ params }: Props) {
                 </>
               )}
               {isOwn
-                ? <Link href="/creator/profile" className="btn btn-secondary btn-pill" style={{ height: 52, paddingInline: 28 }}>Profili Düzenle</Link>
+                ? <Link href="/creator/profile" className="btn btn-secondary btn-pill btn-sm">Profili Düzenle</Link>
                 : isStaff
                   ? null
-                  : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 52, paddingInline: 32 }}>Abone Ol</a>}
+                  : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-primary btn-pill" style={{ height: 44, paddingInline: 28 }}>Abone Ol</a>}
+            </div>
+          </div>
+          {/* Ad, kullanıcı adı, çevrimiçi durumu — kapağın dışında, altında */}
+          <div style={{ marginTop: 14 }}>
+            <h1 className="h2 row" style={{ gap: 8, flexWrap: 'wrap' }}>{p.displayName}<OnlineStatus username={p.username} label size={11} /></h1>
+            <p className="text-tertiary" style={{ marginTop: 2 }}>@{p.username}</p>
+            {p.headline && <p className="text-secondary" style={{ marginTop: 6 }}>{p.headline}</p>}
+            {p.subCategories?.length > 0 && <div className="row row-wrap" style={{ marginTop: 10, gap: 6 }}>{p.subCategories.map((x: any) => <Link key={x.slug} href={`/coaches?branch=${p.branches?.[0]?.slug ?? ''}&sub=${x.slug}`} prefetch={false} className="badge badge-premium" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10, display: 'block' }}>{x.name}</Link>)}</div>}
+            <div className="row row-wrap" style={{ marginTop: 12, gap: 8 }}>
+              <TenureBadge badge={st.tenureBadge} />
+              {st.experienceYears && <span className="badge"><GraduationCap size={12} aria-hidden /> {st.experienceYears} yıldır eğitmen</span>}
+              <span className="badge"><Award size={12} aria-hidden /> Mettlo&apos;da {formatTenure(st.monthsOnMettlo)}</span>
             </div>
           </div>
         </div>
       </div>
 
       <div className="container" style={{ paddingBlock: 32 }}>
-        {/* Ziyaretçi ve abone olmayanlar yalnızca özet bilgileri görür; içeriğin kendisini değil */}
-        {/* Takipçi sayısı ve karşılıklı takip */}
+        {/* Stories */}
+        <ProfileStories username={p.username} isOwn={isOwn} />
+
+        {/* Takipçi / Takip sayıları ve karşılıklı takip */}
         <div className="row row-wrap" style={{ gap: 16, marginBottom: 16 }}>
-          <FollowersCount username={p.username} count={followersCount} />
+          <FollowStats username={p.username} followersCount={followersCount} followingCount={st.following ?? 0} />
           {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
         </div>
 

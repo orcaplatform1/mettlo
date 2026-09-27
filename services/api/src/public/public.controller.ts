@@ -96,7 +96,7 @@ export class PublicController {
     if (u.role === 'CREATOR' && u.creatorProfile?.status === 'ACTIVE' && u.creatorProfile.isPublic) {
       const cid = u.id;
       const pubContent = { creatorId: cid, status: 'PUBLISHED' as const };
-      const [plans, programs, challenges, lives, reviews, endedLives, videoContents, contentGroups, workoutCount, ratingGroups, credentials] = await Promise.all([
+      const [plans, programs, challenges, lives, reviews, endedLives, videoContents, contentGroups, workoutCount, ratingGroups, credentials, followingCount] = await Promise.all([
         this.prisma.subscriptionPlan.findMany({
           where: { creatorId: cid, isActive: true }, orderBy: { priceWeb: 'asc' },
           select: { id: true, name: true, description: true, priceWeb: true, interval: true, features: true, isPremiumLive: true },
@@ -120,6 +120,7 @@ export class PublicController {
         this.prisma.workout.count({ where: { creatorId: cid, status: 'PUBLISHED' } }),
         this.prisma.review.groupBy({ by: ['rating'], where: { targetType: 'CREATOR', targetId: cid, status: 'PUBLISHED' }, _count: { _all: true } }),
         this.prisma.creatorVerification.findMany({ where: { creator: { userId: cid }, status: 'APPROVED', NOT: { credential: 'application' } }, select: { credential: true } }),
+        this.prisma.follow.count({ where: { followerId: cid } }),
       ]);
 
       // Canlı ders toplam saati: gerçek başlangıç-bitiş varsa onu, yoksa planlanan süreyi kullan
@@ -153,7 +154,7 @@ export class PublicController {
           videoCount: videoContents.length, videoHours: one((videoAgg?._sum.durationSec ?? 0) / 3600),
           contentTotal: contentOnly + programs.length + workoutCount,
           contents, programs: programs.length, workouts: workoutCount, challenges: challenges.length,
-          subscribers: p.subscribersCount, followers: p.followersCount,
+          subscribers: p.subscribersCount, followers: p.followersCount, following: followingCount,
           ratingAvg: p.ratingAvg, ratingCount: p.ratingCount, ratingDistribution: distribution,
           experienceYears: careerStartYear ? Math.max(1, nowYear - careerStartYear) : null, careerStartYear,
           memberSince: since, monthsOnMettlo,

@@ -17,7 +17,7 @@ export function AvatarUpload({ name, currentAvatar }: { name: string; currentAva
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/me/avatar', { method: 'POST', body: fd });
+      const res = await fetch('/creator/api/me/avatar', { method: 'POST', body: fd });
       if (!res.ok) { const j = await res.json().catch(() => ({})); setErr(j.message || 'Yükleme başarısız.'); return; }
       const { avatarUrl } = await res.json();
       setPreview(avatarUrl);
@@ -29,7 +29,7 @@ export function AvatarUpload({ name, currentAvatar }: { name: string; currentAva
     if (!window.confirm('Profil fotoğrafını kaldırmak istediğine emin misin?')) return;
     setUploading(true);
     try {
-      const res = await fetch('/api/me/avatar', { method: 'DELETE' });
+      const res = await fetch('/creator/api/me/avatar', { method: 'DELETE' });
       if (!res.ok) { setErr('Silinemedi.'); return; }
       setPreview(null);
     } catch { setErr('Bağlantı hatası.'); }

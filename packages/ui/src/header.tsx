@@ -2,10 +2,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowRight, Menu, Search, X } from 'lucide-react';
+import { ArrowRight, Bell, Menu, MessageSquare, Search, X } from 'lucide-react';
 import { Logo } from './logo';
+import { Avatar } from './avatar';
 
-export interface HeaderUser { username: string; name: string; role: string }
+export interface HeaderUser { username: string; name: string; role: string; avatarUrl?: string | null }
 
 const NAV = [
   { href: '/explore', label: 'Keşfet' },
@@ -31,6 +32,7 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [counts, setCounts] = useState<{ unreadMessages: number; unreadNotifications: number } | null>(null);
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -39,6 +41,18 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
     return () => window.removeEventListener('scroll', on);
   }, []);
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = () =>
+      fetch('/api/badge-counts', { credentials: 'include' })
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => d && setCounts(d))
+        .catch(() => {});
+    load();
+    const t = setInterval(load, 30_000);
+    return () => clearInterval(t);
+  }, [user]);
 
   return (
     <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
@@ -56,8 +70,21 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
           </form>
           {user ? (
             <>
-              <Link className="btn btn-secondary btn-pill" href={`/profile/${user.username}`}>@{user.username}</Link>
-              <Link className="btn btn-primary btn-pill" href={panelHref ?? '/app'}>Panelim <ArrowRight size={16} aria-hidden /></Link>
+              <Link className="btn btn-primary btn-pill" href={panelHref ?? '/app'} style={{ fontSize: 13 }}>Panelim <ArrowRight size={16} aria-hidden /></Link>
+              {/* Bildirim */}
+              <a href="/app/notifications" aria-label="Bildirimler" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: 10, color: (counts?.unreadNotifications ?? 0) > 0 ? 'var(--color-primary)' : 'var(--color-text-secondary)', background: (counts?.unreadNotifications ?? 0) > 0 ? 'rgba(249,115,22,.12)' : 'transparent', textDecoration: 'none', flexShrink: 0 }}>
+                <Bell size={20} />
+                {(counts?.unreadNotifications ?? 0) > 0 && <span style={{ position: 'absolute', top: 2, right: 2, background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 800, lineHeight: 1, minWidth: 16, height: 16, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{counts!.unreadNotifications > 99 ? '99+' : counts!.unreadNotifications}</span>}
+              </a>
+              {/* Mesaj */}
+              <a href="/app/messages" aria-label="Mesajlar" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: 10, color: (counts?.unreadMessages ?? 0) > 0 ? 'var(--color-primary)' : 'var(--color-text-secondary)', background: (counts?.unreadMessages ?? 0) > 0 ? 'rgba(249,115,22,.12)' : 'transparent', textDecoration: 'none', flexShrink: 0 }}>
+                <MessageSquare size={20} />
+                {(counts?.unreadMessages ?? 0) > 0 && <span style={{ position: 'absolute', top: 2, right: 2, background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 800, lineHeight: 1, minWidth: 16, height: 16, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{counts!.unreadMessages > 99 ? '99+' : counts!.unreadMessages}</span>}
+              </a>
+              {/* Avatar */}
+              <a href={`/profile/${user.username}`} aria-label="Profilim" style={{ flexShrink: 0, borderRadius: '50%', display: 'block', lineHeight: 0 }}>
+                <Avatar name={user.name} src={user.avatarUrl ?? null} size={32} />
+              </a>
             </>
           ) : (
             <>

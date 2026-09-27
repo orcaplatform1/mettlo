@@ -16,7 +16,7 @@ export function CoverUpload({ currentCover }: { currentCover: string | null }) {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/creators/me/cover', { method: 'POST', body: fd });
+      const res = await fetch('/creator/api/creators/me/cover', { method: 'POST', body: fd });
       if (!res.ok) { const j = await res.json().catch(() => ({})); setErr(j.message || 'Yükleme başarısız.'); return; }
       const { coverUrl } = await res.json();
       setPreview(coverUrl);
@@ -28,7 +28,7 @@ export function CoverUpload({ currentCover }: { currentCover: string | null }) {
     if (!window.confirm('Kapak fotoğrafını kaldırmak istediğine emin misin?')) return;
     setUploading(true);
     try {
-      const res = await fetch('/api/creators/me/cover', { method: 'DELETE' });
+      const res = await fetch('/creator/api/creators/me/cover', { method: 'DELETE' });
       if (!res.ok) { setErr('Silinemedi.'); return; }
       setPreview(null);
     } catch { setErr('Bağlantı hatası.'); }

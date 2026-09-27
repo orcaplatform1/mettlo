@@ -135,7 +135,7 @@ a.card:hover, .card-hover:hover { transform: translateY(-2px); border-color: var
 .card-glass { background: rgba(17,24,39,.68); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); box-shadow: 0 12px 40px rgba(0,0,0,.18); border-radius: var(--radius-xl); }
 .badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: rgba(255,255,255,.06); color: var(--color-text-secondary); border: 1px solid var(--border-subtle); }
 .badge-live { background: rgba(249,115,22,.16); color: var(--color-primary); border-color: rgba(249,115,22,.35); }
-.badge-premium { background: rgba(236,72,153,.14); color: var(--color-accent); border-color: rgba(236,72,153,.35); }
+.badge-premium { background: linear-gradient(135deg, rgba(236,72,153,.28), rgba(168,85,247,.22)); color: #f472b6; border-color: rgba(236,72,153,.55); box-shadow: 0 0 8px rgba(236,72,153,.2); }
 .badge-founder { background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(220,38,38,.12)); color: #f87171; border-color: rgba(239,68,68,.4); }
 .badge-admin { background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(99,102,241,.12)); color: #93c5fd; border-color: rgba(59,130,246,.4); }
 .badge-gold { background: var(--color-highlight); color: #0B1220; border-color: transparent; }

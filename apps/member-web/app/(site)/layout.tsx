@@ -6,7 +6,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const session = await getSession();
   return (
     <>
-      <SiteHeader user={session ? { username: session.username, name: session.name, role: session.role } : null} panelHref={session ? homeForRole(session.role) : undefined} />
+      <SiteHeader user={session ? { username: session.username, name: session.name, role: session.role, avatarUrl: session.avatarUrl ?? null } : null} panelHref={session ? homeForRole(session.role) : undefined} />
       <main id="main">{children}</main>
       <SiteFooter />
     </>
