@@ -115,7 +115,7 @@ class _HamburgerMenuPage extends ConsumerWidget {
                       color: MettloColors.error,
                       onTap: () {
                         Navigator.of(context).pop();
-                        ref.read(authControllerProvider.notifier).signOut();
+                        ref.read(authControllerProvider.notifier).logout();
                       },
                     ),
                   ],
