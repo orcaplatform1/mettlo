@@ -51,6 +51,16 @@ export class MeController {
     return this.prisma.notification.findMany({ where: { userId: me.id }, orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, type: true, title: true, body: true, data: true, readAt: true, createdAt: true } });
   }
 
+  @Post('fcm-token')
+  async saveFcmToken(@CurrentUser() me: AuthUser, @Body() body: { token: string }, @Req() req: AuthedRequest) {
+    if (!body?.token) return { ok: false };
+    const sessionId = (req as any).sessionId as string | undefined;
+    if (sessionId) {
+      await this.prisma.device.updateMany({ where: { sessions: { some: { id: sessionId } } }, data: { pushToken: body.token } });
+    }
+    return { ok: true };
+  }
+
   @Post('notifications/read')
   async readAll(@CurrentUser() me: AuthUser) {
     const r = await this.prisma.notification.updateMany({ where: { userId: me.id, readAt: null }, data: { readAt: new Date() } });

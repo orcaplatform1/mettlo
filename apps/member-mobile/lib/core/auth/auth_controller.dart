@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../network/api_client.dart';
+import '../notifications/fcm_service.dart';
 import 'token_store.dart';
 
 enum AuthStatus { unknown, signedOut, signedIn }
@@ -60,6 +61,7 @@ class AuthController extends Notifier<AuthState> {
     try {
       final me = await _api.get('/auth/me') as Map<String, dynamic>;
       state = AuthState(AuthStatus.signedIn, SessionUser.fromJson(me));
+      FcmService.init(ref).ignore();
     } on ApiException catch (e) {
       if (e.isUnauthorized || e.status == 403) await _tokens.clear();
       state = const AuthState(AuthStatus.signedOut);

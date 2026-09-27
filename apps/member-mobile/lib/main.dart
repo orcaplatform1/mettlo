@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'core/notifications/fcm_service.dart';
 import 'core/presence/presence.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/theme.dart';
@@ -11,6 +13,7 @@ import 'core/theme/tokens.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('tr');
+  await Firebase.initializeApp();
   runApp(const ProviderScope(child: MettloApp()));
 }
 
