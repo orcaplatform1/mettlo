@@ -2,7 +2,7 @@ name: Android APK Build
 
 on:
   push:
-    branches: [master]
+    branches: [main, master]
     paths:
       - 'apps/member-mobile/**'
       - '.github/workflows/android.yml'
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build APK
+    name: Build & Deploy APK
     runs-on: ubuntu-latest
 
     steps:
@@ -34,13 +34,23 @@ jobs:
         working-directory: apps/member-mobile
         run: flutter pub get
 
-      - name: Build APK (debug)
+      - name: Build APK (release)
         working-directory: apps/member-mobile
-        run: flutter build apk --debug
+        run: flutter build apk --release
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: mettlo-android-${{ github.run_number }}
-          path: apps/member-mobile/build/app/outputs/flutter-apk/app-debug.apk
+          path: apps/member-mobile/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
+      - name: Deploy APK to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: apps/member-mobile/build/app/outputs/flutter-apk/app-release.apk
+          target: /var/www/mettlo.tr/apps/member-web/public/mettlo.apk
+          strip_components: 6
