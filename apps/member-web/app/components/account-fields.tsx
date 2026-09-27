@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { PasswordInput, PhoneInput, DateField } from '@mettlo/ui';
 import { ConsentGate } from './consent-gate';
+import { CustomSelect } from './custom-select';
 
 export interface FieldState { fieldErrors?: Record<string, string>; values?: Record<string, string> }
 const err = (s: FieldState, k: string) => s.fieldErrors?.[k];
@@ -84,12 +85,14 @@ function CityDistrictFields({ state }: { state: FieldState }) {
   const [cities, setCities] = useState<Array<{ id: number; name: string }>>([]);
   const [districts, setDistricts] = useState<Array<{ id: number; name: string }>>([]);
   const [cityId, setCityId] = useState('');
+  const [districtId, setDistrictId] = useState('');
 
   useEffect(() => {
     fetch('/v1/location/cities').then(r => r.json()).then(setCities).catch(() => {});
   }, []);
 
   useEffect(() => {
+    setDistrictId('');
     if (!cityId) { setDistricts([]); return; }
     fetch(`/v1/location/districts/${cityId}`).then(r => r.json()).then(setDistricts).catch(() => {});
   }, [cityId]);
@@ -99,20 +102,26 @@ function CityDistrictFields({ state }: { state: FieldState }) {
   return (
     <div className="row" style={{ gap: 12 }}>
       <div className="field" style={{ flex: 1 }}>
-        <label htmlFor="cityId">Şehir</label>
-        <select id="cityId" name="cityId" className="input" value={cityId} onChange={e => { setCityId(e.target.value); }} aria-invalid={!!err(state, 'cityId')}>
-          <option value="">Seçin</option>
-          {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <label>Şehir</label>
+        <CustomSelect
+          name="cityId"
+          options={cities.map(c => ({ value: String(c.id), label: c.name }))}
+          value={cityId}
+          onChange={v => setCityId(v)}
+          placeholder="Şehir seçin"
+        />
         {err(state, 'cityId') && <p className="field-error" role="alert">{err(state, 'cityId')}</p>}
       </div>
       {districts.length > 0 && (
         <div className="field" style={{ flex: 1 }}>
-          <label htmlFor="districtId">İlçe</label>
-          <select id="districtId" name="districtId" className="input" aria-invalid={!!err(state, 'districtId')}>
-            <option value="">Seçin</option>
-            {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
+          <label>İlçe</label>
+          <CustomSelect
+            name="districtId"
+            options={districts.map(d => ({ value: String(d.id), label: d.name }))}
+            value={districtId}
+            onChange={v => setDistrictId(v)}
+            placeholder="İlçe seçin"
+          />
         </div>
       )}
     </div>

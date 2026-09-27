@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Upload, Store, UtensilsCrossed, ChevronRight, ChevronLeft } from 'lucide-react';
+import { CustomSelect } from '@/app/components/custom-select';
 
 const FITNESS_CATEGORIES: { value: string; label: string }[] = [
   { value: 'FITNESS_GYM', label: 'Fitness / Spor Salonu' },
@@ -83,6 +84,7 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
   const [cities, setCities] = useState<{ id: number; name: string }[]>([]);
   const [districts, setDistricts] = useState<{ id: number; name: string }[]>([]);
   const [cityId, setCityId] = useState('');
+  const [districtId, setDistrictId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -134,7 +136,7 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
           website: fd.get('website') || undefined,
           phonePublic: fd.get('phonePublic') || undefined,
           cityId: cityId ? parseInt(cityId) : undefined,
-          districtId: fd.get('districtId') ? parseInt(fd.get('districtId') as string) : undefined,
+          districtId: districtId ? parseInt(districtId) : undefined,
         }),
       });
       if (!createRes.ok) { const d = await createRes.json(); throw new Error(d.message ?? 'İşletme oluşturulamadı.'); }
@@ -291,21 +293,28 @@ export function BusinessApplyForm({ userId }: { userId: string }) {
         </div>
 
         {/* Şehir / İlçe */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: districts.length > 0 ? '1fr 1fr' : '1fr', gap: 12 }}>
           <div className="field">
-            <label htmlFor="ba-city">Şehir <span style={{ color: '#ef4444' }}>*</span></label>
-            <select id="ba-city" name="cityId" className="input" required value={cityId} onChange={e => setCityId(e.target.value)}>
-              <option value="">Seçin</option>
-              {cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <label>Şehir <span style={{ color: '#ef4444' }}>*</span></label>
+            <CustomSelect
+              name="cityId"
+              options={cities.map(c => ({ value: String(c.id), label: c.name }))}
+              value={cityId}
+              onChange={v => { setCityId(v); setDistrictId(''); }}
+              placeholder="Şehir seçin"
+              required
+            />
           </div>
           {districts.length > 0 && (
             <div className="field">
-              <label htmlFor="ba-district">İlçe</label>
-              <select id="ba-district" name="districtId" className="input">
-                <option value="">Seçin</option>
-                {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
+              <label>İlçe</label>
+              <CustomSelect
+                name="districtId"
+                options={districts.map(d => ({ value: String(d.id), label: d.name }))}
+                value={districtId}
+                onChange={v => setDistrictId(v)}
+                placeholder="İlçe seçin"
+              />
             </div>
           )}
         </div>
