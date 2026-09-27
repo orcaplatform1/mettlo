@@ -51,7 +51,7 @@ class CartNotifier extends Notifier<List<Map<String, dynamic>>> {
 }
 
 final cartProvider = NotifierProvider.autoDispose.family<CartNotifier, List<Map<String, dynamic>>, String>(
-  CartNotifier.new,
+  (_) => CartNotifier(),
 );
 
 // ── Sayfa ─────────────────────────────────────────────────────────────────────

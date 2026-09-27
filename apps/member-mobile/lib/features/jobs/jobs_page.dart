@@ -173,7 +173,7 @@ class _JobDetailPageState extends ConsumerState<JobDetailPage> {
     try {
       await ref.read(apiClientProvider).post(
         '/my-job-applications/${widget.job['id']}',
-        { if (_coverLetterCtrl.text.trim().isNotEmpty) 'coverLetter': _coverLetterCtrl.text.trim() },
+        body: { if (_coverLetterCtrl.text.trim().isNotEmpty) 'coverLetter': _coverLetterCtrl.text.trim() },
       );
       if (mounted) setState(() { _applied = true; _loading = false; });
     } catch (e) {

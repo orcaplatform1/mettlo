@@ -158,7 +158,7 @@ class _Shell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final idx = _tabs.indexWhere((t) => location.startsWith(t.$1));
-    final counts = ref.watch(badgeCountsProvider).valueOrNull ?? const BadgeCounts();
+    final counts = ref.watch(badgeCountsProvider).value ?? const BadgeCounts();
 
     return Scaffold(
       body: SafeArea(bottom: false, child: child),
