@@ -4,6 +4,7 @@ import { cleanText } from '@mettlo/validation';
 import { hasCoachAccess, awardXp, levelFromXp, istanbulDay } from '../common/access';
 import { CurrentUser, Roles } from '../common/decorators';
 import { PrismaService } from '../common/prisma.service';
+import { PushService } from '../common/push.service';
 import type { AuthUser } from '../common/request';
 import { uniqueSlug } from '../common/slug';
 import { ZodPipe } from '../common/zod.pipe';
@@ -58,7 +59,7 @@ const CONTENT_SELECT = {
 @Roles('MEMBER', 'SUBSCRIBER', 'CREATOR')
 @Controller()
 export class MemberController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly push: PushService) {}
 
   // =========================== PROGRAM ===========================
   private async programAccess(me: AuthUser, p: { access: string; creatorId: string; id: string }): Promise<boolean> {
@@ -303,6 +304,7 @@ export class MemberController {
           this.prisma.booking.upsert({ where: { sessionId_memberId: { sessionId: bk.session.id, memberId: next.memberId } }, update: { status: 'CONFIRMED', cancelledAt: null }, create: { sessionId: bk.session.id, memberId: next.memberId, status: 'CONFIRMED' } }),
           this.prisma.notification.create({ data: { userId: next.memberId, channel: 'IN_APP', type: 'booking.waitlist_promoted', title: `"${bk.session.title}" dersinde yerin onaylandı`, data: { sessionId: bk.session.id } } }),
         ]);
+        this.push.sendToUser(this.prisma, next.memberId, `"${bk.session.title}" dersinde yerin onaylandı`, 'Bekleme listesinden ders yerine alındın.', { sessionId: bk.session.id }).catch(() => {});
       }
     }
     return { ok: true };

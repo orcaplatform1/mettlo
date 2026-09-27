@@ -4,6 +4,7 @@ import { cleanText } from '@mettlo/validation';
 import { slugify } from '@mettlo/utils';
 import { CurrentUser, Roles } from '../common/decorators';
 import { PrismaService } from '../common/prisma.service';
+import { PushService } from '../common/push.service';
 import { SeoService } from '../common/seo.service';
 import { uniqueSlug } from '../common/slug';
 import type { AuthUser } from '../common/request';
@@ -53,7 +54,7 @@ const communitySchema = z.object({ name: cleanText(60, 3), description: cleanTex
 @Roles('CREATOR')
 @Controller('creators/me')
 export class CreatorContentController {
-  constructor(private readonly prisma: PrismaService, private readonly seo: SeoService) {}
+  constructor(private readonly prisma: PrismaService, private readonly seo: SeoService, private readonly push: PushService) {}
 
   private async branchId(slug?: string) {
     if (!slug) return undefined;
@@ -164,6 +165,9 @@ export class CreatorContentController {
       this.prisma.booking.updateMany({ where: { sessionId: id, status: 'CONFIRMED' }, data: { status: 'CANCELLED_BY_CREATOR', cancelledAt: new Date() } }),
       ...bookings.map((bk) => this.prisma.notification.create({ data: { userId: bk.memberId, channel: 'IN_APP', type: 'booking.cancelled_by_creator', title: 'Rezervasyonun koç tarafından iptal edildi', data: { sessionId: id } } })),
     ]);
+    for (const bk of bookings) {
+      this.push.sendToUser(this.prisma, bk.memberId, 'Rezervasyonun koç tarafından iptal edildi', '', { sessionId: id }).catch(() => {});
+    }
     return { cancelled: bookings.length };
   }
 

@@ -7,6 +7,7 @@ import { AuditService } from '../common/audit.service';
 import { CurrentUser, RequirePermission } from '../common/decorators';
 import { env } from '../common/env';
 import { PrismaService } from '../common/prisma.service';
+import { PushService } from '../common/push.service';
 import { SeoService } from '../common/seo.service';
 import { clientIp, userAgent, type AuthedRequest, type AuthUser } from '../common/request';
 import { ZodPipe } from '../common/zod.pipe';
@@ -29,6 +30,7 @@ export class AdminController {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly seo: SeoService,
+    private readonly push: PushService,
   ) {}
 
   private meta(req: AuthedRequest) {
@@ -298,6 +300,11 @@ export class AdminController {
       }
     });
     await this.audit.record({ actorId: me.id, actorRole: me.role, action: `creator.status.${b.status.toLowerCase()}`, targetType: 'creator', targetId: userId, subjectUserId: userId, metadata: { reason: b.reason }, ...this.meta(req) });
+    if (b.status === 'ACTIVE' || b.status === 'REJECTED') {
+      const title = b.status === 'ACTIVE' ? 'Koç başvurun onaylandı' : 'Koç başvurun reddedildi';
+      const body = b.status === 'REJECTED' ? (b.reason ?? '') : 'Profilin yayına alındı.';
+      this.push.sendToUser(this.prisma, c.userId, title, body).catch(() => {});
+    }
     this.seo.notify([`/profile/${c.user.username}`]);
     return { ok: true };
   }

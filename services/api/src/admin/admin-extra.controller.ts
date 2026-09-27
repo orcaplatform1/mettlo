@@ -6,6 +6,7 @@ import { AuditService } from '../common/audit.service';
 import { CurrentUser, RequirePermission } from '../common/decorators';
 import { env } from '../common/env';
 import { PrismaService } from '../common/prisma.service';
+import { PushService } from '../common/push.service';
 import { SeoService } from '../common/seo.service';
 import { uniqueSlug } from '../common/slug';
 import { MaintenanceService } from '../maintenance/maintenance.service';
@@ -49,7 +50,7 @@ const reportPatch = z.object({ status: z.enum(['REVIEWING', 'ACTIONED', 'DISMISS
 /** Yönetim: toplu istatistik, Mettlo Mağaza yönetimi, branşlar, yaptırımlar, şikâyetler. */
 @Controller('admin')
 export class AdminExtraController {
-  constructor(private readonly prisma: PrismaService, private readonly audit: AuditService, private readonly seo: SeoService, private readonly maintenance: MaintenanceService) {}
+  constructor(private readonly prisma: PrismaService, private readonly audit: AuditService, private readonly seo: SeoService, private readonly maintenance: MaintenanceService, private readonly push: PushService) {}
   private meta(req: AuthedRequest) { return { ip: clientIp(req), userAgent: userAgent(req) }; }
 
   /** Bakım işlerini elle çalıştırır (süresi dolan erişim, biten yaptırım, hesap silme). Zaten 10 dakikada bir otomatik çalışır. */
@@ -244,6 +245,8 @@ export class AdminExtraController {
       return s;
     });
     await this.audit.record({ actorId: me.id, actorRole: me.role, action: `sanction.${b.type.toLowerCase()}`, targetType: 'user', targetId: id, subjectUserId: id, metadata: { reason: b.reason, days: b.days }, ...this.meta(req) });
+    const sanctionTitle = b.type === 'WARNING' ? 'Hesabına uyarı verildi' : b.type === 'BAN' ? 'Hesabın kalıcı olarak kapatıldı' : `Hesabın ${b.days} gün askıya alındı`;
+    this.push.sendToUser(this.prisma, id, sanctionTitle, b.reason ?? '').catch(() => {});
     if (target.role === 'CREATOR') this.seo.notify([`/profile/${target.username}`]);
     return { id: sanction.id, endsAt };
   }

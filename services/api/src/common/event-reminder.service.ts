@@ -1,12 +1,13 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { PushService } from './push.service';
 
 /** Her 10 dakikada bir çalışır; etkinlik başlamadan 1 gün ve 1 saat önce katılımcılara bildirim gönderir. */
 @Injectable()
 export class EventReminderService implements OnApplicationBootstrap {
   private readonly log = new Logger(EventReminderService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly push: PushService) {}
 
   onApplicationBootstrap() {
     // İlk çalışma 1 dakika sonra, sonra her 10 dakikada bir
@@ -60,6 +61,7 @@ export class EventReminderService implements OnApplicationBootstrap {
           await this.prisma.notification.create({
             data: { userId, type, title, body, channel: 'IN_APP', data: { eventId: ev.id }, sentAt: new Date() },
           });
+          this.push.sendToUser(this.prisma, userId, title, body, { eventId: ev.id }).catch(() => {});
         }
       }
     } catch (err) {

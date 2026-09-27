@@ -33,6 +33,8 @@ const schema = z.object({
   IYZICO_BASE_URL: z.string().url().default('https://sandbox-api.iyzipay.com'),
   /** Anthropic API (AI eşleştirme — Claude Haiku) */
   ANTHROPIC_API_KEY: z.string().optional(),
+  /** Firebase Admin SDK — push bildirimleri için service account JSON (tek satır) */
+  FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

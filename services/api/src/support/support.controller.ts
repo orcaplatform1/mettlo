@@ -7,6 +7,7 @@ import { PrismaService } from '../common/prisma.service';
 import { clientIp, userAgent, type AuthedRequest, type AuthUser } from '../common/request';
 import { ZodPipe } from '../common/zod.pipe';
 import { SupportService } from './support.service';
+import { PushService } from '../common/push.service';
 
 export const TICKET_CATEGORIES = ['account', 'payment', 'subscription', 'technical', 'content', 'live', 'coaching', 'other'] as const;
 
@@ -96,7 +97,7 @@ export class SupportController {
 /** DESTEK EKİBİ (SUPPORT / ADMIN / SUPER_ADMIN). Talep sahibinin e-posta/telefonu görünmez; yalnızca kullanıcı adı ve rol. */
 @Controller('admin/tickets')
 export class AdminTicketsController {
-  constructor(private readonly prisma: PrismaService, private readonly audit: AuditService, private readonly support: SupportService) {}
+  constructor(private readonly prisma: PrismaService, private readonly audit: AuditService, private readonly support: SupportService, private readonly push: PushService) {}
 
   private meta(req: AuthedRequest) { return { ip: clientIp(req), userAgent: userAgent(req) }; }
 
@@ -142,6 +143,7 @@ export class AdminTicketsController {
       this.prisma.notification.create({ data: { userId: t.userId, channel: 'IN_APP', type: 'ticket.answered', title: `#${t.number} numaralı destek talebin yanıtlandı`, body: t.subject, data: { ticketId: id } } }),
     ]);
     await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'ticket.reply', targetType: 'ticket', targetId: id, subjectUserId: t.userId, ...this.meta(req) });
+    this.push.sendToUser(this.prisma, t.userId, `#${t.number} numaralı destek talebin yanıtlandı`, t.subject, { ticketId: id }).catch(() => {});
     return { ok: true, status: 'ANSWERED' };
   }
 
@@ -158,6 +160,7 @@ export class AdminTicketsController {
       this.prisma.notification.create({ data: { userId: t.userId, channel: 'IN_APP', type: 'ticket.closed', title: `#${t.number} numaralı destek talebin kapatıldı`, body: t.subject, data: { ticketId: id } } }),
     ]);
     await this.audit.record({ actorId: me.id, actorRole: me.role, action: 'ticket.close', targetType: 'ticket', targetId: id, subjectUserId: t.userId, ...this.meta(req) });
+    this.push.sendToUser(this.prisma, t.userId, `#${t.number} numaralı destek talebin kapatıldı`, t.subject, { ticketId: id }).catch(() => {});
     return { ok: true, status: 'CLOSED' };
   }
 

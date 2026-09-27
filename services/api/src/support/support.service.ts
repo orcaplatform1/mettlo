@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
+import { PushService } from '../common/push.service';
 
 export const TIMEOUT_HOURS = 48;
 
@@ -7,7 +8,7 @@ export const TIMEOUT_HOURS = 48;
 export class SupportService implements OnModuleInit, OnModuleDestroy {
   private readonly log = new Logger('Support');
   private timer?: NodeJS.Timeout;
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly push: PushService) {}
 
   onModuleInit() {
     // Başlangıçta ve her 10 dakikada bir zaman aşımı kontrolü (birden fazla çalıştırma güvenlidir: koşullu updateMany)
@@ -41,6 +42,7 @@ export class SupportService implements OnModuleInit, OnModuleDestroy {
         this.prisma.supportTicketMessage.create({ data: { ticketId: t.id, isSystem: true, body: `${TIMEOUT_HOURS} saat içinde yanıt verilmediği için bilet zaman aşımı nedeniyle kapatıldı. Sorunun devam ediyorsa yeni bir destek talebi oluşturabilirsin.` } }),
         this.prisma.notification.create({ data: { userId: t.userId, channel: 'IN_APP', type: 'ticket.timed_out', title: `#${t.number} numaralı destek talebin zaman aşımına uğradı`, body: 'Yanıt gelmediği için talep kapatıldı. Gerekirse yeni bir talep oluşturabilirsin.', data: { ticketId: t.id } } }),
       ]);
+      this.push.sendToUser(this.prisma, t.userId, `#${t.number} numaralı destek talebin zaman aşımına uğradı`, 'Yanıt gelmediği için talep kapatıldı.', { ticketId: t.id }).catch(() => {});
     }
     if (closed) this.log.log(`${closed} bilet zaman aşımı ile kapatıldı`);
     return closed;

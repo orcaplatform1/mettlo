@@ -13,5 +13,7 @@ allowBuilds:
   argon2: true
   "@nestjs/core": true
   unrs-resolver: true
+  '@firebase/util': true
+  protobufjs: true
 minimumReleaseAgeExclude:
   - lucide-react@1.48.0
