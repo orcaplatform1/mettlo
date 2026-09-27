@@ -48,7 +48,7 @@ export function EventRegisterButton({ eventId, slug, isFree, priceKurus }: Props
   if (done) {
     return (
       <div style={{ padding: '14px 20px', background: 'var(--success-light, #d1fae5)', borderRadius: '10px', textAlign: 'center', color: '#065f46', fontSize: '14px', fontWeight: 500 }}>
-        Kaydınız alındı! Etkinliğe başarıyla kaydoldunuz.
+        Etkinliğe başarıyla katıldınız!
       </div>
     );
   }
