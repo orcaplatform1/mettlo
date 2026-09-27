@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'badge_counts_provider.dart';
 
@@ -149,33 +150,76 @@ class _Splash extends StatelessWidget {
       );
 }
 
+// Alt nav sekmeleri: (path, ikonAsset veya null=profil)
+const _kNavTabs = [
+  ('/home',     'assets/icons/nav_home.svg'),
+  ('/discover', 'assets/icons/nav_discover.svg'),
+  ('/programs', 'assets/icons/nav_programs.svg'),
+  ('/messages', 'assets/icons/nav_messages.svg'),
+  ('/settings', null), // profil fotoğrafı
+];
+
 class _Shell extends ConsumerWidget {
   const _Shell({required this.location, required this.child});
   final String location;
   final Widget child;
 
-  static const _tabs = [
-    ('/home', 'Ana Sayfa', Icons.home_outlined, Icons.home),
-    ('/discover', 'Keşfet', Icons.explore_outlined, Icons.explore),
-    ('/programs', 'Programlarım', Icons.fitness_center_outlined, Icons.fitness_center),
-    ('/messages', 'Mesajlar', Icons.chat_bubble_outline, Icons.chat_bubble),
-    ('/notifications', 'Bildirimler', Icons.notifications_outlined, Icons.notifications),
-    ('/settings', 'Profil', Icons.person_outline, Icons.person),
-  ];
+  Widget _svgIcon(String asset, bool active) => SvgPicture.asset(
+        asset,
+        width: 26,
+        height: 26,
+        colorFilter: active
+            ? null
+            : const ColorFilter.mode(Color(0xFF5A5A6E), BlendMode.srcIn),
+      );
 
-  Widget _badgeIcon(Widget icon, int count) {
-    if (count == 0) return icon;
-    return Badge(
-      label: Text(count > 99 ? '99+' : '$count', style: const TextStyle(fontSize: 10, color: Colors.white)),
-      backgroundColor: MettloColors.primary,
-      child: icon,
+  Widget _profileIcon(String? avatarUrl, String name, bool active) {
+    final avatar = avatarUrl != null && avatarUrl.isNotEmpty
+        ? CircleAvatar(backgroundImage: NetworkImage(avatarUrl), radius: 14)
+        : CircleAvatar(
+            radius: 14,
+            backgroundColor: const Color(0xFF2A2A3F),
+            child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+          );
+    if (!active) return Opacity(opacity: 0.45, child: avatar);
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFFF5A3D), width: 2),
+      ),
+      child: Padding(padding: const EdgeInsets.all(1.5), child: avatar),
     );
+  }
+
+  Widget _withDot(Widget icon, bool hasDot) {
+    if (!hasDot) return icon;
+    return Stack(clipBehavior: Clip.none, children: [
+      icon,
+      Positioned(
+        right: -2,
+        top: -2,
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF2F68),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFF0F1628), width: 1.5),
+          ),
+        ),
+      ),
+    ]);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final idx = _tabs.indexWhere((t) => location.startsWith(t.$1));
+    final idx = _kNavTabs.indexWhere((t) => location.startsWith(t.$1));
+    final activeIdx = idx < 0 ? 0 : idx;
     final counts = ref.watch(badgeCountsProvider).value ?? const BadgeCounts();
+    final user = ref.watch(authControllerProvider).user;
+    final avatarUrl = user?.avatarUrl;
+    final userName = user?.name ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -210,18 +254,38 @@ class _Shell extends ConsumerWidget {
         ],
       ),
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: idx < 0 ? 0 : idx,
-        onDestinationSelected: (i) => context.go(_tabs[i].$1),
-        destinations: _tabs.map((t) {
-          final badge = t.$1 == '/messages' ? counts.unreadMessages : t.$1 == '/notifications' ? counts.unreadNotifications : 0;
-          return NavigationDestination(
-            icon: _badgeIcon(Icon(t.$3), badge),
-            selectedIcon: _badgeIcon(Icon(t.$4, color: MettloColors.primary), badge),
-            label: t.$2,
-          );
-        }).toList(),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0A0A15),
+          border: Border(top: BorderSide(color: Color(0xFF1E1E2E), width: 1)),
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            height: 58,
+            child: Row(
+              children: List.generate(_kNavTabs.length, (i) {
+                final (path, asset) = _kNavTabs[i];
+                final active = i == activeIdx;
+                final hasMsg = path == '/messages' && counts.unreadMessages > 0;
+                Widget icon;
+                if (asset == null) {
+                  icon = _profileIcon(avatarUrl, userName, active);
+                } else {
+                  icon = _svgIcon(asset, active);
+                }
+                return Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => context.go(path),
+                    child: Center(child: _withDot(icon, hasMsg)),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
+
