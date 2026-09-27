@@ -80,12 +80,12 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
 
         <div className="container">
           <div className="profile-head">
-            {/* Logo — avatar yeri */}
+            {/* Logo — koç avatarıyla aynı dairesel şablon */}
             {ba.logoUrl ? (
               <img src={ba.logoUrl} alt={ba.name} width={112} height={112}
-                style={{ borderRadius: 16, objectFit: 'cover', border: '4px solid var(--color-bg)', flexShrink: 0, background: 'var(--color-surface-1)' }} />
+                style={{ borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--color-bg)', flexShrink: 0, background: 'var(--color-surface-1)' }} />
             ) : (
-              <div style={{ width: 112, height: 112, borderRadius: 16, border: '4px solid var(--color-bg)', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 800, flexShrink: 0 }}>
+              <div style={{ width: 112, height: 112, borderRadius: '50%', border: '4px solid var(--color-bg)', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 800, flexShrink: 0 }}>
                 {ba.name[0]}
               </div>
             )}
@@ -140,23 +140,27 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             </div>
           </div>
 
-          {/* Takipçi sayısı — koç profiliyle aynı büyüklük */}
-          <div style={{ marginTop: 16 }}>
+          {/* Takipçi + Koç sayısı — koç profiliyle aynı büyüklük/layout */}
+          <div className="row" style={{ gap: 24, marginTop: 16 }}>
             <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
               <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.followersCount.toLocaleString('tr-TR')}</strong>
               <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takipçi</span>
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+              <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.coachWorkplaces.length}</strong>
+              <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Koç</span>
             </span>
           </div>
         </div>
       </div>
 
-      <div className="container" style={{ maxWidth: 900, paddingTop: 32 }}>
+      <div className="container" style={{ maxWidth: 900, paddingTop: 32, paddingBottom: 80 }}>
         {/* Bölüm ayırıcı yerine boşluk */}
 
         {/* Kampanyalar */}
-        {activeCampaigns.length > 0 && (
-          <section aria-labelledby="campaigns-h" style={{ marginBottom: 28 }}>
-            <h2 id="campaigns-h" className="h4 row" style={{ gap: 8, marginBottom: 14 }}><Tag size={18} /> Kampanyalar</h2>
+        <section aria-labelledby="campaigns-h" style={{ marginBottom: 28 }}>
+          <h2 id="campaigns-h" className="h4 row" style={{ gap: 8, marginBottom: 14 }}><Tag size={18} /> Kampanyalar</h2>
+          {activeCampaigns.length > 0 ? (
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {activeCampaigns.map(c => (
                 <div key={c.id} style={{ background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-soft)', maxWidth: 320, flex: '1 1 260px' }}>
@@ -169,8 +173,10 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="body-sm text-tertiary">Aktif kampanya bulunmuyor</p>
+          )}
+        </section>
 
         <div className="profile-detail-grid">
           {/* Sol */}
@@ -183,21 +189,25 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             )}
 
             {/* Fitness branşları */}
-            {isFitness && ba.fitnessBranches && ba.fitnessBranches.length > 0 && (
+            {isFitness && (
               <div className="card" style={{ marginBottom: 20 }}>
                 <h2 className="h4" style={{ marginBottom: 12 }}>Branşlar</h2>
-                <div className="row row-wrap" style={{ gap: 8 }}>
-                  {ba.fitnessBranches.map((b: string) => (
-                    <span key={b} className="badge badge-premium">{b}</span>
-                  ))}
-                </div>
+                {ba.fitnessBranches && ba.fitnessBranches.length > 0 ? (
+                  <div className="row row-wrap" style={{ gap: 8 }}>
+                    {ba.fitnessBranches.map((b: string) => (
+                      <span key={b} className="badge badge-premium">{b}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="body-sm text-tertiary" style={{ margin: 0 }}>Henüz eklenmemiş</p>
+                )}
               </div>
             )}
 
             {/* Çalışma saatleri */}
-            {ba.businessHours && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <h2 className="h4 row" style={{ gap: 8, marginBottom: 14 }}><Clock size={16} /> Çalışma Saatleri</h2>
+            <div className="card" style={{ marginBottom: 20 }}>
+              <h2 className="h4 row" style={{ gap: 8, marginBottom: 14 }}><Clock size={16} /> Çalışma Saatleri</h2>
+              {ba.businessHours ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {DAY_KEYS.map((key, i) => {
                     const day = (ba.businessHours as any)?.[key];
@@ -209,13 +219,15 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                     );
                   })}
                 </div>
-              </div>
-            )}
+              ) : (
+                <p className="body-sm text-tertiary" style={{ margin: 0 }}>Henüz eklenmemiş</p>
+              )}
+            </div>
 
             {/* Fotoğraf galerisi */}
-            {ba.photos && ba.photos.length > 0 && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <h2 className="h4 row" style={{ gap: 8, marginBottom: 14 }}><ImageIcon size={16} /> Fotoğraflar</h2>
+            <div className="card" style={{ marginBottom: 20 }}>
+              <h2 className="h4 row" style={{ gap: 8, marginBottom: 14 }}><ImageIcon size={16} /> Fotoğraflar</h2>
+              {ba.photos && ba.photos.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                   {ba.photos.map(ph => (
                     <div key={ph.id} style={{ borderRadius: 8, overflow: 'hidden', aspectRatio: '1', background: 'var(--color-surface-2)' }}>
@@ -223,8 +235,10 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <p className="body-sm text-tertiary" style={{ margin: 0 }}>Henüz fotoğraf eklenmemiş</p>
+              )}
+            </div>
 
             {/* Konumlar + harita */}
             {ba.locations.length > 0 && (
