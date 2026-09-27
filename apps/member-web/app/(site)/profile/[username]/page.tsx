@@ -350,7 +350,7 @@ export default async function ProfilePage({ params }: Props) {
           {p.workplaces?.length > 0 ? (
             <div className="row row-wrap" style={{ gap: 12 }}>
               {p.workplaces.map((w: any) => (
-                <Link key={w.slug} href={`/businesses/${w.slug}`} style={{ textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-soft)', overflow: 'hidden', width: 220, flexShrink: 0 }}>
+                <Link key={w.slug} href={`/business/${w.slug}`} style={{ textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-soft)', overflow: 'hidden', width: 220, flexShrink: 0 }}>
                   <div style={{ height: 80, background: 'var(--color-surface-2)', position: 'relative', overflow: 'hidden' }}>
                     {w.coverUrl
                       ? <img src={w.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

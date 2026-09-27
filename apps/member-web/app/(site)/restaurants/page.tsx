@@ -5,7 +5,7 @@ import { EmptyState } from '@mettlo/ui';
 import { PageHead, Pagination, pageOf, qs, LIMIT } from '@/app/components/list';
 import { getBusinesses, getCities } from '@/app/lib/data';
 import { AdBanner } from '@/app/components/ad-banner';
-import { BusinessCard, FOOD_CATEGORY_TR, FOOD_CATEGORIES, ALL_CATEGORY_TR } from '../businesses/page';
+import { BusinessCard, FOOD_CATEGORY_TR, FOOD_CATEGORIES, ALL_CATEGORY_TR } from '../business/page';
 
 type Props = { searchParams: Promise<{ q?: string; category?: string; cityId?: string; page?: string }> };
 
@@ -42,7 +42,7 @@ export default async function RestaurantsPage({ searchParams }: Props) {
     <>
       <PageHead overline="RESTORANLAR" title="Sağlıklı beslenme mekanlarını keşfet">
         Sağlıklı restoranlar, smoothie barlar, vegan ve vejetaryen mekanlar, meal prep ve daha fazlası.
-        {' '}<Link href="/businesses" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Fitness işletmeleri için tıkla →</Link>
+        {' '}<Link href="/business" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Fitness işletmeleri için tıkla →</Link>
       </PageHead>
 
       <div className="container section-sm">

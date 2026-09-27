@@ -106,7 +106,7 @@ export default async function IsIlanlariPage({ searchParams }: Props) {
                   </Link>
                   {job.business?.slug && (
                     <Link
-                      href={`/businesses/${job.business.slug}`}
+                      href={`/business/${job.business.slug}`}
                       className="btn btn-ghost"
                       style={{ padding: '8px 18px', fontSize: '13px' }}
                     >

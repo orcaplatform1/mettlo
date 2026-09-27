@@ -49,7 +49,7 @@ const QUICK = [
   { href: '/coaches', label: '1:1 Koçluk', Icon: Handshake },
   { href: '/live', label: 'Canlı Dersler', Icon: Video },
   { href: '/events', label: 'Etkinlikler', Icon: CalendarDays },
-  { href: '/businesses', label: 'İşletmeler', Icon: Building2 },
+  { href: '/business', label: 'İşletmeler', Icon: Building2 },
   { href: '/jobs', label: 'İş İlanları', Icon: Briefcase },
   { href: '/community', label: 'Topluluk', Icon: Users },
   { href: '/store', label: 'Mağaza', Icon: ShoppingBag },
@@ -299,23 +299,24 @@ export default async function HomePage() {
         <div className="container">
           <div className="section-head">
             <div><span className="overline">İŞLETMELER</span><h2 id="businesses-title" className="h2">Fitness &amp; Wellness İşletmeleri</h2></div>
-            <Link href="/businesses" className="btn btn-secondary btn-pill btn-sm">Tüm İşletmeler <ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/business" className="btn btn-secondary btn-pill btn-sm">Tüm İşletmeler <ArrowRight size={16} aria-hidden /></Link>
           </div>
           {businesses.length > 0 ? (
             <div className="grid grid-3">
               {businesses.map((b: any) => {
                 const openStatus = getOpenStatus(b.businessHours);
+                const isVerified = b.verificationStatus === 'VERIFIED' || b.verificationStatus === 'APPROVED';
                 return (
-                  <Link key={b.slug ?? b.id} href={`/business/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, var(--color-surface-1) 0%, var(--color-surface-2) 100%)', border: '1px solid var(--color-border)' }}>
+                  <Link key={b.slug ?? b.id} href={`/business/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none', background: 'var(--gradient-sunrise-dark)', border: '1px solid var(--border-hover)', boxShadow: 'var(--shadow-premium)' }}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
                       {b.logoUrl
                         ? <img src={b.logoUrl} alt={b.name} style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
-                        : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'var(--color-surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={24} className="text-secondary" aria-hidden /></div>
+                        : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(249,115,22,.12)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Building2 size={24} className="text-primary-c" aria-hidden /></div>
                       }
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
-                          {b.verificationStatus === 'VERIFIED' && <BadgeCheck size={15} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
+                          {isVerified && <BadgeCheck size={15} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
                         </div>
                         <p className="caption text-tertiary" style={{ margin: '2px 0 0' }}>@{b.slug}</p>
                       </div>
@@ -336,7 +337,7 @@ export default async function HomePage() {
               })}
             </div>
           ) : (
-            <EmptyState icon={<Building2 size={36} aria-hidden />} title="İşletmeler çok yakında" action={<Link href="/businesses" className="btn btn-secondary btn-pill btn-sm">İşletmeleri Gör <ArrowRight size={16} aria-hidden /></Link>}>
+            <EmptyState icon={<Building2 size={36} aria-hidden />} title="İşletmeler çok yakında" action={<Link href="/business" className="btn btn-secondary btn-pill btn-sm">İşletmeleri Gör <ArrowRight size={16} aria-hidden /></Link>}>
               Spor salonları, yoga stüdyoları, sağlıklı restoranlar ve daha fazlası Mettlo&apos;da.
             </EmptyState>
           )}
@@ -351,23 +352,24 @@ export default async function HomePage() {
               <span className="overline">SAĞLIKLI BESLENME</span>
               <h2 id="restaurants-title" className="h2">Restoranlar &amp; Kafeler</h2>
             </div>
-            <Link href="/businesses?category=HEALTHY_FOOD" className="btn btn-secondary btn-pill btn-sm">Tüm Restoranlar <ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/business?category=HEALTHY_FOOD" className="btn btn-secondary btn-pill btn-sm">Tüm Restoranlar <ArrowRight size={16} aria-hidden /></Link>
           </div>
           {restaurants.length > 0 ? (
             <div className="grid grid-3">
               {restaurants.map((b: any) => {
                 const openStatus = getOpenStatus(b.businessHours);
+                const isVerified = b.verificationStatus === 'VERIFIED' || b.verificationStatus === 'APPROVED';
                 return (
-                  <Link key={b.slug ?? b.id} href={`/business/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, var(--color-surface-1) 0%, var(--color-surface-2) 100%)', border: '1px solid var(--color-border)' }}>
+                  <Link key={b.slug ?? b.id} href={`/business/${b.slug ?? b.id}`} className="card card-hover" style={{ textDecoration: 'none', background: 'var(--gradient-sunrise-dark)', border: '1px solid var(--border-hover)', boxShadow: 'var(--shadow-premium)' }}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
                       {b.logoUrl
                         ? <img src={b.logoUrl} alt={b.name} style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
-                        : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'var(--color-surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Salad size={24} className="text-secondary" aria-hidden /></div>
+                        : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(249,115,22,.12)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Salad size={24} className="text-primary-c" aria-hidden /></div>
                       }
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <h3 className="h5" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</h3>
-                          {b.verificationStatus === 'VERIFIED' && <BadgeCheck size={15} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
+                          {isVerified && <BadgeCheck size={15} style={{ color: '#3b82f6', flexShrink: 0 }} aria-hidden />}
                         </div>
                         <p className="caption text-tertiary" style={{ margin: '2px 0 0' }}>@{b.slug}</p>
                       </div>
