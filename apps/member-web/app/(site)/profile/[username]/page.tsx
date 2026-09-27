@@ -208,19 +208,19 @@ export default async function ProfilePage({ params }: Props) {
 
         <div className="container" style={{ maxWidth: 720, paddingBlock: '32px 48px' }}>
           {/* Abone olunan koçlar */}
-          {p.subscribedTo?.length > 0 && (
-            <div>
-              <p className="caption text-secondary" style={{ marginBottom: 8 }}>Abone olunan koçlar</p>
-              <div className="row row-wrap" style={{ gap: 8 }}>
-                {p.subscribedTo.map((c: any) => (
-                  <Link key={c.username} href={`/profile/${c.username}`} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', padding: '6px 12px 6px 8px' }}>
-                    {c.avatarUrl ? <img src={c.avatarUrl} alt={c.displayName} width={28} height={28} style={{ borderRadius: '50%', objectFit: 'cover' }} /> : <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>{c.displayName?.[0]}</div>}
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{c.displayName}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          <div>
+            <p className="caption text-secondary" style={{ marginBottom: 8 }}>Abone olunan koçlar</p>
+            {p.subscribedTo?.length > 0
+              ? <div className="row row-wrap" style={{ gap: 8 }}>
+                  {p.subscribedTo.map((c: any) => (
+                    <Link key={c.username} href={`/profile/${c.username}`} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', padding: '6px 12px 6px 8px' }}>
+                      {c.avatarUrl ? <img src={c.avatarUrl} alt={c.displayName} width={28} height={28} style={{ borderRadius: '50%', objectFit: 'cover' }} /> : <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>{c.displayName?.[0]}</div>}
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{c.displayName}</span>
+                    </Link>
+                  ))}
+                </div>
+              : <p className="text-secondary body-sm">Henüz abone olunan koç yok.</p>}
+          </div>
         </div>
         <SuperAdminPanel username={p.username} data={admin} />
         <StaffPanel username={p.username} />
@@ -345,13 +345,12 @@ export default async function ProfilePage({ params }: Props) {
           </section>
         )}
         {/* Çalıştığı işletmeler */}
-        {p.workplaces?.length > 0 && (
-          <section aria-labelledby="workplaces-h" style={{ marginTop: 32 }}>
-            <h2 id="workplaces-h" className="h4" style={{ marginBottom: 12 }}>Çalıştığı İşletmeler</h2>
+        <section aria-labelledby="workplaces-h" style={{ marginTop: 32 }}>
+          <h2 id="workplaces-h" className="h4" style={{ marginBottom: 12 }}>Çalıştığı İşletmeler</h2>
+          {p.workplaces?.length > 0 ? (
             <div className="row row-wrap" style={{ gap: 12 }}>
               {p.workplaces.map((w: any) => (
                 <Link key={w.slug} href={`/businesses/${w.slug}`} style={{ textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-soft)', overflow: 'hidden', width: 220, flexShrink: 0 }}>
-                  {/* Kapak / logo alanı */}
                   <div style={{ height: 80, background: 'var(--color-surface-2)', position: 'relative', overflow: 'hidden' }}>
                     {w.coverUrl
                       ? <img src={w.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -362,7 +361,6 @@ export default async function ProfilePage({ params }: Props) {
                       </div>
                     )}
                   </div>
-                  {/* Bilgi */}
                   <div style={{ padding: w.logoUrl ? '22px 12px 12px' : '12px' }}>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</p>
                     {(w.city || w.district) && (
@@ -374,8 +372,8 @@ export default async function ProfilePage({ params }: Props) {
                 </Link>
               ))}
             </div>
-          </section>
-        )}
+          ) : <p className="text-secondary body-sm" style={{ marginTop: 8 }}>Henüz çalıştığı işletme eklenmemiş.</p>}
+        </section>
 
         {!isStaff && <section id="plans" aria-labelledby="plans-h" style={{ marginTop: 48, scrollMarginTop: 96 }}>
           <h2 id="plans-h" className="h4">Abonelik Planları</h2>
@@ -394,37 +392,37 @@ export default async function ProfilePage({ params }: Props) {
           ) : <div style={{ marginTop: 16 }}><EmptyState title="Abonelik planları yakında">Bu koç planlarını hazırlıyor.</EmptyState></div>}
         </section>}
 
-        {p.programs.length > 0 && (
-          <section aria-labelledby="progs" style={{ marginTop: 48 }}>
-            <h2 id="progs" className="h4">Programlar</h2>
-            <div className="grid grid-3" style={{ marginTop: 16 }}>{p.programs.map((pr: any) => <ProgramCard key={pr.slug} p={{ ...pr, creator: { creatorProfile: { displayName: p.displayName } } }} />)}</div>
-          </section>
-        )}
+        <section aria-labelledby="progs" style={{ marginTop: 48 }}>
+          <h2 id="progs" className="h4">Programlar</h2>
+          {p.programs.length > 0
+            ? <div className="grid grid-3" style={{ marginTop: 16 }}>{p.programs.map((pr: any) => <ProgramCard key={pr.slug} p={{ ...pr, creator: { creatorProfile: { displayName: p.displayName } } }} />)}</div>
+            : <p className="text-secondary body-sm" style={{ marginTop: 8 }}>Henüz program eklenmemiş.</p>}
+        </section>
 
-        {p.lives.length > 0 && (
-          <section aria-labelledby="lives" style={{ marginTop: 48 }}>
-            <h2 id="lives" className="h4">Yaklaşan Canlı Dersler</h2>
-            <div className="grid grid-3" style={{ marginTop: 16 }}>
-              {p.lives.map((l: any) => (
-                <Link key={l.slug} href={`/live/${l.slug}`} className="card"><span className="badge badge-live">Canlı</span><h3 className="h5" style={{ margin: '10px 0 6px' }}>{l.title}</h3><p className="body-sm text-secondary row"><CalendarClock size={14} aria-hidden /> {new Date(l.scheduledAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}</p></Link>
-              ))}
-            </div>
-          </section>
-        )}
+        <section aria-labelledby="lives" style={{ marginTop: 48 }}>
+          <h2 id="lives" className="h4">Yaklaşan Canlı Dersler</h2>
+          {p.lives.length > 0
+            ? <div className="grid grid-3" style={{ marginTop: 16 }}>
+                {p.lives.map((l: any) => (
+                  <Link key={l.slug} href={`/live/${l.slug}`} className="card"><span className="badge badge-live">Canlı</span><h3 className="h5" style={{ margin: '10px 0 6px' }}>{l.title}</h3><p className="body-sm text-secondary row"><CalendarClock size={14} aria-hidden /> {new Date(l.scheduledAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}</p></Link>
+                ))}
+              </div>
+            : <p className="text-secondary body-sm" style={{ marginTop: 8 }}>Yaklaşan canlı ders yok.</p>}
+        </section>
 
-        {classes.length > 0 && (
-          <section aria-labelledby="classes-h" style={{ marginTop: 48 }}>
-            <h2 id="classes-h" className="h4">Ders Takvimi</h2>
-            <div className="grid grid-3" style={{ marginTop: 16 }}>
-              {classes.map((c: any) => (
-                <div key={c.id} className="card stack" style={{ ['--stack' as string]: '8px' }}><span className="badge">{c.type === 'ONE_TO_ONE' ? '1:1' : c.type === 'WORKSHOP' ? 'Atölye' : 'Grup dersi'}</span><h3 className="h5">{c.title}</h3>
-                  <p className="body-sm text-secondary row" style={{ gap: 6 }}><CalendarClock size={14} aria-hidden /> {new Date(c.startsAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                  <p className="caption text-tertiary">{Math.max(c.capacity - c.bookedCount, 0)} / {c.capacity} yer boş</p>
-                  {isSubscriber ? <BookButton classId={c.id} path={`/profile/${p.username}`} full={c.bookedCount >= c.capacity} /> : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-secondary btn-sm">Rezervasyon için abone ol</a>}
-                </div>))}
-            </div>
-          </section>
-        )}
+        <section aria-labelledby="classes-h" style={{ marginTop: 48 }}>
+          <h2 id="classes-h" className="h4">Ders Takvimi</h2>
+          {classes.length > 0
+            ? <div className="grid grid-3" style={{ marginTop: 16 }}>
+                {classes.map((c: any) => (
+                  <div key={c.id} className="card stack" style={{ ['--stack' as string]: '8px' }}><span className="badge">{c.type === 'ONE_TO_ONE' ? '1:1' : c.type === 'WORKSHOP' ? 'Atölye' : 'Grup dersi'}</span><h3 className="h5">{c.title}</h3>
+                    <p className="body-sm text-secondary row" style={{ gap: 6 }}><CalendarClock size={14} aria-hidden /> {new Date(c.startsAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                    <p className="caption text-tertiary">{Math.max(c.capacity - c.bookedCount, 0)} / {c.capacity} yer boş</p>
+                    {isSubscriber ? <BookButton classId={c.id} path={`/profile/${p.username}`} full={c.bookedCount >= c.capacity} /> : <a href={subscribeHref(p.plans[0]?.id)} className="btn btn-secondary btn-sm">Rezervasyon için abone ol</a>}
+                  </div>))}
+              </div>
+            : <p className="text-secondary body-sm" style={{ marginTop: 8 }}>Henüz ders takvimi eklenmemiş.</p>}
+        </section>
 
         {p.community && (
           <section aria-labelledby="comm-h" style={{ marginTop: 48 }}>

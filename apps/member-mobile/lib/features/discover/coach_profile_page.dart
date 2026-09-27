@@ -201,8 +201,8 @@ class _Body extends ConsumerWidget {
         Wrap(spacing: 8, runSpacing: 8, children: [for (final c in p['credentials'] as List) Pill('✓ $c', color: MettloColors.success)]),
       ],
       if (p['bio'] != null) ...[const SectionTitle('Hakkında'), Text(p['bio'] as String, style: const TextStyle(color: MettloColors.textSecondary, height: 1.5))],
-      if ((p['coachWorkplaces'] as List?)?.isNotEmpty == true) ...[
-        const SectionTitle('Çalıştığı İşletmeler'),
+      const SectionTitle('Çalıştığı İşletmeler'),
+      if ((p['coachWorkplaces'] as List?)?.isNotEmpty == true)
         SizedBox(
           height: 140,
           child: ListView(
@@ -212,8 +212,9 @@ class _Body extends ConsumerWidget {
                 _WorkplaceCard(w: (w['business'] ?? w) as Map<String, dynamic>),
             ],
           ),
-        ),
-      ],
+        )
+      else
+        const Padding(padding: EdgeInsets.only(top: 4, bottom: 8), child: Text('Henüz çalıştığı işletme eklenmemiş.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13))),
       if (p['whyChooseMe'] != null) ...[
         const SectionTitle('Neden Beni Seçmelisiniz?'),
         Container(
@@ -222,15 +223,19 @@ class _Body extends ConsumerWidget {
           child: Text(p['whyChooseMe'] as String, style: const TextStyle(color: MettloColors.textSecondary, height: 1.5)),
         ),
       ],
-      if (!isStaff && plans.isNotEmpty) ...[
+      if (!isStaff) ...[
         const SectionTitle('Abonelik Planları'),
-        for (final pl in plans)
-          Card(child: ListTile(title: Text(pl['name'] as String, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: pl['description'] != null ? Text(pl['description'] as String) : null, trailing: Text('₺${(num.tryParse('${pl['priceWeb']}') ?? 0).toStringAsFixed(0)} / ${pl['interval'] == 'ANNUAL' ? 'yıl' : 'ay'}', style: const TextStyle(fontWeight: FontWeight.w800, color: MettloColors.primary)))),
+        if (plans.isNotEmpty)
+          for (final pl in plans)
+            Card(child: ListTile(title: Text(pl['name'] as String, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: pl['description'] != null ? Text(pl['description'] as String) : null, trailing: Text('₺${(num.tryParse('${pl['priceWeb']}') ?? 0).toStringAsFixed(0)} / ${pl['interval'] == 'ANNUAL' ? 'yıl' : 'ay'}', style: const TextStyle(fontWeight: FontWeight.w800, color: MettloColors.primary))))
+        else
+          const Padding(padding: EdgeInsets.only(top: 4, bottom: 8), child: Text('Henüz plan eklenmemiş.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13))),
       ],
-      if (classes.isNotEmpty) ...[
-        const SectionTitle('Ders Takvimi'),
-        for (final c in classes) _ClassTile(c: c as Map<String, dynamic>, isSubscriber: isSubscriber, username: username),
-      ],
+      const SectionTitle('Ders Takvimi'),
+      if (classes.isNotEmpty)
+        for (final c in classes) _ClassTile(c: c as Map<String, dynamic>, isSubscriber: isSubscriber, username: username)
+      else
+        const Padding(padding: EdgeInsets.only(top: 4, bottom: 8), child: Text('Henüz ders takvimi eklenmemiş.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13))),
       const SectionTitle('Değerlendirmeler'),
       if (total > 0)
         Column(children: [

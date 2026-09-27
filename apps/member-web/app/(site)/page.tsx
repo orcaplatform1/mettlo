@@ -46,7 +46,7 @@ export default async function HomePage() {
     apiTry<Page<any>>('/public/programs?limit=8'),
     getProducts('?limit=4'),
     apiTry<Page<any>>('/public/events?limit=4&status=UPCOMING'),
-    apiTry<Page<any>>('/public/businesses?limit=6'),
+    apiTry<Page<any>>('/business?limit=6'),
   ]);
   const creators = creatorsRaw ? { ...creatorsRaw, items: shuffle(creatorsRaw.items).slice(0, 6) } : null;
   const programs = programsRaw ? { ...programsRaw, items: shuffle(programsRaw.items).slice(0, 6) } : null;
