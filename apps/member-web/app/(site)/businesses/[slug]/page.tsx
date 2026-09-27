@@ -17,7 +17,7 @@ type BusinessProfile = {
   phonePublic?: string | null; businessHours?: Record<string, { open: string; close: string } | null> | null;
   fitnessBranches?: string[];
   verificationStatus: string; isOpen: boolean; status: string;
-  followersCount: number; ratingAvg: string; ratingCount: number; createdAt: string;
+  followersCount: number; followingCount: number; ratingAvg: string; ratingCount: number; createdAt: string;
   owner?: { username: string };
   city?: { id: number; name: string };
   district?: { id: number; name: string };
@@ -147,8 +147,8 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
               <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takipçi</span>
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-              <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.coachWorkplaces.length}</strong>
-              <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Koç</span>
+              <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.followingCount.toLocaleString('tr-TR')}</strong>
+              <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takip Edilenler</span>
             </span>
           </div>
         </div>

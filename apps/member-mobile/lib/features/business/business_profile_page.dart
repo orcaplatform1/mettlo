@@ -103,13 +103,11 @@ class BusinessProfilePage extends ConsumerWidget {
                         ])),
                       ]),
 
-                      // Takipçi + Koç — web'deki büyük bold layout
                       const SizedBox(height: 16),
                       Row(children: [
                         _BigStat(label: 'Takipçi', value: '${ba['followersCount'] ?? 0}'),
                         const SizedBox(width: 24),
-                        if (!isFood)
-                          _BigStat(label: 'Koç', value: '${coaches.length}'),
+                        _BigStat(label: 'Takip Edilenler', value: '${ba['followingCount'] ?? 0}'),
                         if ((ba['ratingCount'] as int? ?? 0) > 0) ...[
                           const SizedBox(width: 24),
                           _BigStat(label: 'Puan', value: '${ba['ratingAvg']} ★'),

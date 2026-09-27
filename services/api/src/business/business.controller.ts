@@ -119,7 +119,7 @@ export class BusinessController {
       },
     });
     if (!ba || (!ba.isOpen && ba.status !== 'OPEN')) throw new NotFoundException();
-    return ba;
+    return { ...ba, followingCount: 0 };
   }
 
   // ── QR Check-in ───────────────────────────────────────────────────────────
