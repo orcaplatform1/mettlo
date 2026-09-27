@@ -45,6 +45,7 @@ import '../../features/sports/boxing_page.dart';
 import '../../features/sports/nutrition_page.dart';
 import '../../features/sports/practice_log_page.dart';
 import '../../features/sports/running_page.dart';
+import '../../features/store/store_page.dart';
 import '../../features/support/support_pages.dart';
 import '../auth/auth_controller.dart';
 import '../theme/tokens.dart';
@@ -125,6 +126,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/community', builder: (_, _) => const CommunityPage()),
       GoRoute(path: '/community/:slug', builder: (_, s) => CommunityDetailPage(slug: s.pathParameters['slug']!)),
       GoRoute(path: '/live', builder: (_, _) => const LiveSessionsPublicPage()),
+      GoRoute(path: '/store', builder: (_, _) => const StorePage()),
       GoRoute(path: '/alerts', builder: (_, _) => const AlertsPage()),
       GoRoute(path: '/assessments', builder: (_, _) => const AssessmentsPage()),
       GoRoute(path: '/earnings/bank-account', builder: (_, _) => const BankAccountPage()),

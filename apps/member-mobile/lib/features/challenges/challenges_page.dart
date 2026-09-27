@@ -38,21 +38,27 @@ class ChallengesPage extends ConsumerWidget {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                     itemCount: items.length,
                     itemBuilder: (_, i) {
                       final c = items[i] as Map<String, dynamic>;
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          onTap: () => context.push('/challenges/${c['slug']}'),
-                          leading:
-                              const Icon(Icons.emoji_events, color: MettloColors.highlight),
-                          title: Text(c['title'] as String,
-                              style: const TextStyle(fontWeight: FontWeight.w600)),
-                          subtitle: Text(
-                              '${c['durationDays']} gün · ${(c['_count'] as Map?)?['participants'] ?? 0} katılımcı'),
-                          trailing: const Icon(Icons.chevron_right),
+                      return GestureDetector(
+                        onTap: () => context.push('/challenges/${c['slug']}'),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: MettloColors.surface1, borderRadius: BorderRadius.circular(MettloRadius.card), border: Border.all(color: MettloColors.borderSubtle)),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(color: MettloColors.primary.withValues(alpha: .15), borderRadius: BorderRadius.circular(20)),
+                              child: Text('${c['durationDays']} GÜN', style: const TextStyle(color: MettloColors.primary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .5)),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(c['title'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                            const SizedBox(height: 4),
+                            Text('${(c['_count'] as Map?)?['participants'] ?? 0} katılımcı', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12.5)),
+                          ]),
                         ),
                       );
                     },

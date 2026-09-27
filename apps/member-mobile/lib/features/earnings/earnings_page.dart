@@ -5,28 +5,20 @@ import '../../core/auth/auth_controller.dart';
 
 // ── Providers ────────────────────────────────────────────────────────────────
 
-final earningsBalanceProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
-  final client = ref.read(apiClientProvider);
-  final res = await client.get('/earnings');
-  return Map<String, dynamic>.from(res.data as Map);
-});
+final earningsBalanceProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async =>
+    Map<String, dynamic>.from(await ref.read(apiClientProvider).get('/earnings') as Map));
 
 final earningsHistoryProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final client = ref.read(apiClientProvider);
-  final res = await client.get('/earnings/history?limit=15');
-  return (res.data['items'] as List?) ?? [];
+  final res = await ref.read(apiClientProvider).get('/earnings/history', query: {'limit': 15}) as Map<String, dynamic>;
+  return (res['items'] as List?) ?? [];
 });
 
-final payoutAccountsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final client = ref.read(apiClientProvider);
-  final res = await client.get('/payout-accounts');
-  return (res.data as List?) ?? [];
-});
+final payoutAccountsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async =>
+    await ref.read(apiClientProvider).get('/payout-accounts') as List<dynamic>);
 
 final payoutsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final client = ref.read(apiClientProvider);
-  final res = await client.get('/payouts?limit=10');
-  return (res.data['items'] as List?) ?? [];
+  final res = await ref.read(apiClientProvider).get('/payouts', query: {'limit': 10}) as Map<String, dynamic>;
+  return (res['items'] as List?) ?? [];
 });
 
 // ── Sayfa ────────────────────────────────────────────────────────────────────

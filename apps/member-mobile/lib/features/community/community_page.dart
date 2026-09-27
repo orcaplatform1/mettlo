@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -128,7 +129,7 @@ class _CommunityCard extends StatelessWidget {
           if (coverUrl != null)
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(MettloRadius.card)),
-              child: Image.network(coverUrl, height: 100, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+              child: CachedNetworkImage(imageUrl: coverUrl, height: 100, width: double.infinity, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox.shrink()),
             ),
           Padding(
             padding: const EdgeInsets.all(14),

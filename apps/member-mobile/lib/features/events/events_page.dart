@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
@@ -9,9 +10,12 @@ import '../../core/widgets/common.dart';
 final eventsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, Map<String, String?>>((ref, filters) async {
   final qs = StringBuffer('?limit=20');
   filters.forEach((k, v) { if (v != null && v.isNotEmpty) qs.write('&$k=${Uri.encodeComponent(v)}'); });
-  final res = await ref.read(apiClientProvider).get('/events$qs');
+  final res = await ref.read(apiClientProvider).get('/events$qs', auth: false);
   return res as Map<String, dynamic>;
 });
+
+final citiesProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async =>
+    await ref.read(apiClientProvider).get('/public/cities', auth: false) as List<dynamic>);
 
 // ── Sayfa ─────────────────────────────────────────────────────────────────────
 
@@ -41,19 +45,63 @@ class _EventsPageState extends ConsumerState<EventsPage> {
   @override
   Widget build(BuildContext context) {
     final data = ref.watch(eventsProvider({'cityId': _cityId}));
+    final cities = ref.watch(citiesProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Etkinlikler')),
-      body: data.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Yüklenemedi: $e')),
-        data: (d) {
-          final items = (d['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(eventsProvider({'cityId': _cityId}).future),
-            child: items.isEmpty
-                ? const Center(child: Text('Henüz etkinlik yok.'))
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+      body: RefreshIndicator(
+        color: MettloColors.primary,
+        onRefresh: () async {
+          ref.invalidate(eventsProvider({'cityId': _cityId}));
+          ref.invalidate(citiesProvider);
+        },
+        child: CustomScrollView(
+          slivers: [
+            // Hero başlık
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D0B1F),
+                  gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [const Color(0xFF0D0B1F), MettloColors.primary.withValues(alpha: .15)]),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('ETKİNLİKLER', style: TextStyle(color: MettloColors.primary, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                  const SizedBox(height: 8),
+                  Text('Spor etkinlikleri', style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontSize: 28)),
+                  const SizedBox(height: 8),
+                  const Text('Fitness, yoga, boks ve daha fazlası — online ve yüz yüze etkinliklere katıl.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 14, height: 1.5)),
+                ]),
+              ),
+            ),
+            // Şehir filtreleri
+            SliverToBoxAdapter(
+              child: cities.maybeWhen(
+                data: (cs) => cs.isEmpty ? const SizedBox.shrink() : SizedBox(
+                  height: 48,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    children: [
+                      _CityChip(label: 'Tüm Şehirler', active: _cityId == null, onTap: () => setState(() => _cityId = null)),
+                      for (final c in cs.take(12))
+                        _CityChip(label: c['name'] as String, active: _cityId == '${c['id']}', onTap: () => setState(() => _cityId = '${c['id']}')),
+                    ],
+                  ),
+                ),
+                orElse: () => const SizedBox.shrink(),
+              ),
+            ),
+            // Liste
+            data.when(
+              loading: () => const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: MettloColors.primary)))),
+              error: (e, _) => SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(20), child: InfoBanner('Yüklenemedi. Tekrar dene.', error: true))),
+              data: (d) {
+                final items = (d['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+                if (items.isEmpty) {
+                  return const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: Text('Henüz etkinlik yok.', style: TextStyle(color: MettloColors.textSecondary)))));
+                }
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                  sliver: SliverList.builder(
                     itemCount: items.length,
                     itemBuilder: (_, i) {
                       final ev = items[i];
@@ -83,7 +131,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                               if (ev['coverImageUrl'] != null)
                                 ClipRRect(
                                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: Image.network(imgUrl(ev['coverImageUrl'] as String?), height: 150, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                                  child: CachedNetworkImage(imageUrl: imgUrl(ev['coverImageUrl'] as String), height: 160, width: double.infinity, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox.shrink()),
                                 )
                               else
                                 Container(
@@ -104,7 +152,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(7),
                                         child: displayAvatar != null
-                                            ? Image.network(imgUrl(displayAvatar as String), width: 30, height: 30, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink())
+                                            ? CachedNetworkImage(imageUrl: imgUrl(displayAvatar as String), width: 30, height: 30, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox.shrink())
                                             : Container(width: 30, height: 30, color: MettloColors.surface2, child: const Icon(Icons.person, size: 16, color: MettloColors.textSecondary)),
                                       ),
                                       const SizedBox(width: 8),
@@ -161,11 +209,35 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                       );
                     },
                   ),
-          );
-        },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class _CityChip extends StatelessWidget {
+  const _CityChip({required this.label, required this.active, required this.onTap});
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+      decoration: BoxDecoration(
+        color: active ? MettloColors.primary : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: active ? MettloColors.primary : MettloColors.borderSubtle),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 12.5, color: active ? Colors.white : MettloColors.textSecondary, fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
+    ),
+  );
 }
 
 // ── Etkinlik Detay ────────────────────────────────────────────────────────────

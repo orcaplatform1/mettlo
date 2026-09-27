@@ -42,19 +42,14 @@ class _NutritionPageState extends ConsumerState<NutritionPage> {
     }
     setState(() => _busy = true);
     try {
-      await ref.read(apiClientProvider).post('/nutrition/log', body: {
-        'foodName': _food.text.trim(),
-        if (_cal.text.isNotEmpty) 'calories': int.tryParse(_cal.text) ?? 0,
-        if (_pro.text.isNotEmpty)
-          'proteinG': double.tryParse(_pro.text) ?? 0,
-        if (_carb.text.isNotEmpty)
-          'carbG': double.tryParse(_carb.text) ?? 0,
-        if (_fat.text.isNotEmpty)
-          'fatG': double.tryParse(_fat.text) ?? 0,
-        if (_water.text.isNotEmpty)
-          'waterMl': int.tryParse(_water.text) ?? 0,
+      await ref.read(apiClientProvider).post('/nutrition/logs', body: {
+        'label': _food.text.trim(),
         'date': DateTime.now().toIso8601String().substring(0, 10),
-        'mealType': 'SNACK',
+        if (_cal.text.isNotEmpty) 'calories': int.tryParse(_cal.text) ?? 0,
+        if (_pro.text.isNotEmpty) 'proteinG': double.tryParse(_pro.text) ?? 0,
+        if (_carb.text.isNotEmpty) 'carbG': double.tryParse(_carb.text) ?? 0,
+        if (_fat.text.isNotEmpty) 'fatG': double.tryParse(_fat.text) ?? 0,
+        if (_water.text.isNotEmpty) 'waterMl': int.tryParse(_water.text) ?? 0,
       });
       ref.invalidate(nutritionProvider);
       _food.clear();

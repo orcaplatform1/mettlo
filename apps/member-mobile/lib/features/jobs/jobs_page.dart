@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 // ── Providers ────────────────────────────────────────────────────────────────
 
@@ -50,37 +51,50 @@ class _JobsPageState extends ConsumerState<JobsPage> {
   Widget build(BuildContext context) {
     final data = ref.watch(jobsProvider({'workMode': _workMode}));
     return Scaffold(
-      appBar: AppBar(title: const Text('Koç İş İlanları')),
-      body: Column(
-        children: [
-          // Çalışma şekli filtresi
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-            child: Row(
-              children: [
-                _FilterChip(label: 'Tümü', active: _workMode == null, onTap: () => setState(() => _workMode = null)),
-                ..._workModes.entries.map((e) => _FilterChip(
-                  label: e.value,
-                  active: _workMode == e.key,
-                  onTap: () => setState(() => _workMode = e.key),
-                )),
-              ],
+      body: RefreshIndicator(
+        color: MettloColors.primary,
+        onRefresh: () async => ref.invalidate(jobsProvider({'workMode': _workMode})),
+        child: CustomScrollView(slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0D0B1F),
+                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [const Color(0xFF0D0B1F), MettloColors.accent.withValues(alpha: .15)]),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('İŞ İLANLARI', style: TextStyle(color: MettloColors.primary, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                const SizedBox(height: 8),
+                Text('Koçluk iş fırsatları', style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontSize: 28)),
+                const SizedBox(height: 8),
+                const Text('Fitness sektöründe sana uygun koçluk pozisyonlarını bul.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 14, height: 1.5)),
+              ]),
             ),
           ),
-          Expanded(
-            child: data.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Yüklenemedi: $e')),
-              data: (d) {
-                final items = (d['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-                if (items.isEmpty) return const Center(child: Text('İlan bulunamadı.'));
-                return RefreshIndicator(
-                  onRefresh: () => ref.refresh(jobsProvider({'workMode': _workMode}).future),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: items.length,
-                    itemBuilder: (_, i) {
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                children: [
+                  _FilterChip(label: 'Tümü', active: _workMode == null, onTap: () => setState(() => _workMode = null)),
+                  ..._workModes.entries.map((e) => _FilterChip(label: e.value, active: _workMode == e.key, onTap: () => setState(() => _workMode = e.key))),
+                ],
+              ),
+            ),
+          ),
+          data.when(
+            loading: () => const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: MettloColors.primary)))),
+            error: (e, _) => const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(20), child: InfoBanner('Yüklenemedi. Tekrar dene.', error: true))),
+            data: (d) {
+              final items = (d['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+              if (items.isEmpty) return const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: Text('İlan bulunamadı.', style: TextStyle(color: MettloColors.textSecondary)))));
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                sliver: SliverList.builder(
+                  itemCount: items.length,
+                  itemBuilder: (_, i) {
                       final job = items[i];
                       final branches = (job['branchSlugs'] as List?)?.cast<String>() ?? [];
                       return Card(
@@ -120,7 +134,7 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                                   Wrap(spacing: 4, runSpacing: 4, children: branches.take(3).map((b) => Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: MettloColors.primary.withOpacity(0.08),
+                                      color: MettloColors.primary.withValues(alpha: .08),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(b, style: const TextStyle(fontSize: 11)),
@@ -138,8 +152,8 @@ class _JobsPageState extends ConsumerState<JobsPage> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

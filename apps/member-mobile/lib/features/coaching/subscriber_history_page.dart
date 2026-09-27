@@ -106,7 +106,7 @@ class _SubCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push('/coach/${member['username']}'),
+        onTap: () => context.push('/profile/${member['username']}'),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -117,7 +117,7 @@ class _SubCard extends StatelessWidget {
                 Expanded(child: Text(member['name'] ?? member['username'], style: const TextStyle(fontWeight: FontWeight.w600))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: statusColor(status).withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: statusColor(status).withValues(alpha: .12), borderRadius: BorderRadius.circular(6)),
                   child: Text(_statusLabel[status] ?? status, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor(status))),
                 ),
               ]),
