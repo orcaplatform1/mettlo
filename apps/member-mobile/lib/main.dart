@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'core/presence/presence.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/theme.dart';
+import 'core/theme/tokens.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,10 @@ class MettloApp extends ConsumerWidget {
       supportedLocales: const [Locale('tr'), Locale('en')],
       localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => PresenceKeeper(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => Container(
+        decoration: const BoxDecoration(gradient: MettloColors.bgGradient),
+        child: PresenceKeeper(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 final myEventTicketsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final res = await ref.read(apiClientProvider).get('/me/event-tickets');
@@ -169,7 +170,7 @@ class _EventCard extends StatelessWidget {
                   onTap: () { if (organizer['username'] != null) context.push('/profile/${organizer['username']}'); },
                   child: Row(children: [
                     if (organizer['avatarUrl'] != null)
-                      CircleAvatar(backgroundImage: NetworkImage(organizer['avatarUrl']), radius: 12)
+                      CircleAvatar(backgroundImage: NetworkImage(imgUrl(organizer['avatarUrl'] as String)), radius: 12)
                     else
                       CircleAvatar(backgroundColor: MettloColors.primary, radius: 12, child: Text((organizer['name'] ?? organizer['username'] ?? '?')[0].toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold))),
                     const SizedBox(width: 6),

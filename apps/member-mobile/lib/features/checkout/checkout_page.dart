@@ -104,7 +104,7 @@ class PlanCheckoutPage extends ConsumerWidget {
                   ]),
                   SizedBox(height: 6),
                   Text(
-                    'Ödeme, 256-bit SSL ile güvende olan Iyzico altyapısı üzerinden yapılır. Kart bilgilerin Mettlo'da saklanmaz.',
+                    "Ödeme, 256-bit SSL ile güvende olan Iyzico altyapısı üzerinden yapılır. Kart bilgilerin Mettlo'da saklanmaz.",
                     style: TextStyle(fontSize: 12, color: MettloColors.textSecondary),
                   ),
                 ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_controller.dart';
 import '../network/api_client.dart';
 import '../theme/tokens.dart';
+import 'common.dart';
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
@@ -68,7 +69,7 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                       child: Image.network(
-                        creative['imageUrl'] as String,
+                        imgUrl(creative['imageUrl'] as String),
                         height: 130, width: double.infinity, fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),

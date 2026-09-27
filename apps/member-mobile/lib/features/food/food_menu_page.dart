@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 // ── Providers ────────────────────────────────────────────────────────────────
 
@@ -171,7 +172,7 @@ class _FoodMenuPageState extends ConsumerState<FoodMenuPage> {
                                   if (item['imageUrl'] != null)
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(item['imageUrl'] as String, width: 70, height: 70, fit: BoxFit.cover),
+                                      child: Image.network(imgUrl(item['imageUrl'] as String), width: 70, height: 70, fit: BoxFit.cover),
                                     ),
                                   const SizedBox(width: 10),
                                   Expanded(child: Column(

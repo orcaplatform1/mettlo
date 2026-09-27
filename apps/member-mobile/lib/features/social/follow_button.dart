@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 // Tam follow verisi: isFollowing, followers count, following count
 final followDataProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, username) async {
@@ -123,7 +124,7 @@ class FollowStats extends ConsumerWidget {
                   return ListTile(
                     onTap: () { Navigator.pop(ctx); context.push('/profile/$uname'); },
                     leading: CircleAvatar(
-                      backgroundImage: f['avatarUrl'] != null ? NetworkImage(f['avatarUrl'] as String) : null,
+                      backgroundImage: f['avatarUrl'] != null ? NetworkImage(imgUrl(f['avatarUrl'] as String)) : null,
                       backgroundColor: MettloColors.primary,
                       child: f['avatarUrl'] == null ? Text((f['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)) : null,
                     ),

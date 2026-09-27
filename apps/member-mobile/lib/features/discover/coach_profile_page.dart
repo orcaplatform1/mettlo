@@ -441,8 +441,8 @@ class _WorkplaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final coverUrl = w['coverUrl'] as String?;
-    final logoUrl = w['logoUrl'] as String?;
+    final coverUrl = imgUrlOrNull(w['coverUrl'] as String?);
+    final logoUrl = imgUrlOrNull(w['logoUrl'] as String?);
     final name = w['name'] as String? ?? '';
     final city = (w['city'] as Map<String, dynamic>?)?['name'] as String?;
     final district = (w['district'] as Map<String, dynamic>?)?['name'] as String?;

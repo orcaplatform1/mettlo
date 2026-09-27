@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 final businessProfileProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, slug) async =>
     await ref.watch(apiClientProvider).get('/business/${Uri.encodeComponent(slug)}', auth: false) as Map<String, dynamic>);
@@ -62,7 +63,7 @@ class BusinessProfilePage extends ConsumerWidget {
                 pinned: true,
                 flexibleSpace: ba['coverUrl'] != null
                     ? FlexibleSpaceBar(
-                        background: Image.network(ba['coverUrl'] as String, fit: BoxFit.cover),
+                        background: Image.network(imgUrl(ba['coverUrl'] as String), fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: MettloColors.surface2)),
                       )
                     : const FlexibleSpaceBar(),
                 title: Text(ba['name'] as String, style: const TextStyle(shadows: [Shadow(color: Colors.black54, blurRadius: 8)])),
@@ -84,7 +85,7 @@ class BusinessProfilePage extends ConsumerWidget {
                       // Logo + başlık — dairesel (koç avatarıyla aynı)
                       Row(children: [
                         if (ba['logoUrl'] != null)
-                          ClipOval(child: Image.network(ba['logoUrl'] as String, width: 64, height: 64, fit: BoxFit.cover))
+                          ClipOval(child: Image.network(imgUrl(ba['logoUrl'] as String), width: 64, height: 64, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(width: 64, height: 64, color: MettloColors.surface2)))
                         else
                           Container(width: 64, height: 64, decoration: BoxDecoration(
                             color: MettloColors.primary.withOpacity(.12), shape: BoxShape.circle),
@@ -181,7 +182,7 @@ class BusinessProfilePage extends ConsumerWidget {
                                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                                 itemBuilder: (ctx, i) {
                                   final photo = (ba['photos'] as List)[i] as Map<String, dynamic>;
-                                  final url = photo['url'] as String? ?? '';
+                                  final url = imgUrl(photo['url'] as String?);
                                   return GestureDetector(
                                     onTap: () => showDialog(
                                       context: ctx,
@@ -392,7 +393,7 @@ class _CoachTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final creator = ww['creator'] as Map<String, dynamic>;
     final creatorUser = creator['user'] as Map<String, dynamic>;
-    final avatarUrl = creatorUser['avatarUrl'] as String?;
+    final avatarUrl = imgUrlOrNull(creatorUser['avatarUrl'] as String?);
     final username = creatorUser['username'] as String;
 
     return GestureDetector(
@@ -401,7 +402,7 @@ class _CoachTile extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 10),
         child: Row(children: [
           avatarUrl != null
-              ? ClipOval(child: Image.network(avatarUrl, width: 44, height: 44, fit: BoxFit.cover))
+              ? ClipOval(child: Image.network(avatarUrl!, width: 44, height: 44, fit: BoxFit.cover))
               : Container(width: 44, height: 44, decoration: BoxDecoration(
                   color: MettloColors.primary.withOpacity(.1), shape: BoxShape.circle),
                   child: Center(child: Text((creator['displayName'] as String)[0],
@@ -491,7 +492,7 @@ void _showBusinessFollowers(BuildContext context, WidgetRef ref, String business
               return ListTile(
                 onTap: () { Navigator.pop(ctx); context.push('/profile/$uname'); },
                 leading: CircleAvatar(
-                  backgroundImage: f['avatarUrl'] != null ? NetworkImage(f['avatarUrl'] as String) : null,
+                  backgroundImage: f['avatarUrl'] != null ? NetworkImage(imgUrl(f['avatarUrl'] as String)) : null,
                   backgroundColor: MettloColors.primary,
                   child: f['avatarUrl'] == null ? Text((f['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)) : null,
                 ),

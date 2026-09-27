@@ -11,7 +11,7 @@ ThemeData buildMettloTheme() {
   );
 
   return base.copyWith(
-    scaffoldBackgroundColor: MettloColors.bg,
+    scaffoldBackgroundColor: Colors.transparent,
     colorScheme: const ColorScheme.dark(
       primary: MettloColors.primary,
       onPrimary: Colors.white,

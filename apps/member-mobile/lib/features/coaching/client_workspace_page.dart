@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 final clientVideoSessionsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, memberId) async {
   return await ref.watch(apiClientProvider).get('/coaching/clients/$memberId/video-sessions') as Map<String, dynamic>;
@@ -41,7 +42,7 @@ class ClientWorkspacePage extends ConsumerWidget {
           child: Scaffold(
             appBar: AppBar(
               title: Row(children: [
-                CircleAvatar(backgroundImage: member['avatarUrl'] != null ? NetworkImage(member['avatarUrl'] as String) : null, child: member['avatarUrl'] == null ? Text((member['name'] as String)[0].toUpperCase()) : null, radius: 16),
+                CircleAvatar(backgroundImage: member['avatarUrl'] != null ? NetworkImage(imgUrl(member['avatarUrl'] as String)) : null, child: member['avatarUrl'] == null ? Text((member['name'] as String)[0].toUpperCase()) : null, radius: 16),
                 const SizedBox(width: 10),
                 Text(member['name'] as String, style: const TextStyle(fontSize: 16)),
               ]),

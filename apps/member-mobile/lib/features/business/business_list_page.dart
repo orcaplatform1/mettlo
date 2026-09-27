@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_controller.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 final businessListProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, Map<String, String>>((ref, params) async {
   final query = <String, dynamic>{};
@@ -235,7 +236,7 @@ class _BusinessCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: business['logoUrl'] != null
-                  ? Image.network(business['logoUrl'] as String, width: 56, height: 56, fit: BoxFit.cover)
+                  ? Image.network(imgUrl(business['logoUrl'] as String), width: 56, height: 56, fit: BoxFit.cover)
                   : Container(width: 56, height: 56, color: MettloColors.primary.withOpacity(.1),
                       child: const Icon(Icons.storefront, size: 26, color: MettloColors.primary)),
             ),

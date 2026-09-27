@@ -165,7 +165,14 @@ class _Shell extends ConsumerWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 16,
-        title: Image.asset('assets/images/logo.png', height: 30),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Image.asset('assets/images/logo.png', height: 28),
+          const SizedBox(width: 8),
+          ShaderMask(
+            shaderCallback: (b) => MettloColors.gradientSunrise.createShader(b),
+            child: const Text('METTLO', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 3, color: Colors.white)),
+          ),
+        ]),
         actions: [
           Builder(
             builder: (ctx) => Padding(

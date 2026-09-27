@@ -8,6 +8,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/common.dart';
 import '../../core/widgets/ad_banner_widget.dart';
 
+
 final branchesProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async =>
     await ref.watch(apiClientProvider).get('/public/branches', auth: false) as List<dynamic>);
 
@@ -174,8 +175,8 @@ class _CoachCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final username = (c['user'] as Map)['username'] as String;
-    final avatarUrl = (c['user'] as Map)['avatarUrl'] as String?;
-    final bannerUrl = c['bannerUrl'] as String?;
+    final avatarUrl = imgUrlOrNull((c['user'] as Map)['avatarUrl'] as String?);
+    final bannerUrl = imgUrlOrNull(c['coverUrl'] as String?);
     final branches = (c['branches'] as List?) ?? const [];
     final rating = num.tryParse('${c['ratingAvg']}') ?? 0;
     final ratingCount = c['ratingCount'] ?? 0;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 // ── Providers ────────────────────────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                               if (ev['coverImageUrl'] != null)
                                 ClipRRect(
                                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: Image.network(ev['coverImageUrl']!, height: 150, width: double.infinity, fit: BoxFit.cover),
+                                  child: Image.network(imgUrl(ev['coverImageUrl'] as String?), height: 150, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                                 )
                               else
                                 Container(
@@ -104,7 +105,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(7),
                                         child: displayAvatar != null
-                                            ? Image.network(displayAvatar, width: 30, height: 30, fit: BoxFit.cover)
+                                            ? Image.network(imgUrl(displayAvatar as String), width: 30, height: 30, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink())
                                             : Container(width: 30, height: 30, color: MettloColors.surface2, child: const Icon(Icons.person, size: 16, color: MettloColors.textSecondary)),
                                       ),
                                       const SizedBox(width: 8),
@@ -217,7 +218,7 @@ class _EventDetailPageState extends ConsumerState<EventDetailPage> {
             if (ev['coverImageUrl'] != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(ev['coverImageUrl']!, height: 220, width: double.infinity, fit: BoxFit.cover),
+                child: Image.network(imgUrl(ev['coverImageUrl'] as String?), height: 220, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
               ),
             const SizedBox(height: 16),
             Text(ev['title'] ?? '', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

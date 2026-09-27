@@ -48,6 +48,22 @@ class MettloColors {
     end: Alignment.bottomRight,
     colors: [primary, highlight],
   );
+
+  /// Uygulama arka planı — koyu lacivert + mor/turuncu aksan
+  static const bgGradient = LinearGradient(
+    begin: Alignment.topRight,
+    end: Alignment.bottomLeft,
+    colors: [Color(0xFF0F0C1F), Color(0xFF0B1220), Color(0xFF0C1018)],
+    stops: [0.0, 0.55, 1.0],
+  );
+
+  /// Hero bölümleri için koyu gradient
+  static const heroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0D0B1F), Color(0xFF110928), Color(0xFF0B1220)],
+    stops: [0.0, 0.4, 1.0],
+  );
 }
 
 class MettloRadius {

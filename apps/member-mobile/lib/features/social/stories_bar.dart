@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/common.dart';
+import '../../core/widgets/common.dart'; // imgUrl, imgUrlOrNull
 
 final storyFeedProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final data = await ref.watch(apiClientProvider).get('/social/stories/feed');
@@ -107,7 +107,7 @@ class _StoriesBarState extends ConsumerState<StoriesBar> {
               for (int i = 0; i < groups.length; i++)
                 _StoryCircle(
                   label: (groups[i]['user']['creatorProfile']?['displayName'] ?? groups[i]['user']['name'] as String).split(' ').first,
-                  avatarUrl: groups[i]['user']['avatarUrl'] as String?,
+                  avatarUrl: imgUrlOrNull(groups[i]['user']['avatarUrl'] as String?),
                   allViewed: (groups[i]['stories'] as List).every((s) => s['viewed'] == true),
                   onTap: () => _openViewer(groups, i),
                 ),
@@ -205,7 +205,7 @@ class _ProfileStoriesSectionState extends ConsumerState<ProfileStoriesSection> {
             _StoryCircle(
               label: '',
               avatarUrl: null,
-              previewUrl: stories[i]['mediaUrl'] as String?,
+              previewUrl: imgUrlOrNull(stories[i]['mediaUrl'] as String?),
               isVideo: stories[i]['mediaType'] == 'VIDEO',
               onTap: () {
                 final myUsername = ref.read(authControllerProvider).user?.username;
@@ -401,11 +401,11 @@ class _StoryViewerState extends ConsumerState<_StoryViewer> {
   Widget build(BuildContext context) {
     final user = currentGroup['user'] as Map<String, dynamic>;
     final stories = (currentGroup['stories'] as List);
-    final mediaUrl = currentStory['mediaUrl'] as String;
+    final mediaUrl = imgUrl(currentStory['mediaUrl'] as String?);
     final caption = currentStory['caption'] as String?;
     final viewCount = (currentStory['viewCount'] as int?) ?? 0;
     final displayName = (user['creatorProfile']?['displayName'] ?? user['name']) as String;
-    final avatarUrl = user['avatarUrl'] as String?;
+    final avatarUrl = imgUrlOrNull(user['avatarUrl'] as String?);
     final bottom = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
@@ -605,7 +605,7 @@ class _StoryViewerState extends ConsumerState<_StoryViewer> {
                                     return Padding(
                                       padding: const EdgeInsets.only(bottom: 12),
                                       child: Row(children: [
-                                        CircleAvatar(radius: 22, backgroundImage: v['avatarUrl'] != null ? NetworkImage(v['avatarUrl'] as String) : null, backgroundColor: MettloColors.primary, child: v['avatarUrl'] == null ? Text((v['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)) : null),
+                                        CircleAvatar(radius: 22, backgroundImage: v['avatarUrl'] != null ? NetworkImage(imgUrl(v['avatarUrl'] as String)) : null, backgroundColor: MettloColors.primary, child: v['avatarUrl'] == null ? Text((v['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)) : null),
                                         const SizedBox(width: 12),
                                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                           Text(v['name'] as String? ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),

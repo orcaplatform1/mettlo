@@ -3,8 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/env.dart';
 import '../network/api_client.dart';
 import '../theme/tokens.dart';
+
+/// Göreceli URL'leri tam URL'ye dönüştürür (/uploads/... → https://mettlo.tr/uploads/...)
+String imgUrl(String? url) {
+  if (url == null || url.isEmpty) return '';
+  if (url.startsWith('http')) return url;
+  return '${Env.siteUrl}$url';
+}
+
+/// imgUrl() ile tam URL döndürür; boş/null ise null döndürür.
+String? imgUrlOrNull(String? url) {
+  if (url == null || url.isEmpty) return null;
+  if (url.startsWith('http')) return url;
+  return '${Env.siteUrl}$url';
+}
 
 /// Gradient (Sunrise) birincil düğme — tasarım sistemindeki "primary button".
 class MettloButton extends StatelessWidget {
@@ -101,7 +116,7 @@ class UserAvatar extends StatelessWidget {
         width: size,
         height: size,
         child: url != null && url!.isNotEmpty
-            ? CachedNetworkImage(imageUrl: url!, fit: BoxFit.cover, errorWidget: (_, _, _) => _fallback(initials))
+            ? CachedNetworkImage(imageUrl: imgUrl(url), fit: BoxFit.cover, errorWidget: (_, _, _) => _fallback(initials))
             : _fallback(initials),
       ),
     );

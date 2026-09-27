@@ -72,8 +72,8 @@ class _MemberBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final coverUrl = p['coverUrl'] as String?;
-    final avatarUrl = p['avatarUrl'] as String?;
+    final coverUrl = imgUrlOrNull(p['coverUrl'] as String?);
+    final avatarUrl = imgUrlOrNull(p['avatarUrl'] as String?);
     final name = p['name'] as String? ?? username;
     final memberSince = p['memberSince'] as String?;
     final streak = p['streak'] as Map<String, dynamic>?;
@@ -170,7 +170,7 @@ class _MemberBody extends ConsumerWidget {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       CircleAvatar(
                         radius: 14,
-                        backgroundImage: c['avatarUrl'] != null ? NetworkImage(c['avatarUrl'] as String) : null,
+                        backgroundImage: c['avatarUrl'] != null ? NetworkImage(imgUrl(c['avatarUrl'] as String)) : null,
                         backgroundColor: MettloColors.primary,
                         child: c['avatarUrl'] == null ? Text((c['displayName'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)) : null,
                       ),

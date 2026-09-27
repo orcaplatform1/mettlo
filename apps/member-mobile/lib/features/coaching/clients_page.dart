@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/common.dart';
 
 final coachClientsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final res = await ref.watch(apiClientProvider).get('/coaching/clients');
@@ -40,7 +41,7 @@ class ClientsPage extends ConsumerWidget {
                   decoration: BoxDecoration(color: MettloColors.surface1, borderRadius: BorderRadius.circular(12), border: Border.all(color: MettloColors.borderSubtle)),
                   child: Row(
                     children: [
-                      CircleAvatar(backgroundImage: member['avatarUrl'] != null ? NetworkImage(member['avatarUrl'] as String) : null, child: member['avatarUrl'] == null ? Text((member['name'] as String)[0].toUpperCase()) : null, radius: 22),
+                      CircleAvatar(backgroundImage: member['avatarUrl'] != null ? NetworkImage(imgUrl(member['avatarUrl'] as String)) : null, child: member['avatarUrl'] == null ? Text((member['name'] as String)[0].toUpperCase()) : null, radius: 22),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

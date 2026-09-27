@@ -55,7 +55,10 @@ class _HamburgerMenuPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authControllerProvider);
-    final isAdmin = auth.user?.role == 'ADMIN' || auth.user?.role == 'SUPERADMIN';
+    final role = auth.user?.role ?? '';
+    final isAdmin = role == 'ADMIN' || role == 'SUPERADMIN' || role == 'MODERATOR';
+    final isCoach = role == 'CREATOR';
+    final isBusiness = role == 'BUSINESS';
 
     return Align(
       alignment: Alignment.centerRight,
@@ -102,10 +105,30 @@ class _HamburgerMenuPage extends ConsumerWidget {
                   _NavItem(context, 'Restoranlar', Icons.restaurant_outlined, '/restaurants'),
                   _NavItem(context, 'İş İlanları', Icons.work_outline, '/jobs'),
 
+                  if (isCoach) ...[
+                    const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
+                    _SmallLabel('KOÇ PANELİ'),
+                    _NavItem(context, 'Abonelerim', Icons.people_outline, '/subscribers'),
+                    _NavItem(context, 'Müşterilerim', Icons.supervised_user_circle_outlined, '/coaching/clients'),
+                    _NavItem(context, 'Gelirlerim', Icons.account_balance_wallet_outlined, '/earnings'),
+                    _NavItem(context, 'Reklamlarım', Icons.campaign_outlined, '/advertising'),
+                    _NavItem(context, 'Çalıştığım Yerler', Icons.location_on_outlined, '/coach/workplaces'),
+                    _MenuItem('Web Koç Paneli', onTap: () => _openUrl(context, '/creator')),
+                  ],
+
+                  if (isBusiness) ...[
+                    const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
+                    _SmallLabel('İŞLETME PANELİ'),
+                    _NavItem(context, 'İşletme Profilim', Icons.store_outlined, '/business'),
+                    _NavItem(context, 'Reklamlarım', Icons.campaign_outlined, '/advertising'),
+                    _MenuItem('Web İşletme Paneli', onTap: () => _openUrl(context, '/creator')),
+                  ],
+
                   if (isAdmin) ...[
                     const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
                     _SmallLabel('YÖNETİM'),
-                    _NavItem(context, 'Admin Paneli', Icons.admin_panel_settings_outlined, '/moderation'),
+                    _NavItem(context, 'Şikayet Yönetimi', Icons.flag_outlined, '/moderation'),
+                    _MenuItem('Web Admin Paneli', onTap: () => _openUrl(context, '/admin')),
                   ],
 
                   if (auth.status == AuthStatus.signedIn) ...[
