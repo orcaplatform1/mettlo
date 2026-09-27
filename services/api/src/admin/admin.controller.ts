@@ -364,7 +364,7 @@ export class AdminController {
   async auditLogs(@CurrentUser() _me: AuthUser, @Query('action') action?: string, @Query('subject') subject?: string, @Query('role') role?: string, @Query('page') page = '1', @Query('dateFilter') dateFilter = 'today') {
     const take = 200;
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
-    const roleFilter = role && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT', 'CREATOR', 'SUBSCRIBER', 'MEMBER'].includes(role) ? role : undefined;
+    const roleFilter = role && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT', 'CREATOR', 'BUSINESS', 'SUBSCRIBER', 'MEMBER'].includes(role) ? role : undefined;
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let dateFrom: Date | undefined;
