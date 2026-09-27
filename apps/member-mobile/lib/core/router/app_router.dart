@@ -40,6 +40,7 @@ import '../../features/sports/running_page.dart';
 import '../../features/support/support_pages.dart';
 import '../auth/auth_controller.dart';
 import '../theme/tokens.dart';
+import '../widgets/hamburger_menu.dart';
 
 /// Oturum durumuna göre yönlendirme: girişsiz → /login, girişli → /home.
 final routerProvider = Provider<GoRouter>((ref) {
@@ -161,7 +162,31 @@ class _Shell extends ConsumerWidget {
     final counts = ref.watch(badgeCountsProvider).value ?? const BadgeCounts();
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: child),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: Image.asset('assets/images/logo.png', height: 30),
+        actions: [
+          Builder(
+            builder: (ctx) => Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: GestureDetector(
+                onTap: () => showHamburgerMenu(ctx),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: MettloColors.surface2,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.menu, color: MettloColors.textPrimary, size: 20),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: idx < 0 ? 0 : idx,
         onDestinationSelected: (i) => context.go(_tabs[i].$1),

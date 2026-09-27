@@ -109,7 +109,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Widget build(BuildContext context) {
     final birthError = _submitted ? Validators.birthDate(_birth) : null;
     return Scaffold(
-      appBar: AppBar(leading: BackButton(onPressed: () => context.go('/login')), title: const Text('Mettlo\'ya katıl')),
+      backgroundColor: MettloColors.bg,
+      appBar: AppBar(
+        leading: BackButton(onPressed: () => context.go('/login')),
+        title: const Text('Mettlo\'ya katıl'),
+        backgroundColor: MettloColors.bg,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -190,16 +197,18 @@ class _Check extends StatelessWidget {
   final ValueChanged<bool> onChanged;
   final Widget child;
   @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: () => onChanged(!value),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Checkbox(value: value, onChanged: (v) => onChanged(v ?? false), side: BorderSide(color: error ? MettloColors.error : MettloColors.textMuted), activeColor: MettloColors.primary),
-            const SizedBox(width: 4),
-            Expanded(child: Padding(padding: const EdgeInsets.only(top: 12), child: child)),
-          ]),
-        ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Checkbox(
+            value: value,
+            onChanged: (v) => onChanged(v ?? false),
+            side: BorderSide(color: error ? MettloColors.error : MettloColors.textMuted),
+            activeColor: MettloColors.primary,
+          ),
+          const SizedBox(width: 4),
+          Expanded(child: Padding(padding: const EdgeInsets.only(top: 12), child: child)),
+        ]),
       );
 }
 

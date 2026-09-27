@@ -115,6 +115,13 @@ class SettingsPage extends ConsumerWidget {
         TextButton(onPressed: () => _open('/data-protection'), child: const Text('KVKK')),
         TextButton(onPressed: () => _open('/terms'), child: const Text('Koşullar')),
       ]),
+      const SizedBox(height: 8),
+      const Text(
+        '© 2025 Mettlo. Tüm hakları saklıdır.\nMettlo Teknoloji A.Ş.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: MettloColors.textMuted, fontSize: 11, height: 1.6),
+      ),
+      const SizedBox(height: 24),
     ]);
   }
 
