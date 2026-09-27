@@ -3,7 +3,7 @@ import { Logo } from './logo';
 
 const COLS: Array<{ title: string; links: Array<[string, string]> }> = [
   { title: 'Mettlo', links: [['Hakkımızda', '/about'], ['Ekibimiz', '/team'], ['Kariyer', '/careers']] },
-  { title: 'Keşfet', links: [['Koçlar', '/coaches'], ['Programlar', '/programs'], ['Challenge', '/challenges'], ['Live', '/live']] },
+  { title: 'Keşfet', links: [['Koçlar', '/coaches'], ['Programlar', '/programs'], ['Challenge', '/challenges'], ['Live', '/live'], ['İşletmeler', '/businesses'], ['Restoranlar', '/restaurants']] },
   { title: 'Üyelik', links: [['Fiyatlar', '/pricing'], ['Abonelikler', '/app/subscriptions'], ['Mağaza', '/store']] },
   { title: 'Destek', links: [['Yardım Merkezi', '/help'], ['Sıkça Sorulan Sorular', '/faq'], ['İletişim', '/contact'], ['Destek Talebi', '/app/support']] },
   {

@@ -15,7 +15,7 @@ const NAV = [
   { href: '/live', label: 'Canlı Dersler' },
   { href: '/events', label: 'Etkinlikler' },
   { href: '/businesses', label: 'İşletmeler' },
-  { href: '/businesses#restoranlar', label: 'Restoranlar' },
+  { href: '/restaurants', label: 'Restoranlar' },
   { href: '/jobs', label: 'İş İlanları' },
   { href: '/community', label: 'Topluluk' },
   { href: '/store', label: 'Mağaza' },
