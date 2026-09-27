@@ -57,6 +57,19 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                     itemBuilder: (_, i) {
                       final ev = items[i];
                       final isFree = (ev['ticketPriceKurus'] as int? ?? 0) == 0;
+                      final org = ev['organizer'] as Map<String, dynamic>?;
+                      final biz = ev['business'] as Map<String, dynamic>?;
+                      final displayName = biz?['name'] ?? org?['name'] ?? '';
+                      final displayHandle = biz?['slug'] ?? org?['username'] ?? '';
+                      final displayAvatar = biz?['logoUrl'] ?? org?['avatarUrl'];
+                      final isVerified = biz != null
+                          ? biz['verificationStatus'] == 'VERIFIED'
+                          : org?['creatorProfile']?['verified'] == true;
+                      final locationParts = [
+                        if (ev['isOnline'] == true) 'Online',
+                        if (ev['locationName'] != null) ev['locationName'] as String,
+                        if (ev['city'] != null) (ev['city'] as Map)['name'] as String,
+                      ].toSet().toList();
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -69,42 +82,75 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                               if (ev['coverImageUrl'] != null)
                                 ClipRRect(
                                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: Image.network(ev['coverImageUrl']!, height: 160, width: double.infinity, fit: BoxFit.cover),
+                                  child: Image.network(ev['coverImageUrl']!, height: 150, width: double.infinity, fit: BoxFit.cover),
                                 )
                               else
                                 Container(
-                                  height: 80,
+                                  height: 72,
                                   decoration: const BoxDecoration(
                                     color: MettloColors.primary,
                                     borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                                   ),
-                                  child: const Center(child: Icon(Icons.event, color: Colors.white, size: 32)),
+                                  child: const Center(child: Icon(Icons.event, color: Colors.white, size: 28)),
                                 ),
                               Padding(
                                 padding: const EdgeInsets.all(14),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(ev['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                                    const SizedBox(height: 6),
+                                    // Organizatör / işletme satırı
                                     Row(children: [
-                                      const Icon(Icons.schedule, size: 14, color: Colors.grey),
-                                      const SizedBox(width: 4),
-                                      Expanded(child: Text(_fmtDate(ev['startsAt']), style: const TextStyle(fontSize: 12, color: Colors.grey))),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(7),
+                                        child: displayAvatar != null
+                                            ? Image.network(displayAvatar, width: 30, height: 30, fit: BoxFit.cover)
+                                            : Container(width: 30, height: 30, color: MettloColors.surface2, child: const Icon(Icons.person, size: 16, color: MettloColors.textSecondary)),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        Row(children: [
+                                          Flexible(child: Text(displayName, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+                                          if (isVerified) ...[const SizedBox(width: 3), const Icon(Icons.verified, size: 13, color: Colors.blue)],
+                                        ]),
+                                        Text('@$displayHandle', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary)),
+                                      ])),
                                     ]),
-                                    if (ev['city'] != null || ev['isOnline'] == true) ...[
-                                      const SizedBox(height: 4),
+                                    const SizedBox(height: 10),
+                                    // Tarih
+                                    Row(children: [
+                                      const Icon(Icons.schedule, size: 13, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Expanded(child: Text(_fmtDate(ev['startsAt']), style: const TextStyle(fontSize: 11.5, color: Colors.grey))),
+                                    ]),
+                                    if (locationParts.isNotEmpty) ...[
+                                      const SizedBox(height: 3),
                                       Row(children: [
-                                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                                        const Icon(Icons.location_on, size: 13, color: Colors.grey),
                                         const SizedBox(width: 4),
-                                        Text(ev['isOnline'] == true ? 'Online' : (ev['city']?['name'] ?? ev['locationName'] ?? ''), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                        Expanded(child: Text(locationParts.join(', '), style: const TextStyle(fontSize: 11.5, color: Colors.grey), overflow: TextOverflow.ellipsis)),
                                       ]),
                                     ],
                                     const SizedBox(height: 8),
-                                    Text(
-                                      isFree ? 'Ücretsiz' : _fmtTL(ev['ticketPriceKurus'] as int),
-                                      style: TextStyle(fontWeight: FontWeight.bold, color: isFree ? Colors.green : MettloColors.primary),
-                                    ),
+                                    Text(ev['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                    const SizedBox(height: 8),
+                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                      Text(
+                                        isFree ? 'Ücretsiz' : _fmtTL(ev['ticketPriceKurus'] as int),
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isFree ? Colors.green : MettloColors.primary),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => EventDetailPage(event: ev))),
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: MettloColors.primary,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                        ),
+                                        child: const Text('Etkinliğe Katıl', style: TextStyle(fontSize: 12)),
+                                      ),
+                                    ]),
                                   ],
                                 ),
                               ),

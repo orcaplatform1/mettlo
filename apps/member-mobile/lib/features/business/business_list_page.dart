@@ -26,7 +26,42 @@ const _kCategories = {
   'WELLNESS_CENTER': 'Wellness',
   'NUTRITION_CLINIC': 'Beslenme',
   'DANCE_STUDIO': 'Dans',
+  'HEALTHY_FOOD': 'Sağlıklı Restoran',
+  'HEALTHY_CAFE': 'Sağlıklı Kafe',
+  'SMOOTHIE_BAR': 'Smoothie Bar',
+  'VEGAN': 'Vegan',
+  'MEAL_PREP': 'Meal Prep',
 };
+
+String? _getOpenStatus(dynamic businessHours) {
+  if (businessHours == null || businessHours is! Map) return null;
+  final turkey = DateTime.now().toUtc().add(const Duration(hours: 3));
+  final days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  final dayIndex = turkey.weekday % 7;
+  final todayHours = businessHours[days[dayIndex]] as Map?;
+  final nowMins = turkey.hour * 60 + turkey.minute;
+  int toMins(String t) { final p = t.split(':'); return int.parse(p[0]) * 60 + int.parse(p[1]); }
+  if (todayHours?['open'] != null && todayHours?['close'] != null) {
+    final open = toMins(todayHours!['open'] as String);
+    final close = toMins(todayHours['close'] as String);
+    if (nowMins >= open && nowMins < close) {
+      return nowMins >= close - 60 ? 'Kapanmak Üzere' : 'Açık';
+    }
+    if (nowMins < open) return "Bugün ${todayHours['open']}'de Açılacak";
+  }
+  final tomorrowHours = businessHours[days[(dayIndex + 1) % 7]] as Map?;
+  if (tomorrowHours?['open'] != null) {
+    return turkey.hour < 5 ? "Bugün ${tomorrowHours!['open']}'de Açılacak" : "Yarın ${tomorrowHours!['open']}'de Açılacak";
+  }
+  return 'Kapalı';
+}
+
+Color _openStatusColor(String? status) {
+  if (status == 'Açık') return Colors.green;
+  if (status == 'Kapanmak Üzere') return Colors.orange;
+  if (status == 'Kapalı') return Colors.red;
+  return Colors.grey;
+}
 
 class BusinessListPage extends ConsumerStatefulWidget {
   const BusinessListPage({super.key});
@@ -174,10 +209,13 @@ class _BusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isVerified = business['verificationStatus'] == 'APPROVED';
+    final isVerified = business['verificationStatus'] == 'VERIFIED';
     final city = business['city'] as Map<String, dynamic>?;
     final district = business['district'] as Map<String, dynamic>?;
     final location = [city?['name'], district?['name']].whereType<String>().join(', ');
+    final openStatus = _getOpenStatus(business['businessHours']);
+    final ratingCount = business['ratingCount'] as int? ?? 0;
+    final ratingAvg = business['ratingAvg'];
 
     return GestureDetector(
       onTap: () => context.push('/business/${business['slug']}'),
@@ -185,56 +223,61 @@ class _BusinessCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withOpacity(.12)),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8, offset: const Offset(0, 2))],
         ),
+        padding: const EdgeInsets.all(14),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Logo
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              borderRadius: BorderRadius.circular(10),
               child: business['logoUrl'] != null
-                  ? Image.network(business['logoUrl'] as String, width: 80, height: 80, fit: BoxFit.cover)
-                  : Container(width: 80, height: 80, color: MettloColors.primary.withOpacity(.1),
-                      child: const Icon(Icons.storefront, size: 32, color: MettloColors.primary)),
+                  ? Image.network(business['logoUrl'] as String, width: 56, height: 56, fit: BoxFit.cover)
+                  : Container(width: 56, height: 56, color: MettloColors.primary.withOpacity(.1),
+                      child: const Icon(Icons.storefront, size: 26, color: MettloColors.primary)),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      Flexible(child: Text(business['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      if (isVerified) ...[
-                        const SizedBox(width: 4),
-                        const Icon(Icons.verified, size: 15, color: MettloColors.primary),
-                      ],
-                    ]),
-                    if (business['shortDesc'] != null) ...[
-                      const SizedBox(height: 2),
-                      Text(business['shortDesc'] as String, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 2, overflow: TextOverflow.ellipsis),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Flexible(child: Text(business['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    if (isVerified) ...[const SizedBox(width: 4), const Icon(Icons.verified, size: 14, color: Colors.blue)],
+                  ]),
+                  Text('@${business['slug']}', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary)),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    if (openStatus != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(color: _openStatusColor(openStatus).withOpacity(.12), borderRadius: BorderRadius.circular(6)),
+                        child: Text(openStatus, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _openStatusColor(openStatus))),
+                      ),
+                      const SizedBox(width: 8),
                     ],
-                    const SizedBox(height: 6),
-                    Wrap(spacing: 8, children: [
-                      if (location.isNotEmpty)
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.place_outlined, size: 12, color: Colors.grey.shade500),
-                          const SizedBox(width: 3),
-                          Text(location, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                        ]),
-                      if ((business['ratingCount'] as int? ?? 0) > 0)
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.star, size: 12, color: Colors.amber),
-                          const SizedBox(width: 3),
-                          Text('${business['ratingAvg']}', style: const TextStyle(fontSize: 11)),
-                        ]),
+                    if (location.isNotEmpty) ...[
+                      Icon(Icons.place_outlined, size: 11, color: Colors.grey.shade500),
+                      const SizedBox(width: 2),
+                      Flexible(child: Text(location, style: TextStyle(fontSize: 11, color: Colors.grey.shade500), overflow: TextOverflow.ellipsis)),
+                    ],
+                  ]),
+                  if (ratingCount > 0) ...[
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      const Icon(Icons.star, size: 12, color: Colors.amber),
+                      const SizedBox(width: 3),
+                      Text('$ratingAvg', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 3),
+                      Text('($ratingCount yorum)', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
                     ]),
                   ],
-                ),
+                ],
               ),
             ),
-            const Padding(padding: EdgeInsets.only(right: 12), child: Icon(Icons.chevron_right, color: Colors.grey)),
+            const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
           ],
         ),
       ),
