@@ -121,13 +121,13 @@ export function FollowStats({ username, followersCount, followingCount }: { user
       <div className="row" style={{ gap: 24 }}>
         <button onClick={() => openModal('followers')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-          <strong style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px' }}>{followersCount.toLocaleString('tr-TR')}</strong>
-          <span style={{ color: 'var(--color-text-secondary)', fontSize: 14, fontWeight: 500 }}>Takipçi</span>
+          <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{followersCount.toLocaleString('tr-TR')}</strong>
+          <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takipçi</span>
         </button>
         <button onClick={() => openModal('following')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-          <strong style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px' }}>{followingCount.toLocaleString('tr-TR')}</strong>
-          <span style={{ color: 'var(--color-text-secondary)', fontSize: 14, fontWeight: 500 }}>Takip</span>
+          <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{followingCount.toLocaleString('tr-TR')}</strong>
+          <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takip</span>
         </button>
       </div>
 

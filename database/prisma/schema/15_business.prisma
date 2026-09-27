@@ -6,6 +6,8 @@
 // CoachWorkplace         — coach N:M işyeri (freelance + çoklu)
 // BusinessFollow         — üye → işletme takip (Follow extend edilemiyor, bkz. karar notu)
 // BusinessCheckIn        — QR tabanlı işletme girişi
+// BusinessPhoto          — işletme fotoğraf galerisi
+// BusinessCampaign       — kampanyalar (indirim/fırsat duyurusu)
 
 /// Vergi levhası yüklenince isOpen=true (BusinessStatus=OPEN).
 /// Admin/superadmin APPROVED onayından sonra verificationStatus=APPROVED → Verified rozet.
@@ -25,6 +27,12 @@ model BusinessAccount {
   /// Şifreli — yalnızca işletme yöneticisi ve super_admin okuyabilir
   phoneEnc           String?
   emailEnc           String?
+  /// Herkese açık telefon (opsiyonel)
+  phonePublic        String?                   @db.VarChar(30)
+  /// Çalışma saatleri: { mon: {open:"09:00", close:"22:00"}, ... } veya null (kapalı gün)
+  businessHours      Json?
+  /// Fitness/spor salonları için branş etiketleri (metin dizisi)
+  fitnessBranches    String[]
   /// true = vergi levhası yüklendi; profil görünür ama UNVERIFIED rozet yok
   isOpen             Boolean                   @default(false)
   status             BusinessStatus            @default(PENDING_DOCS)
@@ -57,6 +65,8 @@ model BusinessAccount {
   jobPosts           JobPost[]                 @relation("BusinessJobPosts")
   jobOffersSent      BusinessOffer[]           @relation("BusinessOffersSent")
   earningsBalance    EarningsBalance?          @relation("BusinessEarningsBalance")
+  photos             BusinessPhoto[]           @relation("BusinessPhotos")
+  campaigns          BusinessCampaign[]        @relation("BusinessCampaigns")
 
   @@index([slug])
   @@index([status, verificationStatus])
@@ -201,4 +211,35 @@ model BusinessCheckIn {
   @@index([businessId, createdAt])
   @@index([locationId, createdAt])
   @@map("business_check_ins")
+}
+
+/// İşletme fotoğraf galerisi (profil + ürün/salon resimleri).
+model BusinessPhoto {
+  id         String          @id @default(cuid())
+  businessId String
+  business   BusinessAccount @relation("BusinessPhotos", fields: [businessId], references: [id], onDelete: Cascade)
+  url        String
+  caption    String?         @db.VarChar(200)
+  sortOrder  Int             @default(0)
+  createdAt  DateTime        @default(now())
+
+  @@index([businessId, sortOrder])
+  @@map("business_photos")
+}
+
+/// İşletme kampanyaları — indirim/fırsat duyurusu, profilde görünür.
+model BusinessCampaign {
+  id          String          @id @default(cuid())
+  businessId  String
+  business    BusinessAccount @relation("BusinessCampaigns", fields: [businessId], references: [id], onDelete: Cascade)
+  title       String          @db.VarChar(120)
+  description String?         @db.Text
+  imageUrl    String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+
+  @@index([businessId, isActive, endsAt])
+  @@map("business_campaigns")
 }

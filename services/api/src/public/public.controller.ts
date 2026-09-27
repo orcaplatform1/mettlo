@@ -82,6 +82,7 @@ export class PublicController {
             ratingAvg: true, ratingCount: true, subscribersCount: true, followersCount: true, seoTitle: true, seoDescription: true, updatedAt: true,
             branches: { select: { branch: { select: { slug: true, name: true } } } },
             subCategories: { where: { subCategory: { isActive: true } }, select: { subCategory: { select: { slug: true, name: true } } } },
+            coachWorkplaces: { where: { status: 'ACTIVE' }, select: { business: { select: { name: true, slug: true, logoUrl: true, coverUrl: true, category: true, city: { select: { name: true } }, district: { select: { name: true } } } } }, take: 5 },
           },
         },
       },
@@ -145,8 +146,9 @@ export class PublicController {
       const TIERS = [{ tier: '24m', months: 24, label: '2 Yıllık Mettlo Koçu' }, { tier: '12m', months: 12, label: '1 Yıllık Mettlo Koçu' }, { tier: '6m', months: 6, label: '6 Aylık Mettlo Koçu' }];
       const earnedBadges = TIERS.filter((t) => monthsOnMettlo >= t.months).reverse();
       return {
-        type: 'coach', username: u.username, avatarUrl: u.avatarUrl, ...rest, branches: branches.map((b) => b.branch), subCategories: subCategories.map((x) => x.subCategory),
-        credentials: credentials.map((c) => c.credential),
+        type: 'coach', username: u.username, avatarUrl: u.avatarUrl, ...rest, branches: branches.map((b: any) => b.branch), subCategories: subCategories.map((x: any) => x.subCategory),
+        credentials: credentials.map((c: any) => c.credential),
+        workplaces: (p.coachWorkplaces ?? []).map((w: any) => w.business).filter(Boolean),
         community: community && { slug: community.slug, name: community.name, subscribersOnly: community.subscribersOnly, members: community._count.members },
         // Ziyaretçi ve abone olmayanlar yalnızca bu özet bilgileri görür; içeriğin kendisini değil.
         stats: {
@@ -167,10 +169,24 @@ export class PublicController {
     }
 
     if (u.role === 'MEMBER' || u.role === 'SUBSCRIBER') {
+      const now = new Date();
+      const activeEnts = await this.prisma.entitlement.findMany({
+        where: { userId: u.id, creatorId: { not: null }, status: { in: ['ACTIVE', 'GRACE'] }, OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
+        select: { creatorId: true },
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+      });
+      const subscribedCoaches = activeEnts.length
+        ? await this.prisma.user.findMany({
+            where: { id: { in: activeEnts.map((e) => e.creatorId!) } },
+            select: { username: true, avatarUrl: true, creatorProfile: { select: { displayName: true } } },
+          })
+        : [];
       return {
         type: 'member', username: u.username, name: u.name, avatarUrl: u.avatarUrl,
         coverUrl: u.role === 'SUBSCRIBER' ? (u.memberProfile?.coverUrl ?? null) : null,
         hasSubscription: u.role === 'SUBSCRIBER', memberSince: u.createdAt, streak: u.streak, achievements: u.achievements,
+        subscribedTo: subscribedCoaches.map((c) => ({ username: c.username, avatarUrl: c.avatarUrl, displayName: c.creatorProfile?.displayName ?? c.username })),
       };
     }
 

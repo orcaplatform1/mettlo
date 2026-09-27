@@ -83,13 +83,15 @@ export class BusinessController {
   @Public()
   @Get(':slug')
   async getBusinessBySlug(@Param('slug') slug: string) {
-    const ba = await this.prisma.businessAccount.findUnique({
+    const ba = await (this.prisma.businessAccount as any).findUnique({
       where: { slug },
       select: {
         id: true, name: true, slug: true, category: true, description: true,
         shortDesc: true, logoUrl: true, coverUrl: true, website: true,
+        phonePublic: true, businessHours: true, fitnessBranches: true,
         verificationStatus: true, isOpen: true, status: true,
         followersCount: true, ratingAvg: true, ratingCount: true, createdAt: true,
+        owner: { select: { username: true } },
         city: { select: { id: true, name: true } },
         district: { select: { id: true, name: true } },
         locations: {
@@ -105,6 +107,13 @@ export class BusinessController {
                 user: { select: { username: true, avatarUrl: true } } },
             },
           },
+          take: 10,
+        },
+        photos: { orderBy: { sortOrder: 'asc' }, select: { id: true, url: true, caption: true }, take: 20 },
+        campaigns: {
+          where: { isActive: true, OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }] },
+          orderBy: { startsAt: 'desc' },
+          select: { id: true, title: true, description: true, imageUrl: true, startsAt: true, endsAt: true },
           take: 10,
         },
       },

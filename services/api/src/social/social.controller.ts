@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
@@ -176,9 +176,11 @@ export class SocialController {
   }))
   async createStory(@CurrentUser() me: AuthUser, @UploadedFile() file: Express.Multer.File, @Body() body: { caption?: string }) {
     if (!file) throw new BadRequestException('Dosya gerekli');
+    const activeCount = await this.prisma.story.count({ where: { userId: me.id, expiresAt: { gt: new Date() } } });
+    if (activeCount >= 10) throw new BadRequestException('Aynı anda en fazla 10 hikaye paylaşabilirsin');
     const mediaType = file.mimetype.startsWith('video/') ? 'VIDEO' : 'IMAGE';
     const mediaUrl = `/uploads/stories/${file.filename}`;
-    const expiresAt = new Date(Date.now() + 24 * 3600_000);
+    const expiresAt = new Date(Date.now() + 48 * 3600_000);
     const story = await this.prisma.story.create({ data: { userId: me.id, mediaUrl, mediaType, caption: body.caption?.trim() || null, expiresAt } });
     return story;
   }
@@ -186,10 +188,44 @@ export class SocialController {
   /** Hikayemi sil */
   @Delete('stories/:id')
   async deleteStory(@CurrentUser() me: AuthUser, @Param('id') id: string) {
-    const story = await this.prisma.story.findUnique({ where: { id }, select: { userId: true } });
+    const story = await this.prisma.story.findUnique({ where: { id }, select: { userId: true, mediaUrl: true } });
     if (!story) throw new NotFoundException();
     if (story.userId !== me.id) throw new BadRequestException('Bu hikaye sana ait değil');
     await this.prisma.story.delete({ where: { id } });
+    if (story.mediaUrl.startsWith('/uploads/')) {
+      const path = join(process.cwd(), '../../', story.mediaUrl);
+      if (existsSync(path)) { try { const { unlinkSync } = await import('fs'); unlinkSync(path); } catch {} }
+    }
     return { ok: true };
+  }
+
+  /** Hikayeye yanıt ver → DM kutusuna düşer */
+  @Post('stories/:id/reply')
+  async replyToStory(@CurrentUser() me: AuthUser, @Param('id') id: string, @Body() body: { text: string }) {
+    const text = body.text?.trim();
+    if (!text) throw new BadRequestException('Yanıt boş olamaz');
+    if (text.length > 500) throw new BadRequestException('Yanıt 500 karakteri geçemez');
+    const story = await this.prisma.story.findUnique({
+      where: { id, expiresAt: { gt: new Date() } },
+      select: { userId: true },
+    });
+    if (!story) throw new NotFoundException('Hikaye bulunamadı veya süresi dolmuş');
+    if (story.userId === me.id) throw new BadRequestException('Kendi hikayene yanıt veremezsin');
+    let conv = await this.prisma.conversation.findFirst({
+      where: { kind: 'DIRECT', AND: [{ participants: { some: { userId: me.id } } }, { participants: { some: { userId: story.userId } } }] },
+      select: { id: true },
+    });
+    if (!conv) {
+      conv = await this.prisma.conversation.create({
+        data: { kind: 'DIRECT', participants: { create: [{ userId: me.id }, { userId: story.userId }] } },
+        select: { id: true },
+      });
+    }
+    const now = new Date();
+    await this.prisma.$transaction([
+      this.prisma.message.create({ data: { conversationId: conv.id, senderId: me.id, body: `↩️ Hikayene yanıt: ${text}` }, select: { id: true } }),
+      this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessageAt: now } }),
+    ]);
+    return { conversationId: conv.id };
   }
 }

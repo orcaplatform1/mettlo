@@ -129,12 +129,110 @@ class BusinessProfilePage extends ConsumerWidget {
                         ],
                       ]),
 
+                      // Telefon
+                      if (ba['phonePublic'] != null) ...[
+                        const SizedBox(height: 16),
+                        GestureDetector(
+                          onTap: () async {
+                            final uri = Uri.parse('tel:${ba['phonePublic']}');
+                            await launchUrl(uri);
+                          },
+                          child: Row(children: [
+                            const Icon(Icons.phone_outlined, size: 16, color: MettloColors.primary),
+                            const SizedBox(width: 8),
+                            Text(ba['phonePublic'] as String, style: const TextStyle(color: MettloColors.primary, fontWeight: FontWeight.w600, fontSize: 14)),
+                          ]),
+                        ),
+                      ],
+
+                      // Fitness branşları
+                      if ((ba['fitnessBranches'] as List?)?.isNotEmpty == true) ...[
+                        const SizedBox(height: 12),
+                        Wrap(spacing: 6, runSpacing: 6, children: [
+                          for (final b in ba['fitnessBranches'] as List)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(color: MettloColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(12)),
+                              child: Text(b as String, style: const TextStyle(fontSize: 12, color: MettloColors.primary, fontWeight: FontWeight.w600)),
+                            ),
+                        ]),
+                      ],
+
                       // Hakkında
                       if (ba['description'] != null) ...[
                         const SizedBox(height: 24),
                         const Text('Hakkında', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                         const SizedBox(height: 8),
                         Text(ba['description'] as String, style: TextStyle(color: Colors.grey.shade700, height: 1.5)),
+                      ],
+
+                      // Fotoğraflar
+                      if ((ba['photos'] as List?)?.isNotEmpty == true) ...[
+                        const SizedBox(height: 24),
+                        const Text('Fotoğraflar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 140,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: (ba['photos'] as List).length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            itemBuilder: (ctx, i) {
+                              final photo = (ba['photos'] as List)[i] as Map<String, dynamic>;
+                              final url = photo['url'] as String? ?? '';
+                              return GestureDetector(
+                                onTap: () => showDialog(
+                                  context: ctx,
+                                  builder: (_) => Dialog(backgroundColor: Colors.transparent, child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(url, fit: BoxFit.contain))),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(url, width: 160, height: 140, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(width: 160, color: MettloColors.surface2)),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+
+                      // Kampanyalar
+                      if ((ba['campaigns'] as List?)?.isNotEmpty == true) ...[
+                        const SizedBox(height: 24),
+                        const Text('Kampanyalar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        const SizedBox(height: 8),
+                        for (final c in ba['campaigns'] as List)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: MettloColors.primary.withOpacity(.06),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: MettloColors.primary.withOpacity(.2)),
+                            ),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Row(children: [
+                                const Icon(Icons.local_offer_outlined, size: 16, color: MettloColors.primary),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text((c as Map<String, dynamic>)['title'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+                              ]),
+                              if ((c['description'] as String?)?.isNotEmpty == true) ...[
+                                const SizedBox(height: 6),
+                                Text(c['description'] as String, style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4)),
+                              ],
+                              if (c['endsAt'] != null) ...[
+                                const SizedBox(height: 6),
+                                Text('Son: ${_formatDate(c['endsAt'] as String)}', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary)),
+                              ],
+                            ]),
+                          ),
+                      ],
+
+                      // Çalışma saatleri
+                      if ((ba['businessHours'] as List?)?.isNotEmpty == true) ...[
+                        const SizedBox(height: 24),
+                        const Text('Çalışma Saatleri', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        const SizedBox(height: 8),
+                        for (final h in ba['businessHours'] as List) _HourRow(h: h as Map<String, dynamic>),
                       ],
 
                       // Konumlar
@@ -334,6 +432,37 @@ class _Chip extends StatelessWidget {
       Text(label, style: const TextStyle(fontSize: 12, color: MettloColors.primary, fontWeight: FontWeight.w600)),
     ]),
   );
+}
+
+String _formatDate(String iso) {
+  try {
+    final d = DateTime.parse(iso).toLocal();
+    const months = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+    return '${d.day} ${months[d.month]} ${d.year}';
+  } catch (_) { return iso; }
+}
+
+const _kDayNames = ['', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+
+class _HourRow extends StatelessWidget {
+  const _HourRow({required this.h});
+  final Map<String, dynamic> h;
+
+  @override
+  Widget build(BuildContext context) {
+    final day = (h['dayOfWeek'] as int?) ?? 0;
+    final isClosed = h['isClosed'] == true;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(children: [
+        SizedBox(width: 36, child: Text(day < _kDayNames.length ? _kDayNames[day] : '$day', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+        const SizedBox(width: 12),
+        isClosed
+            ? Text('Kapalı', style: TextStyle(fontSize: 13, color: Colors.grey.shade500))
+            : Text('${h['openTime'] ?? ''} – ${h['closeTime'] ?? ''}', style: const TextStyle(fontSize: 13)),
+      ]),
+    );
+  }
 }
 
 class _StatBox extends StatelessWidget {

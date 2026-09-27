@@ -45,6 +45,7 @@ import { PublicEventsController, OrganizerEventsController, EventRegistrationCon
 import { PublicJobsController, BusinessJobsController, CoachJobApplicationController, AdminJobsController } from './jobs/jobs.controller';
 import { AiMatchingController } from './ai/ai-matching.controller';
 import { SocialController } from './social/social.controller';
+import { StoryCleanupService } from './social/story-cleanup.service';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { SocialController } from './social/social.controller';
     CheckoutService,
     IyzicoService,
     PayoutService,
+    StoryCleanupService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },

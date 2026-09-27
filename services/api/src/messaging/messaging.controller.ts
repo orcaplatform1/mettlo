@@ -6,11 +6,16 @@ import { PrismaService } from '../common/prisma.service';
 import type { AuthUser } from '../common/request';
 import { ZodPipe } from '../common/zod.pipe';
 
-const startSchema = z.object({ toUsername: z.string().trim().toLowerCase().min(3).max(30) });
+// businessId opsiyonel: MEMBER'ın bir işletme profili üzerinden mesaj atmasına izin verir
+const startSchema = z.object({
+  toUsername: z.string().trim().toLowerCase().min(3).max(30),
+  businessId: z.string().optional(),
+});
 const sendSchema = z.object({ body: z.string().trim().min(1).max(4000) });
 
 const PEOPLE = { select: { id: true, username: true, name: true, avatarUrl: true, role: true } } as const;
-const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT'] as const;
+
+const STAFF_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'MODERATOR', 'SUPPORT']);
 
 @Controller('messages')
 export class MessagingController {
@@ -22,90 +27,43 @@ export class MessagingController {
     return p;
   }
 
-  private async hasActiveAccess(memberId: string, creatorId: string) {
-    const now = new Date();
-    const e = await this.prisma.entitlement.findFirst({
-      where: { userId: memberId, creatorId, status: { in: ['ACTIVE', 'GRACE'] }, startsAt: { lte: now }, OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
-      select: { id: true },
-    });
-    return !!e;
-  }
-
-  private async sharedCoach(memberAId: string, memberBId: string): Promise<boolean> {
-    const now = new Date();
-    const aBase = { status: { in: ['ACTIVE', 'GRACE'] as any }, startsAt: { lte: now }, OR: [{ endsAt: null }, { endsAt: { gt: now } }], creatorId: { not: null } };
-    const [subsA, subsB] = await Promise.all([
-      this.prisma.entitlement.findMany({ where: { userId: memberAId, ...aBase }, select: { creatorId: true } }),
-      this.prisma.entitlement.findMany({ where: { userId: memberBId, ...aBase }, select: { creatorId: true } }),
-    ]);
-    const setA = new Set(subsA.map((s) => s.creatorId));
-    return subsB.some((s) => setA.has(s.creatorId));
-  }
-
-  /** Tam izin matrisi: kimin kime mesaj atabileceğini kontrol eder */
+  /**
+   * Mesaj izin matrisi:
+   * - MEMBER → MEMBER/STAFF: serbest
+   * - MEMBER → CREATOR/SUBSCRIBER: engel (subscription_required)
+   * - MEMBER → işletme sahibi (businessId doğrulanmış): serbest
+   * - SUBSCRIBER/CREATOR/STAFF → herkes: serbest
+   */
   private async canStart(
-    senderId: string, senderRole: string,
-    recipientId: string, recipientRole: string,
+    senderId: string,
+    senderRole: string,
+    recipientId: string,
+    recipientRole: string,
+    businessId?: string,
   ): Promise<{ allowed: true } | { allowed: false; reason: string }> {
-    const ROLE_RESTRICTED = 'Bu kişiye mesaj atamazsın. Sizi şu ekip üyeleri mesajlayabilir: Müşteri İlişkileri, Topluluk Kontrolörü';
-
-    // SUPER_ADMIN herkese mesaj atabilir
-    if (senderRole === 'SUPER_ADMIN') return { allowed: true };
-
-    // Engel kontrolü: iki yönlü
     const blockExists = await this.prisma.block.findFirst({
       where: { OR: [{ blockerId: senderId, blockedId: recipientId }, { blockerId: recipientId, blockedId: senderId }] },
       select: { id: true },
     });
     if (blockExists) return { allowed: false, reason: 'Bu kullanıcı bulunamamaktadır' };
 
-    // SUPPORT ve MODERATOR herkese mesaj atabilir
-    if (senderRole === 'SUPPORT' || senderRole === 'MODERATOR') return { allowed: true };
+    // SUBSCRIBER, CREATOR, STAFF → herkese serbestçe
+    if (senderRole !== 'MEMBER') return { allowed: true };
 
-    // ADMIN yalnızca diğer staff rollerine mesaj atabilir
-    if (senderRole === 'ADMIN') {
-      if (STAFF_ROLES.includes(recipientRole as any)) return { allowed: true };
-      return { allowed: false, reason: ROLE_RESTRICTED };
+    // MEMBER → MEMBER veya STAFF: serbest
+    if (senderRole === 'MEMBER' && (recipientRole === 'MEMBER' || STAFF_ROLES.has(recipientRole))) return { allowed: true };
+
+    // MEMBER → işletme sahibine (businessId varsa): işletmenin gerçekten bu kullanıcıya ait olduğunu doğrula
+    if (senderRole === 'MEMBER' && businessId) {
+      const business = await this.prisma.businessAccount.findFirst({
+        where: { id: businessId, ownerId: recipientId, status: { in: ['OPEN', 'ACTIVE'] as any } },
+        select: { id: true },
+      });
+      if (business) return { allowed: true };
     }
 
-    // Alıcı SUPER_ADMIN ise herkes mesaj atabilir
-    if (recipientRole === 'SUPER_ADMIN') return { allowed: true };
-
-    // Alıcı ADMIN ise üye/koç mesaj atamaz
-    if (recipientRole === 'ADMIN') return { allowed: false, reason: ROLE_RESTRICTED };
-
-    // Alıcı SUPPORT veya MODERATOR ise üye/koç ilk mesajı başlatamaz (sadece cevap verebilir)
-    if (recipientRole === 'SUPPORT' || recipientRole === 'MODERATOR') return { allowed: false, reason: ROLE_RESTRICTED };
-
-    // Artık her iki taraf da CREATOR veya MEMBER
-    const senderIsCoach = senderRole === 'CREATOR';
-    const recipientIsCoach = recipientRole === 'CREATOR';
-
-    if (senderIsCoach && recipientIsCoach) {
-      // Koç → Koç: yalnızca gönderen alıcı koça aboneyse
-      const ok = await this.hasActiveAccess(senderId, recipientId);
-      if (!ok) return { allowed: false, reason: 'subscription_required' };
-      return { allowed: true };
-    }
-
-    if (senderIsCoach && !recipientIsCoach) {
-      // Koç → Üye: yalnızca üye bu koçun abonesi ise
-      const ok = await this.hasActiveAccess(recipientId, senderId);
-      if (!ok) return { allowed: false, reason: 'subscription_required' };
-      return { allowed: true };
-    }
-
-    if (!senderIsCoach && recipientIsCoach) {
-      // Üye → Koç: yalnızca gönderen koçun abonesi ise
-      const ok = await this.hasActiveAccess(senderId, recipientId);
-      if (!ok) return { allowed: false, reason: 'subscription_required' };
-      return { allowed: true };
-    }
-
-    // Üye → Üye: aynı koçun aboneleri ise
-    const shared = await this.sharedCoach(senderId, recipientId);
-    if (!shared) return { allowed: false, reason: 'subscription_required' };
-    return { allowed: true };
+    // MEMBER → CREATOR veya SUBSCRIBER: engel
+    return { allowed: false, reason: 'subscription_required' };
   }
 
   @Get('conversations')
@@ -149,7 +107,7 @@ export class MessagingController {
     const other = await this.prisma.user.findUnique({ where: { username: b.toUsername }, select: { id: true, role: true, status: true } });
     if (!other || other.status !== 'ACTIVE' || other.id === u.id) throw new NotFoundException('Kullanıcı bulunamadı');
 
-    const check = await this.canStart(u.id, u.role, other.id, other.role);
+    const check = await this.canStart(u.id, u.role, other.id, other.role, b.businessId);
     if (!check.allowed) throw new ForbiddenException(check.reason);
 
     const existing = await this.prisma.conversation.findFirst({

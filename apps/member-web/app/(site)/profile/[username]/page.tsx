@@ -122,6 +122,11 @@ export default async function ProfilePage({ params }: Props) {
           {/* Profili düzenle (kendi profili) */}
           {isOwn && <StaffSelfEditForm username={p.username} u={{ name: p.name ?? p.username, staffHeadline: p.staffHeadline, staffBio: p.staffBio }} />}
 
+          {/* Hikayeler */}
+          <div style={{ marginBottom: 32 }}>
+            <ProfileStories username={p.username} isOwn={isOwn} />
+          </div>
+
           {/* Hakkında — card-featured stili (koçun "Neden Beni Seçmelisiniz?" kartı gibi) */}
           {p.staffBio && (
             <section aria-labelledby="staff-about" style={{ marginTop: isOwn ? 32 : 0, maxWidth: 820 }}>
@@ -180,6 +185,24 @@ export default async function ProfilePage({ params }: Props) {
               <BlockButton username={p.username} isBlocked={blockStatus?.blocked ?? false} />
             </div>
           )}
+          {/* Abone olunan koçlar */}
+          {p.subscribedTo?.length > 0 && (
+            <div style={{ marginTop: 20, width: '100%', textAlign: 'left' }}>
+              <p className="caption text-secondary" style={{ marginBottom: 8 }}>Abone olunan koçlar</p>
+              <div className="row row-wrap" style={{ gap: 8 }}>
+                {p.subscribedTo.map((c: any) => (
+                  <Link key={c.username} href={`/profile/${c.username}`} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', padding: '6px 12px 6px 8px' }}>
+                    {c.avatarUrl ? <img src={c.avatarUrl} alt={c.displayName} width={28} height={28} style={{ borderRadius: '50%', objectFit: 'cover' }} /> : <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>{c.displayName?.[0]}</div>}
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{c.displayName}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="container" style={{ maxWidth: 720, paddingBottom: 48 }}>
+          <ProfileStories username={p.username} isOwn={isOwn} />
         </div>
         <SuperAdminPanel username={p.username} data={admin} />
         <StaffPanel username={p.username} />
@@ -265,34 +288,34 @@ export default async function ProfilePage({ params }: Props) {
             <h1 className="h2 row" style={{ gap: 8, flexWrap: 'wrap' }}>{p.displayName}<OnlineStatus username={p.username} label size={11} /></h1>
             <p className="text-tertiary" style={{ marginTop: 2 }}>@{p.username}</p>
             {p.headline && <p className="text-secondary" style={{ marginTop: 6 }}>{p.headline}</p>}
-            {p.subCategories?.length > 0 && <div className="row row-wrap" style={{ marginTop: 10, gap: 6 }}>{p.subCategories.map((x: any) => <Link key={x.slug} href={`/coaches?branch=${p.branches?.[0]?.slug ?? ''}&sub=${x.slug}`} prefetch={false} className="badge badge-premium" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10, display: 'block' }}>{x.name}</Link>)}</div>}
             <div className="row row-wrap" style={{ marginTop: 12, gap: 8 }}>
               <TenureBadge badge={st.tenureBadge} />
               {st.experienceYears && <span className="badge"><GraduationCap size={12} aria-hidden /> {st.experienceYears} yıldır eğitmen</span>}
               <span className="badge"><Award size={12} aria-hidden /> Mettlo&apos;da {formatTenure(st.monthsOnMettlo)}</span>
             </div>
           </div>
+
+          {/* Takipçi / Takip + Hikayeler — rozet satırının hemen altında */}
+          <div className="row row-wrap" style={{ gap: 16, marginTop: 16 }}>
+            <FollowStats username={p.username} followersCount={followersCount} followingCount={st.following ?? 0} />
+            {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <ProfileStories username={p.username} isOwn={isOwn} />
+          </div>
         </div>
       </div>
 
       <div className="container" style={{ paddingBlock: 32 }}>
-        {/* Stories */}
-        <ProfileStories username={p.username} isOwn={isOwn} />
-
-        {/* Takipçi / Takip sayıları ve karşılıklı takip */}
-        <div className="row row-wrap" style={{ gap: 16, marginBottom: 16 }}>
-          <FollowStats username={p.username} followersCount={followersCount} followingCount={st.following ?? 0} />
-          {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
-        </div>
-
         <section aria-label="Koç özeti"><div className="stat-grid">
           {tiles.map(([Icon, n, l]) => <div key={l} className="stat-tile"><Icon size={20} aria-hidden /><span className="n">{n}</span><span className="l">{l}</span></div>)}
         </div></section>
 
-        <div className="row row-wrap" style={{ margin: '20px 0 0' }}>
-          {p.branches?.map((b: any) => <Link key={b.slug} href={`/category/${b.slug}`} className="badge">{b.name}</Link>)}
-          {p.credentials?.map((c: string) => <span key={c} className="badge badge-ok"><ShieldCheck size={12} aria-hidden /> {c}</span>)}
-        </div>
+        {p.credentials?.length > 0 && (
+          <div className="row row-wrap" style={{ margin: '20px 0 0' }}>
+            {p.credentials.map((c: string) => <span key={c} className="badge badge-ok"><ShieldCheck size={12} aria-hidden /> {c}</span>)}
+          </div>
+        )}
 
         {p.bio && <section aria-labelledby="about" style={{ marginTop: 40 }}><h2 id="about" className="h4">Hakkında</h2><p className="text-secondary" style={{ marginTop: 10, maxWidth: 820, whiteSpace: 'pre-line' }}>{p.bio}</p></section>}
         {p.whyChooseMe && (
@@ -303,7 +326,38 @@ export default async function ProfilePage({ params }: Props) {
             </div>
           </section>
         )}
-        {p.expertise?.length > 0 && <div className="row row-wrap" style={{ marginTop: 16 }}>{p.expertise.map((e: string) => <span key={e} className="chip" style={{ cursor: 'default' }}>{e}</span>)}</div>}
+        {/* Çalıştığı işletmeler */}
+        {p.workplaces?.length > 0 && (
+          <section aria-labelledby="workplaces-h" style={{ marginTop: 32 }}>
+            <h2 id="workplaces-h" className="h4" style={{ marginBottom: 12 }}>Çalıştığı İşletmeler</h2>
+            <div className="row row-wrap" style={{ gap: 12 }}>
+              {p.workplaces.map((w: any) => (
+                <Link key={w.slug} href={`/businesses/${w.slug}`} style={{ textDecoration: 'none', color: 'inherit', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-soft)', overflow: 'hidden', width: 220, flexShrink: 0 }}>
+                  {/* Kapak / logo alanı */}
+                  <div style={{ height: 80, background: 'var(--color-surface-2)', position: 'relative', overflow: 'hidden' }}>
+                    {w.coverUrl
+                      ? <img src={w.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ width: '100%', height: '100%', background: 'var(--gradient-sunrise-dark)' }} />}
+                    {w.logoUrl && (
+                      <div style={{ position: 'absolute', bottom: -16, left: 12, width: 36, height: 36, borderRadius: 8, border: '2px solid var(--color-bg)', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.4)' }}>
+                        <img src={w.logoUrl} alt={w.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+                  {/* Bilgi */}
+                  <div style={{ padding: w.logoUrl ? '22px 12px 12px' : '12px' }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</p>
+                    {(w.city || w.district) && (
+                      <p style={{ margin: '3px 0 0', fontSize: 11, color: 'var(--color-text-tertiary)' }}>
+                        📍 {[w.district?.name, w.city?.name].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {!isStaff && <section id="plans" aria-labelledby="plans-h" style={{ marginTop: 48, scrollMarginTop: 96 }}>
           <h2 id="plans-h" className="h4">Abonelik Planları</h2>

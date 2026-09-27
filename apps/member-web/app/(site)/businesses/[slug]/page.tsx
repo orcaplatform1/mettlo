@@ -1,17 +1,24 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils, Megaphone } from 'lucide-react';
-import { apiTry, getAccessToken } from '@mettlo/web-core';
+import { MapPin, Globe, Users, Star, CheckCircle, Navigation, ChevronRight, Utensils, Megaphone, Phone, Clock, Tag, Image as ImageIcon, MessageSquare } from 'lucide-react';
+import { apiTry, getAccessToken, getSession } from '@mettlo/web-core';
 import { BusinessFollowButton } from '@/app/components/business-follow-button';
+import { MessageButton } from '@/app/components/message-button';
 import { ALL_CATEGORY_TR, FOOD_CATEGORIES } from '../page';
+
+const DAYS_TR = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 type BusinessProfile = {
   id: string; name: string; slug: string; category: string;
   description?: string; shortDesc?: string;
   logoUrl?: string | null; coverUrl?: string | null; website?: string | null;
+  phonePublic?: string | null; businessHours?: Record<string, { open: string; close: string } | null> | null;
+  fitnessBranches?: string[];
   verificationStatus: string; isOpen: boolean; status: string;
   followersCount: number; ratingAvg: string; ratingCount: number; createdAt: string;
+  owner?: { username: string };
   city?: { id: number; name: string };
   district?: { id: number; name: string };
   locations: Array<{
@@ -25,6 +32,8 @@ type BusinessProfile = {
       user: { username: string; avatarUrl?: string | null };
     };
   }>;
+  photos?: Array<{ id: string; url: string; caption?: string }>;
+  campaigns?: Array<{ id: string; title: string; description?: string; imageUrl?: string; startsAt: string; endsAt?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -40,16 +49,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BusinessProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [ba, token] = await Promise.all([
+  const [ba, token, session] = await Promise.all([
     apiTry<BusinessProfile>(`/business/${encodeURIComponent(slug)}`),
     getAccessToken().catch(() => null),
+    getSession().catch(() => null),
   ]);
   if (!ba) notFound();
 
   const isVerified = ba.verificationStatus === 'APPROVED';
   const isFood = FOOD_CATEGORIES.has(ba.category);
-  const isOwner = !!(token && (ba as any).ownerId);
+  const isFitness = !isFood;
+  const isOwner = !!(token && session?.username && ba.owner?.username === session.username);
   const mainLocation = ba.locations.find(l => l.isMain) ?? ba.locations[0];
+  const activeCampaigns = (ba.campaigns ?? []).filter(c => !c.endsAt || new Date(c.endsAt) > new Date());
 
   const followStatus = token
     ? await apiTry<{ following: boolean }>(`/business/${ba.id}/follow-status`, { token }).catch(() => null)
@@ -111,8 +123,18 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             <span className="text-secondary">takipçi</span>
           </span>
           {ba.website && <WebsiteButton businessId={ba.id} website={ba.website} />}
+          {ba.phonePublic && (
+            <a href={`tel:${ba.phonePublic}`} className="btn btn-ghost btn-sm row" style={{ gap: 6 }}>
+              <Phone size={14} /> {ba.phonePublic}
+            </a>
+          )}
           {token && !isOwner && (
             <BusinessFollowButton businessId={ba.id} initialFollowing={initialFollowing} />
+          )}
+          {/* İşletme sahibine mesaj at — businessId geçilerek MEMBER kısıtlaması aşılır */}
+          {token && !isOwner && ba.owner?.username && (
+            <MessageButton username={ba.owner.username} subscribeHref={`/login?next=/businesses/${slug}`}
+              businessId={ba.id} style={{ display: 'flex', alignItems: 'center' }} />
           )}
           {isOwner && (
             <Link href={`/app/advertising?businessId=${ba.id}`} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -126,6 +148,25 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
           )}
         </div>
 
+        {/* Kampanyalar */}
+        {activeCampaigns.length > 0 && (
+          <section aria-labelledby="campaigns-h" style={{ marginBottom: 28 }}>
+            <h2 id="campaigns-h" className="h4 row" style={{ gap: 8, marginBottom: 14 }}><Tag size={18} /> Kampanyalar</h2>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {activeCampaigns.map(c => (
+                <div key={c.id} style={{ background: 'var(--color-surface-1)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-soft)', maxWidth: 320, flex: '1 1 260px' }}>
+                  {c.imageUrl && <img src={c.imageUrl} alt={c.title} style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }} />}
+                  <div style={{ padding: '12px 16px' }}>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>{c.title}</div>
+                    {c.description && <p className="body-sm text-secondary" style={{ marginTop: 4, marginBottom: 0 }}>{c.description}</p>}
+                    {c.endsAt && <p className="caption text-tertiary" style={{ marginTop: 6 }}>Son: {new Date(c.endsAt).toLocaleDateString('tr-TR')}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="profile-detail-grid">
           {/* Sol */}
           <div>
@@ -133,6 +174,50 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
               <div className="card" style={{ marginBottom: 20 }}>
                 <h2 className="h4" style={{ marginBottom: 10 }}>Hakkında</h2>
                 <p className="body text-secondary" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{ba.description}</p>
+              </div>
+            )}
+
+            {/* Fitness branşları */}
+            {isFitness && ba.fitnessBranches && ba.fitnessBranches.length > 0 && (
+              <div className="card" style={{ marginBottom: 20 }}>
+                <h2 className="h4" style={{ marginBottom: 12 }}>Branşlar</h2>
+                <div className="row row-wrap" style={{ gap: 8 }}>
+                  {ba.fitnessBranches.map((b: string) => (
+                    <span key={b} className="badge badge-premium">{b}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Çalışma saatleri */}
+            {ba.businessHours && (
+              <div className="card" style={{ marginBottom: 20 }}>
+                <h2 className="h4 row" style={{ gap: 8, marginBottom: 14 }}><Clock size={16} /> Çalışma Saatleri</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {DAY_KEYS.map((key, i) => {
+                    const day = (ba.businessHours as any)?.[key];
+                    return (
+                      <div key={key} className="row body-sm" style={{ gap: 12 }}>
+                        <span style={{ minWidth: 36, color: 'var(--color-text-secondary)' }}>{DAYS_TR[i]}</span>
+                        {day ? <span>{day.open} — {day.close}</span> : <span className="text-tertiary">Kapalı</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Fotoğraf galerisi */}
+            {ba.photos && ba.photos.length > 0 && (
+              <div className="card" style={{ marginBottom: 20 }}>
+                <h2 className="h4 row" style={{ gap: 8, marginBottom: 14 }}><ImageIcon size={16} /> Fotoğraflar</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                  {ba.photos.map(ph => (
+                    <div key={ph.id} style={{ borderRadius: 8, overflow: 'hidden', aspectRatio: '1', background: 'var(--color-surface-2)' }}>
+                      <img src={ph.url} alt={ph.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -156,12 +241,11 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                             <a href={`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`}
                               target="_blank" rel="noopener noreferrer"
                               className="row body-sm" style={{ gap: 4, color: 'var(--color-primary)', marginTop: 6, textDecoration: 'none', display: 'inline-flex' }}>
-                              <Navigation size={12} /> Google Maps'te Aç
+                              <Navigation size={12} /> Google Maps&apos;te Aç
                             </a>
                           )}
                         </div>
                       </div>
-                      {/* Google Maps iframe */}
                       {loc.lat && loc.lng && (
                         <div style={{ marginTop: 12, borderRadius: 10, overflow: 'hidden', height: 200 }}>
                           <iframe
@@ -219,6 +303,20 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                 {ba.city && <InfoRow label="Konum" value={`${ba.city.name}${ba.district ? `, ${ba.district.name}` : ''}`} />}
                 <InfoRow label="Durum" value={isVerified ? '✓ Doğrulanmış' : 'Aktif'} style={{ color: isVerified ? '#3b82f6' : undefined }} />
                 <InfoRow label="Üye" value={`${new Date(ba.createdAt).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}'dan beri`} />
+                {ba.website && (
+                  <div className="row body-sm" style={{ gap: 8, alignItems: 'flex-start' }}>
+                    <span className="text-secondary" style={{ minWidth: 76, flexShrink: 0 }}>Web</span>
+                    <a href={ba.website} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', wordBreak: 'break-all' }}>
+                      {ba.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                    </a>
+                  </div>
+                )}
+                {ba.phonePublic && (
+                  <div className="row body-sm" style={{ gap: 8, alignItems: 'flex-start' }}>
+                    <span className="text-secondary" style={{ minWidth: 76, flexShrink: 0 }}>Telefon</span>
+                    <a href={`tel:${ba.phonePublic}`} style={{ color: 'inherit' }}>{ba.phonePublic}</a>
+                  </div>
+                )}
               </div>
             </div>
           </div>

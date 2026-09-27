@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, X, Eye, ChevronLeft, ChevronRight, Upload, Play } from 'lucide-react';
+import { Plus, X, Eye, Upload, Play, Send } from 'lucide-react';
 
 type StoryItem = { id: string; mediaUrl: string; mediaType: 'IMAGE' | 'VIDEO'; caption: string | null; viewCount: number; viewed: boolean; createdAt: string; expiresAt: string };
 type StoryGroup = { user: { id: string; username: string; name: string; avatarUrl: string | null; creatorProfile?: { displayName: string; verified: boolean } | null }; stories: StoryItem[] };
@@ -23,16 +23,9 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
     fetch('/api/social/stories/feed').then((r) => r.json()).then((d) => Array.isArray(d) && setGroups(d)).catch(() => null);
   }, [isLoggedIn]);
 
-  const openGroup = (idx: number) => {
-    setActiveGroup(idx);
-    setActiveStory(0);
-    setProgress(0);
-  };
-
+  const openGroup = (idx: number) => { setActiveGroup(idx); setActiveStory(0); setProgress(0); };
   const closeViewer = () => {
-    setActiveGroup(null);
-    setActiveStory(0);
-    setProgress(0);
+    setActiveGroup(null); setActiveStory(0); setProgress(0);
     if (timerRef.current) clearInterval(timerRef.current);
   };
 
@@ -55,7 +48,6 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
       setProgress((p) => {
         if (p >= 100) {
           clearInterval(timerRef.current!);
-          // Auto-advance
           const nextIdx = activeStory + 1;
           if (nextIdx < group.stories.length) { setActiveStory(nextIdx); setProgress(0); }
           else {
@@ -69,6 +61,7 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
       });
     }, TICK);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGroup, activeStory, groups, markViewed]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,17 +81,11 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
       if (caption.trim()) fd.append('caption', caption.trim());
       const res = await fetch('/api/social/stories', { method: 'POST', body: fd });
       if (res.ok) {
-        // Reload feed
         const data = await fetch('/api/social/stories/feed').then((r) => r.json()).catch(() => []);
         if (Array.isArray(data)) setGroups(data);
-        setShowUpload(false);
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        setCaption('');
+        setShowUpload(false); setSelectedFile(null); setPreviewUrl(null); setCaption('');
       }
-    } finally {
-      setUploading(false);
-    }
+    } finally { setUploading(false); }
   };
 
   const currentStory = activeGroup !== null ? groups[activeGroup]?.stories[activeStory] : null;
@@ -106,94 +93,62 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
     <>
-      {/* Hikaye çubuğu */}
       <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '4px 0 8px', scrollbarWidth: 'none' }}>
-        {/* + Hikaye ekle */}
         {isLoggedIn && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--color-surface-2)', border: '2px dashed var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
+            <button onClick={() => fileInputRef.current?.click()} style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--color-surface-2)', border: '2px dashed var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Plus size={22} style={{ color: 'var(--color-primary)' }} />
             </button>
             <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', maxWidth: 60, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Hikaye Ekle</span>
             <input ref={fileInputRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleFileSelect} />
           </div>
         )}
-
-        {/* Hikaye grupları */}
         {groups.map((g, idx) => {
           const allViewed = g.stories.every((s) => s.viewed);
           const displayName = g.user.creatorProfile?.displayName ?? g.user.name;
           return (
             <div key={g.user.username} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, cursor: 'pointer' }} onClick={() => openGroup(idx)}>
-              <div style={{
-                width: 60, height: 60, borderRadius: '50%', padding: 2,
-                background: allViewed ? 'var(--border)' : 'linear-gradient(135deg, #f97316 0%, #ef4444 50%, #818cf8 100%)',
-              }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', padding: 2, background: allViewed ? 'var(--border)' : 'linear-gradient(135deg, #f97316 0%, #ef4444 50%, #818cf8 100%)' }}>
                 <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2px solid var(--color-bg)', overflow: 'hidden' }}>
-                  {g.user.avatarUrl
-                    ? <img src={g.user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ width: '100%', height: '100%', background: 'var(--color-primary)', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700 }}>{displayName[0]?.toUpperCase()}</div>
-                  }
+                  {g.user.avatarUrl ? <img src={g.user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', background: 'var(--color-primary)', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700 }}>{displayName[0]?.toUpperCase()}</div>}
                 </div>
               </div>
-              <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', maxWidth: 60, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {displayName.split(' ')[0]}
-              </span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', maxWidth: 60, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName.split(' ')[0]}</span>
             </div>
           );
         })}
       </div>
 
-      {/* Story Viewer */}
       {activeGroup !== null && currentStory && currentUser && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 400, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Progress bars */}
           <div style={{ position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 10 }}>
             {groups[activeGroup].stories.map((s, i) => (
               <div key={s.id} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,.3)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: '#fff', width: `${i < activeStory ? 100 : i === activeStory ? progress : 0}%`, transition: i === activeStory ? 'none' : undefined }} />
+                <div style={{ height: '100%', background: '#fff', width: `${i < activeStory ? 100 : i === activeStory ? progress : 0}%` }} />
               </div>
             ))}
           </div>
-
-          {/* Header */}
           <div style={{ position: 'absolute', top: 24, left: 12, right: 12, display: 'flex', alignItems: 'center', gap: 10, zIndex: 10 }}>
             <a href={`/profile/${currentUser.username}`} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flex: 1 }}>
               {currentUser.avatarUrl ? <img src={currentUser.avatarUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }} /> : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary)', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, flexShrink: 0 }}>{(currentUser.creatorProfile?.displayName ?? currentUser.name)[0]?.toUpperCase()}</div>}
-              <div>
-                <p style={{ margin: 0, color: '#fff', fontSize: 13, fontWeight: 600 }}>{currentUser.creatorProfile?.displayName ?? currentUser.name}</p>
-                <p style={{ margin: 0, color: 'rgba(255,255,255,.7)', fontSize: 11 }}>{new Date(currentStory.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
-              </div>
+              <div><p style={{ margin: 0, color: '#fff', fontSize: 13, fontWeight: 600 }}>{currentUser.creatorProfile?.displayName ?? currentUser.name}</p><p style={{ margin: 0, color: 'rgba(255,255,255,.7)', fontSize: 11 }}>{new Date(currentStory.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p></div>
             </a>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,.7)', fontSize: 12 }}>
-              <Eye size={14} /> {currentStory.viewCount}
-            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,.7)', fontSize: 12 }}><Eye size={14} /> {currentStory.viewCount}</div>
             <button onClick={closeViewer} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 4 }}><X size={22} /></button>
           </div>
-
-          {/* Media */}
           {currentStory.mediaType === 'VIDEO'
             ? <video src={currentStory.mediaUrl} autoPlay muted style={{ maxWidth: '100%', maxHeight: '100vh', objectFit: 'contain' }} />
-            : <img src={currentStory.mediaUrl} alt="" style={{ maxWidth: '100%', maxHeight: '100vh', objectFit: 'contain' }} />
-          }
-
-          {/* Caption */}
+            : <img src={currentStory.mediaUrl} alt="" style={{ maxWidth: '100%', maxHeight: '100vh', objectFit: 'contain' }} />}
           {currentStory.caption && (
             <div style={{ position: 'absolute', bottom: 40, left: 16, right: 16, background: 'rgba(0,0,0,.6)', borderRadius: 10, padding: '10px 14px', backdropFilter: 'blur(8px)' }}>
               <p style={{ margin: 0, color: '#fff', fontSize: 14, lineHeight: 1.5 }}>{currentStory.caption}</p>
             </div>
           )}
-
-          {/* Nav arrows */}
           <button onClick={() => { if (activeStory > 0) { setActiveStory(activeStory - 1); setProgress(0); } else if (activeGroup > 0) { setActiveGroup(activeGroup - 1); setActiveStory(0); setProgress(0); } }} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', background: 'transparent', border: 'none', cursor: 'pointer' }} />
-          <button onClick={() => { const nextIdx = activeStory + 1; if (nextIdx < groups[activeGroup].stories.length) { setActiveStory(nextIdx); setProgress(0); } else { const ng = activeGroup + 1; if (ng < groups.length) { setActiveGroup(ng); setActiveStory(0); setProgress(0); } else closeViewer(); } }} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', background: 'transparent', border: 'none', cursor: 'pointer' }} />
+          <button onClick={() => { const ni = activeStory + 1; if (ni < groups[activeGroup].stories.length) { setActiveStory(ni); setProgress(0); } else { const ng = activeGroup + 1; if (ng < groups.length) { setActiveGroup(ng); setActiveStory(0); setProgress(0); } else closeViewer(); } }} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', background: 'transparent', border: 'none', cursor: 'pointer' }} />
         </div>
       )}
 
-      {/* Upload modal */}
       {showUpload && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowUpload(false)}>
           <div style={{ background: 'var(--color-bg)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 380, boxShadow: '0 24px 64px rgba(0,0,0,.5)' }} onClick={(e) => e.stopPropagation()}>
@@ -203,17 +158,10 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
             </div>
             {previewUrl && selectedFile?.type.startsWith('video/')
               ? <video src={previewUrl} controls style={{ width: '100%', borderRadius: 10, maxHeight: 300, objectFit: 'cover', marginBottom: 12 }} />
-              : previewUrl && <img src={previewUrl} alt="" style={{ width: '100%', borderRadius: 10, maxHeight: 300, objectFit: 'cover', marginBottom: 12 }} />
-            }
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Açıklama ekle... (isteğe bağlı)"
-              maxLength={500}
-              style={{ width: '100%', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--color-surface-1)', color: 'inherit', padding: '10px 12px', fontSize: 14, resize: 'none', height: 80, boxSizing: 'border-box', marginBottom: 12 }}
-            />
+              : previewUrl && <img src={previewUrl} alt="" style={{ width: '100%', borderRadius: 10, maxHeight: 300, objectFit: 'cover', marginBottom: 12 }} />}
+            <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Açıklama ekle... (isteğe bağlı)" maxLength={500} style={{ width: '100%', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--color-surface-1)', color: 'inherit', padding: '10px 12px', fontSize: 14, resize: 'none', height: 80, boxSizing: 'border-box', marginBottom: 12 }} />
             <button className="btn btn-primary btn-block" onClick={uploadStory} disabled={uploading} style={{ gap: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Upload size={15} /> {uploading ? 'Yükleniyor…' : '24 Saat Paylaş'}
+              <Upload size={15} /> {uploading ? 'Yükleniyor…' : '48 Saat Paylaş'}
             </button>
           </div>
         </div>
@@ -223,7 +171,6 @@ export function StoryBar({ isLoggedIn }: { isLoggedIn: boolean }) {
 }
 
 type ProfileStoryItem = { id: string; mediaUrl: string; mediaType: 'IMAGE' | 'VIDEO'; caption: string | null; viewCount: number; createdAt: string; expiresAt: string };
-
 type StoryViewer = { viewer: { username: string; name: string; avatarUrl: string | null }; viewedAt: string };
 
 export function ProfileStories({ username, isOwn = false }: { username: string; isOwn?: boolean }) {
@@ -238,6 +185,9 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
   const [showViewers, setShowViewers] = useState(false);
   const [viewers, setViewers] = useState<StoryViewer[] | null>(null);
   const [loadingViewers, setLoadingViewers] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [replySending, setReplySending] = useState(false);
+  const [replySent, setReplySent] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -248,18 +198,13 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
       .catch(() => null);
   }, [username]);
 
-  // Hikaye değişince viewers önbelleği sıfırla
-  useEffect(() => {
-    setViewers(null);
-    setShowViewers(false);
-  }, [active]);
+  useEffect(() => { setViewers(null); setShowViewers(false); setReplyText(''); setReplySent(false); }, [active]);
 
-  useEffect(() => {
+  const startTimer = useCallback(() => {
     if (active === null) return;
-    setProgress(0);
-    if (timerRef.current) clearInterval(timerRef.current);
     const story = stories[active];
     if (!story) return;
+    if (timerRef.current) clearInterval(timerRef.current);
     const DURATION = story.mediaType === 'VIDEO' ? 15000 : 5000;
     const TICK = 100;
     timerRef.current = setInterval(() => {
@@ -273,15 +218,50 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
         return next;
       });
     }, TICK);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [active, stories]);
+
+  useEffect(() => {
+    if (active === null) return;
+    if (showViewers) { if (timerRef.current) clearInterval(timerRef.current); return; }
+    setProgress(0);
+    startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [active, showViewers, startTimer]);
+
+  const closeViewers = () => { setShowViewers(false); setProgress(0); startTimer(); };
+
+  const openViewers = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (timerRef.current) clearInterval(timerRef.current);
+    setShowViewers(true);
+    if (!viewers) {
+      const story = active !== null ? stories[active] : null;
+      if (!story) return;
+      setLoadingViewers(true);
+      fetch(`/api/social/stories/${story.id}/viewers`)
+        .then((r) => r.json()).then((d) => setViewers(Array.isArray(d) ? d : []))
+        .catch(() => setViewers([]))
+        .finally(() => setLoadingViewers(false));
+    }
+  };
+
+  const sendReply = async () => {
+    if (!replyText.trim() || active === null) return;
+    setReplySending(true);
+    try {
+      const res = await fetch(`/api/social/stories/${stories[active].id}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: replyText.trim() }),
+      });
+      if (res.ok) { setReplySent(true); setReplyText(''); }
+    } finally { setReplySending(false); }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setShowUpload(true);
+    setSelectedFile(file); setPreviewUrl(URL.createObjectURL(file)); setShowUpload(true);
   };
 
   const uploadStory = async () => {
@@ -295,14 +275,9 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
       if (res.ok) {
         const data = await fetch(`/api/social/stories/user/${encodeURIComponent(username)}`).then((r) => r.json()).catch(() => ({ stories: [] }));
         if (Array.isArray(data.stories)) setStories(data.stories);
-        setShowUpload(false);
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        setCaption('');
+        setShowUpload(false); setSelectedFile(null); setPreviewUrl(null); setCaption('');
       }
-    } finally {
-      setUploading(false);
-    }
+    } finally { setUploading(false); }
   };
 
   if (stories.length === 0 && !isOwn) return null;
@@ -311,15 +286,14 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
 
   return (
     <>
+      {/* Başlık */}
+      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-tertiary)' }}>Durumlarım</p>
+
       {/* Hikaye halkaları */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, overflowX: 'auto', paddingBottom: 4 }}>
-        {/* Kendi profili → Hikaye Ekle halkası */}
         {isOwn && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-surface-2)', border: '2px dashed var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
-            >
+            <button onClick={() => fileInputRef.current?.click()} style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-surface-2)', border: '2px dashed var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
               <Plus size={24} style={{ color: 'var(--color-primary)' }} />
             </button>
             <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', whiteSpace: 'nowrap' }}>Hikaye Ekle</span>
@@ -331,12 +305,7 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
             <div style={{ width: 64, height: 64, borderRadius: '50%', padding: 2, background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', boxSizing: 'border-box' }}>
               <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--color-bg)', position: 'relative' }}>
                 {s.mediaType === 'VIDEO'
-                  ? <>
-                      <video src={`${s.mediaUrl}#t=0.1`} preload="metadata" muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(0,0,0,.25)' }}>
-                        <Play size={18} fill="#fff" style={{ color: '#fff' }} />
-                      </div>
-                    </>
+                  ? <><video src={`${s.mediaUrl}#t=0.1`} preload="metadata" muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /><div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(0,0,0,.25)' }}><Play size={18} fill="#fff" style={{ color: '#fff' }} /></div></>
                   : <img src={s.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
             </div>
@@ -344,32 +313,26 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
         ))}
       </div>
 
-      {/* Görüntüleyici — Instagram modeli */}
+      {/* Görüntüleyici */}
       {story && active !== null && (
-        /* Dış overlay — tıklanınca kapatır, masaüstünde karanlık boşluk */
         <div style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,.88)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setActive(null)}>
-          {/* Hikaye kutusu — portrait, mobilde tam ekran masaüstünde dar */}
-          <div
-            style={{ position: 'relative', width: '100%', maxWidth: 390, height: '100dvh', maxHeight: 'min(844px, 100dvh)', background: '#111', borderRadius: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-            onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 390, height: '100dvh', maxHeight: 'min(844px, 100dvh)', background: '#111', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
 
-            {/* Medya — caption hariç tüm yükseklik */}
+            {/* Medya */}
             <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
               {story.mediaType === 'VIDEO'
                 ? <video key={story.id} src={story.mediaUrl} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <img key={story.id} src={story.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
 
-              {/* Sol tıklama zonu — önceki hikaye */}
-              <div
-                style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', cursor: active > 0 ? 'pointer' : 'default', zIndex: 5 }}
-                onClick={(e) => { e.stopPropagation(); if (active > 0) { setActive(active - 1); setProgress(0); } }} />
+              {/* Nav — sadece viewers kapalıyken aktif */}
+              {!showViewers && (
+                <>
+                  <div style={{ position: 'absolute', left: 0, top: 0, width: '40%', height: '100%', cursor: active > 0 ? 'pointer' : 'default', zIndex: 5 }} onClick={(e) => { e.stopPropagation(); if (active > 0) { setActive(active - 1); setProgress(0); } }} />
+                  <div style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', cursor: active < stories.length - 1 ? 'pointer' : 'default', zIndex: 5 }} onClick={(e) => { e.stopPropagation(); if (active < stories.length - 1) { setActive(active + 1); setProgress(0); } else setActive(null); }} />
+                </>
+              )}
 
-              {/* Sağ tıklama zonu — sonraki hikaye */}
-              <div
-                style={{ position: 'absolute', right: 0, top: 0, width: '40%', height: '100%', cursor: active < stories.length - 1 ? 'pointer' : 'default', zIndex: 5 }}
-                onClick={(e) => { e.stopPropagation(); if (active < stories.length - 1) { setActive(active + 1); setProgress(0); } else setActive(null); }} />
-
-              {/* Progress bar'lar */}
+              {/* Progress */}
               <div style={{ position: 'absolute', top: 10, left: 10, right: 10, display: 'flex', gap: 4, zIndex: 10 }}>
                 {stories.map((_, i) => (
                   <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,.35)', overflow: 'hidden' }}>
@@ -379,51 +342,55 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
               </div>
 
               {/* Kapat */}
-              <button
-                onClick={() => setActive(null)}
-                style={{ position: 'absolute', top: 20, right: 12, background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(6px)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'grid', placeItems: 'center', cursor: 'pointer', zIndex: 11, color: '#fff' }}>
+              <button onClick={() => setActive(null)} style={{ position: 'absolute', top: 20, right: 12, background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(6px)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'grid', placeItems: 'center', cursor: 'pointer', zIndex: 11, color: '#fff' }}>
                 <X size={18} />
               </button>
             </div>
 
-            {/* Alt panel — caption + göz ikonu */}
-            <div style={{ flexShrink: 0, background: 'rgba(10,10,10,.92)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(255,255,255,.07)', padding: '12px 16px', zIndex: 10, display: 'flex', alignItems: 'center', gap: 12, minHeight: 60 }} onClick={(e) => e.stopPropagation()}>
+            {/* Alt panel */}
+            <div style={{ flexShrink: 0, background: 'rgba(10,10,10,.92)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(255,255,255,.07)', padding: '10px 16px', zIndex: 10, display: 'flex', alignItems: 'center', gap: 12, minHeight: 56 }} onClick={(e) => e.stopPropagation()}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 {story.caption
-                  ? <p style={{ margin: 0, color: '#fff', fontSize: 14, lineHeight: 1.55 }}>{story.caption}</p>
-                  : <p style={{ margin: 0, color: 'rgba(255,255,255,.25)', fontSize: 13 }}>Açıklama yok</p>}
+                  ? <p style={{ margin: 0, color: '#fff', fontSize: 13, lineHeight: 1.55 }}>{story.caption}</p>
+                  : <p style={{ margin: 0, color: 'rgba(255,255,255,.25)', fontSize: 12 }}>Açıklama yok</p>}
               </div>
-              {/* Göz ikonu — sağda, sadece kendi hikayesinde tıklanabilir */}
               {isOwn ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowViewers(true);
-                    if (!viewers) {
-                      setLoadingViewers(true);
-                      fetch(`/api/social/stories/${story.id}/viewers`)
-                        .then((r) => r.json()).then((d) => setViewers(Array.isArray(d) ? d : []))
-                        .catch(() => setViewers([]))
-                        .finally(() => setLoadingViewers(false));
-                    }
-                  }}
-                  style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.1)', border: 'none', borderRadius: 20, padding: '6px 12px', cursor: 'pointer', color: '#fff' }}>
-                  <Eye size={15} />
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{story.viewCount}</span>
+                <button onClick={openViewers} style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.12)', border: 'none', borderRadius: 20, padding: '6px 12px', cursor: 'pointer', color: '#fff' }}>
+                  <Eye size={15} /><span style={{ fontSize: 13, fontWeight: 600 }}>{story.viewCount}</span>
                 </button>
               ) : (
                 <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,.5)' }}>
-                  <Eye size={14} />
-                  <span style={{ fontSize: 13 }}>{story.viewCount}</span>
+                  <Eye size={14} /><span style={{ fontSize: 13 }}>{story.viewCount}</span>
                 </div>
               )}
             </div>
 
+            {/* Yanıt alanı — başkasının hikayesinde */}
+            {!isOwn && (
+              <div style={{ flexShrink: 0, background: 'rgba(10,10,10,.95)', borderTop: '1px solid rgba(255,255,255,.07)', padding: '8px 12px', zIndex: 10, display: 'flex', gap: 8, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                {replySent ? (
+                  <p style={{ margin: 0, color: 'var(--color-primary)', fontSize: 13, padding: '8px 0' }}>✓ Yanıtın gönderildi</p>
+                ) : (
+                  <>
+                    <input
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
+                      placeholder="Hikayeye yanıt ver…"
+                      maxLength={500}
+                      style={{ flex: 1, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 24, padding: '8px 14px', color: '#fff', fontSize: 13, outline: 'none' }}
+                    />
+                    <button onClick={sendReply} disabled={replySending || !replyText.trim()} style={{ flexShrink: 0, width: 36, height: 36, borderRadius: '50%', background: replyText.trim() ? 'var(--color-primary)' : 'rgba(255,255,255,.1)', border: 'none', cursor: replyText.trim() ? 'pointer' : 'default', display: 'grid', placeItems: 'center', color: '#fff' }}>
+                      <Send size={15} />
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* İzleyenler bottom sheet */}
             {showViewers && isOwn && (
-              <div
-                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'rgba(15,15,15,.98)', backdropFilter: 'blur(20px)', borderRadius: '20px 20px 0 0', maxHeight: '65%', display: 'flex', flexDirection: 'column', boxShadow: '0 -8px 40px rgba(0,0,0,.7)' }}
-                onClick={(e) => e.stopPropagation()}>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'rgba(15,15,15,.98)', backdropFilter: 'blur(20px)', borderRadius: '20px 20px 0 0', maxHeight: '65%', display: 'flex', flexDirection: 'column', boxShadow: '0 -8px 40px rgba(0,0,0,.7)' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
                   <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,.2)' }} />
                 </div>
@@ -432,7 +399,7 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
                     <Eye size={16} style={{ color: 'rgba(255,255,255,.7)' }} />
                     <span style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{story.viewCount} Görüntülenme</span>
                   </div>
-                  <button onClick={() => setShowViewers(false)} style={{ background: 'rgba(255,255,255,.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer', color: '#fff' }}>
+                  <button onClick={closeViewers} style={{ background: 'rgba(255,255,255,.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer', color: '#fff' }}>
                     <X size={16} />
                   </button>
                 </div>
@@ -445,8 +412,7 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
                       <p style={{ color: 'rgba(255,255,255,.35)', margin: 0, fontSize: 14 }}>Henüz kimse görmedi</p>
                     </div>
                   ) : viewers?.map((v) => (
-                    <a key={v.viewer.username} href={`/profile/${v.viewer.username}`}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,.06)', textDecoration: 'none' }}>
+                    <a key={v.viewer.username} href={`/profile/${v.viewer.username}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,.06)', textDecoration: 'none' }}>
                       {v.viewer.avatarUrl
                         ? <img src={v.viewer.avatarUrl} alt="" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                         : <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--color-primary)', display: 'grid', placeItems: 'center', fontSize: 17, fontWeight: 700, color: '#fff', flexShrink: 0 }}>{(v.viewer.name || v.viewer.username)[0]?.toUpperCase()}</div>}
@@ -477,17 +443,10 @@ export function ProfileStories({ username, isOwn = false }: { username: string; 
             </div>
             {previewUrl && selectedFile?.type.startsWith('video/')
               ? <video src={previewUrl} controls style={{ width: '100%', borderRadius: 10, maxHeight: 300, objectFit: 'cover', marginBottom: 12 }} />
-              : previewUrl && <img src={previewUrl} alt="" style={{ width: '100%', borderRadius: 10, maxHeight: 300, objectFit: 'cover', marginBottom: 12 }} />
-            }
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Açıklama ekle… (isteğe bağlı)"
-              maxLength={500}
-              style={{ width: '100%', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--color-surface-1)', color: 'inherit', padding: '10px 12px', fontSize: 14, resize: 'none', height: 80, boxSizing: 'border-box', marginBottom: 12 }}
-            />
+              : previewUrl && <img src={previewUrl} alt="" style={{ width: '100%', borderRadius: 10, maxHeight: 300, objectFit: 'cover', marginBottom: 12 }} />}
+            <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Açıklama ekle… (isteğe bağlı)" maxLength={500} style={{ width: '100%', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--color-surface-1)', color: 'inherit', padding: '10px 12px', fontSize: 14, resize: 'none', height: 80, boxSizing: 'border-box', marginBottom: 12 }} />
             <button className="btn btn-primary btn-block" onClick={uploadStory} disabled={uploading} style={{ gap: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Upload size={15} /> {uploading ? 'Yükleniyor…' : '24 Saat Paylaş'}
+              <Upload size={15} /> {uploading ? 'Yükleniyor…' : '48 Saat Paylaş'}
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ import '../../core/widgets/common.dart';
 import '../../core/widgets/report_dialog.dart';
 import '../home/home_page.dart';
 import '../social/follow_button.dart';
+import '../social/stories_bar.dart';
 
 final coachProfileProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/public/profiles/$u', auth: false) as Map<String, dynamic>);
 final coachClassesProvider = FutureProvider.autoDispose.family<List<dynamic>, String>((ref, u) async => await ref.watch(apiClientProvider).get('/public/creators/$u/classes', auth: false) as List<dynamic>);
@@ -145,9 +146,7 @@ class _Body extends ConsumerWidget {
 
     final user = ref.watch(authControllerProvider).user;
     final role = user?.role ?? '';
-    final canMessage = ['SUPER_ADMIN', 'MODERATOR', 'SUPPORT'].contains(role)
-        ? true
-        : (role == 'ADMIN' ? false : isSubscriber);
+    final canMessage = role.isNotEmpty;
 
     String hours(dynamic v) => (v is num && v == v.roundToDouble()) ? '${v.toInt()}' : NumberFormat('0.0', 'tr').format(v);
 
@@ -184,6 +183,7 @@ class _Body extends ConsumerWidget {
           const SizedBox(width: 12),
           MutualFollowBadge(username: username),
         ]),
+        ProfileStoriesSection(username: username, isOwn: isOwnProfile),
         const SizedBox(height: 18),
       ],
       GridView.count(crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.7, children: [
@@ -199,6 +199,19 @@ class _Body extends ConsumerWidget {
         Wrap(spacing: 8, runSpacing: 8, children: [for (final c in p['credentials'] as List) Pill('✓ $c', color: MettloColors.success)]),
       ],
       if (p['bio'] != null) ...[const SectionTitle('Hakkında'), Text(p['bio'] as String, style: const TextStyle(color: MettloColors.textSecondary, height: 1.5))],
+      if ((p['coachWorkplaces'] as List?)?.isNotEmpty == true) ...[
+        const SectionTitle('Çalıştığı İşletmeler'),
+        SizedBox(
+          height: 140,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final w in p['coachWorkplaces'] as List)
+                _WorkplaceCard(w: (w['business'] ?? w) as Map<String, dynamic>),
+            ],
+          ),
+        ),
+      ],
       if (p['whyChooseMe'] != null) ...[
         const SectionTitle('Neden Beni Seçmelisiniz?'),
         Container(
@@ -413,6 +426,70 @@ class _ReviewBox extends ConsumerStatefulWidget {
   final String username;
   @override
   ConsumerState<_ReviewBox> createState() => _ReviewBoxState();
+}
+
+class _WorkplaceCard extends StatelessWidget {
+  const _WorkplaceCard({required this.w});
+  final Map<String, dynamic> w;
+
+  @override
+  Widget build(BuildContext context) {
+    final coverUrl = w['coverUrl'] as String?;
+    final logoUrl = w['logoUrl'] as String?;
+    final name = w['name'] as String? ?? '';
+    final city = (w['city'] as Map<String, dynamic>?)?['name'] as String?;
+    final district = (w['district'] as Map<String, dynamic>?)?['name'] as String?;
+    final location = [district, city].where((s) => s != null && s.isNotEmpty).join(', ');
+    final slug = w['slug'] as String?;
+
+    return GestureDetector(
+      onTap: slug != null ? () => context.push('/businesses/$slug') : null,
+      child: Container(
+        width: 180,
+        margin: const EdgeInsets.only(right: 10),
+        decoration: BoxDecoration(
+          color: MettloColors.surface1,
+          borderRadius: BorderRadius.circular(MettloRadius.lg),
+          border: Border.all(color: MettloColors.borderSoft),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Stack(children: [
+            SizedBox(
+              height: 70, width: double.infinity,
+              child: coverUrl != null
+                  ? Image.network(coverUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: MettloColors.surface2))
+                  : Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF1a1a2e), Color(0xFF16213e)]))),
+            ),
+            if (logoUrl != null)
+              Positioned(
+                bottom: -14, left: 10,
+                child: Container(
+                  width: 34, height: 34,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: MettloColors.background, width: 2),
+                    color: MettloColors.surface2,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.network(logoUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                ),
+              ),
+          ]),
+          Padding(
+            padding: EdgeInsets.fromLTRB(10, logoUrl != null ? 20 : 8, 10, 8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12), overflow: TextOverflow.ellipsis, maxLines: 1),
+              if (location.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text('📍 $location', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary), overflow: TextOverflow.ellipsis, maxLines: 1),
+              ],
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
 }
 
 class _ReviewBoxState extends ConsumerState<_ReviewBox> {

@@ -29,15 +29,12 @@ export async function startConversationAction(_p: FormState, fd: FormData): Prom
   redirect(`/app/messages/${id}`);
 }
 
-export async function startDMAction(toUsername: string, subscribeHref: string, _prev: FormState, _fd: FormData): Promise<FormState> {
+export async function startDMAction(toUsername: string, _subscribeHref: string, _prev: FormState, _fd: FormData, businessId?: string): Promise<FormState> {
   let id: string;
   try {
-    id = (await authed<{ id: string }>('/messages/conversations', { method: 'POST', body: { toUsername } })).id;
+    id = (await authed<{ id: string }>('/messages/conversations', { method: 'POST', body: { toUsername, ...(businessId ? { businessId } : {}) } })).id;
   } catch (e) {
-    if (e instanceof ApiError && e.status === 403) {
-      if (e.message === 'subscription_required') redirect(subscribeHref);
-      return { error: e.message || 'Bu kişiye mesaj atamazsın.' };
-    }
+    if (e instanceof ApiError && e.status === 403) return { error: e.message || 'Bu kişiye mesaj atamazsın.' };
     if (e instanceof ApiError && e.status === 401) redirect('/login');
     return fail(e);
   }

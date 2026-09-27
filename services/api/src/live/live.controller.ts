@@ -28,7 +28,10 @@ export class LiveController {
     });
   }
 
-  /** Üye: oturum paketi satın al → VideoSessionBalance oluştur */
+  /** Üye: oturum paketi satın al → VideoSessionBalance oluştur.
+   *  BİLİNÇLİ TASARIM: Bu işlem kasıtlı olarak Entitlement oluşturmaz ve role değiştirmez.
+   *  1:1 koçluk oturumu (VideoSessionBalance) ≠ içerik aboneliği (Entitlement/SUBSCRIBER).
+   *  SUBSCRIBER rolü yalnızca checkout.service.ts'teki abonelik ödemesi sonucunda verilir. */
   @Post('video-packs/:packId/purchase')
   async purchasePack(@Param('packId') packId: string, @CurrentUser() me: AuthUser) {
     const pack = await this.prisma.sessionPack.findFirst({ where: { id: packId, isVideoCoaching: true, isActive: true, creatorId: null } });
