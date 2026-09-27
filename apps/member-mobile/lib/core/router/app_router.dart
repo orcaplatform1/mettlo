@@ -9,6 +9,7 @@ import '../../features/business/business_checkin_page.dart';
 import '../../features/earnings/earnings_page.dart';
 import '../../features/ai/ai_matching_page.dart';
 import '../../features/events/events_page.dart';
+import '../../features/events/my_events_page.dart';
 import '../../features/food/food_menu_page.dart';
 import '../../features/jobs/jobs_page.dart';
 import '../../features/business/business_list_page.dart';
@@ -82,6 +83,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/support/:id', builder: (_, s) => TicketPage(id: s.pathParameters['id']!)),
       GoRoute(path: '/health', builder: (_, _) => const HealthPage()),
       GoRoute(path: '/bookings', builder: (_, _) => const BookingsPage()),
+      GoRoute(path: '/my-events', builder: (_, _) => const MyEventsPage()),
       GoRoute(path: '/challenges', builder: (_, _) => const ChallengesPage()),
       // /notifications artık ShellRoute içinde (bottom nav)
 

@@ -105,6 +105,7 @@ class HomePage extends ConsumerWidget {
         ]),
         const SectionTitle('Hızlı erişim'),
         Wrap(spacing: 10, runSpacing: 10, children: [
+          _Quick(Icons.confirmation_number_outlined, 'Etkinliklerim', () => context.push('/my-events')),
           _Quick(Icons.monitor_heart_outlined, 'Sağlık & İlerleme', () => context.push('/health')),
           _Quick(Icons.notifications_outlined, 'Bildirimler', () => context.push('/notifications')),
           _Quick(Icons.support_agent_outlined, 'Destek Merkezi', () => context.push('/support')),
