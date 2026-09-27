@@ -253,7 +253,7 @@ class _StoryCircle extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(2),
             child: Container(
-              decoration: const BoxDecoration(shape: BoxShape.circle, color: MettloColors.background),
+              decoration: const BoxDecoration(shape: BoxShape.circle, color: MettloColors.bg),
               clipBehavior: Clip.antiAlias,
               child: isAdd
                   ? const Icon(Icons.add, color: MettloColors.primary, size: 22)

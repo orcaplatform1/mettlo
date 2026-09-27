@@ -457,7 +457,7 @@ class _WorkplaceCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: MettloColors.surface1,
           borderRadius: BorderRadius.circular(MettloRadius.lg),
-          border: Border.all(color: MettloColors.borderSoft),
+          border: Border.all(color: MettloColors.borderSubtle),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -475,7 +475,7 @@ class _WorkplaceCard extends StatelessWidget {
                   width: 34, height: 34,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: MettloColors.background, width: 2),
+                    border: Border.all(color: MettloColors.bg, width: 2),
                     color: MettloColors.surface2,
                   ),
                   clipBehavior: Clip.antiAlias,

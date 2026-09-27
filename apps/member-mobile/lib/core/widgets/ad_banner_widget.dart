@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../api/api_client.dart';
+import '../network/api_client.dart';
 import '../theme/tokens.dart';
 
 // ── Provider ──────────────────────────────────────────────────────────────────

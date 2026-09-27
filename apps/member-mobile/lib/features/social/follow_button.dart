@@ -103,7 +103,7 @@ class FollowStats extends ConsumerWidget {
         expand: false,
         builder: (_, sc) => Column(children: [
           const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: MettloColors.border, borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: MettloColors.borderSubtle, borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
           Text(type == 'followers' ? 'Takipçiler ($followersCount)' : 'Takip Edilenler ($followingCount)', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 8),

@@ -99,7 +99,7 @@ class _MemberBody extends ConsumerWidget {
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: MettloColors.background, width: 4),
+              border: Border.all(color: MettloColors.bg, width: 4),
             ),
             child: CircleAvatar(
               radius: 44,
@@ -166,7 +166,7 @@ class _MemberBody extends ConsumerWidget {
                   onTap: () => context.push('/coach/${c['username']}'),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: MettloColors.surface1, borderRadius: BorderRadius.circular(20), border: Border.all(color: MettloColors.borderSoft)),
+                    decoration: BoxDecoration(color: MettloColors.surface1, borderRadius: BorderRadius.circular(20), border: Border.all(color: MettloColors.borderSubtle)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       CircleAvatar(
                         radius: 14,
@@ -218,7 +218,7 @@ class _Pill extends StatelessWidget {
     decoration: BoxDecoration(
       color: gold ? const Color(0x1FF59E0B) : MettloColors.surface2,
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: gold ? const Color(0x40F59E0B) : MettloColors.borderSoft),
+      border: Border.all(color: gold ? const Color(0x40F59E0B) : MettloColors.borderSubtle),
     ),
     child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: gold ? const Color(0xFFF59E0B) : MettloColors.textSecondary)),
   );

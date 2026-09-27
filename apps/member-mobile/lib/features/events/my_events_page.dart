@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/api/api_client.dart';
+import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
 final myEventTicketsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
