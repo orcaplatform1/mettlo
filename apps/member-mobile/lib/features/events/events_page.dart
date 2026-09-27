@@ -110,7 +110,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                         Row(children: [
                                           Flexible(child: Text(displayName, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
-                                          if (isVerified) ...[const SizedBox(width: 3), const Icon(Icons.verified, size: 13, color: Colors.blue)],
+                                          if (isVerified) ...[const SizedBox(width: 3), Icon(Icons.verified, size: 13, color: MettloColors.verified)],
                                         ]),
                                         Text('@$displayHandle', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary)),
                                       ])),

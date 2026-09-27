@@ -130,7 +130,7 @@ export function BusinessCard({ b }: { b: any }) {
         <div style={{ padding: '24px 16px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <span className="body" style={{ fontWeight: 700 }}>{b.name}</span>
-            {isVerified && <CheckCircle size={14} style={{ color: 'var(--color-primary)', flexShrink: 0 }} aria-label="Doğrulanmış" />}
+            {isVerified && <CheckCircle size={14} style={{ color: 'var(--color-verified)', flexShrink: 0 }} aria-label="Doğrulanmış" />}
           </div>
           <span className="badge" style={{ marginBottom: 8 }}>{ALL_CATEGORY_TR[b.category] ?? b.category}</span>
           {b.shortDesc && <p className="body-sm text-secondary" style={{ margin: '8px 0', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{b.shortDesc}</p>}

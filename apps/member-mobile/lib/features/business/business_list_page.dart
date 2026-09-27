@@ -246,7 +246,7 @@ class _BusinessCard extends StatelessWidget {
                 children: [
                   Row(children: [
                     Flexible(child: Text(business['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                    if (isVerified) ...[const SizedBox(width: 4), const Icon(Icons.verified, size: 14, color: Colors.blue)],
+                    if (isVerified) ...[const SizedBox(width: 4), Icon(Icons.verified, size: 14, color: MettloColors.verified)],
                   ]),
                   Text('@${business['slug']}', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary)),
                   const SizedBox(height: 6),

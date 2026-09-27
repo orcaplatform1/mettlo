@@ -60,7 +60,7 @@ export function EventRegisterButton({ eventId, slug, isFree, priceKurus }: Props
         onClick={handleRegister}
         disabled={loading}
         className="btn btn-primary"
-        style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 600 }}
+        style={{ width: '100%', maxWidth: '320px', padding: '13px 28px', fontSize: '15px', fontWeight: 600 }}
       >
         {loading ? 'İşleniyor…' : isFree ? 'Ücretsiz Katıl' : 'Bilet Al'}
       </button>

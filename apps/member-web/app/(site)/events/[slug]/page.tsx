@@ -122,7 +122,7 @@ export default async function EventDetailPage({ params }: Props) {
                         {ev.organizer.name || ev.organizer.username}
                       </span>
                       {organizerVerified && (
-                        <CheckCircle size={14} style={{ color: 'var(--color-primary)', flexShrink: 0 }} aria-label="Doğrulanmış" />
+                        <CheckCircle size={14} style={{ color: 'var(--color-verified)', flexShrink: 0 }} aria-label="Doğrulanmış" />
                       )}
                     </div>
                     <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>@{ev.organizer.username}</span>
@@ -152,37 +152,39 @@ export default async function EventDetailPage({ params }: Props) {
 
         {/* Kontenjan & ücret bilgi kartı */}
         {(ev.capacityLimit || !isFree) && (
-          <div style={{ padding: '18px 20px', background: 'var(--surface-2)', borderRadius: '12px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ padding: '18px 20px', background: 'var(--surface-2)', borderRadius: '12px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {ev.capacityLimit && (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                    <Users size={15} aria-hidden />
-                    Kontenjan
-                  </span>
-                  <span style={{ fontWeight: 600, fontSize: '14px' }}>{ev.capacityLimit} kişi</span>
+                <div style={{ display: 'flex', gap: '24px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      <Users size={13} aria-hidden />
+                      Kontenjan
+                    </div>
+                    <span style={{ fontWeight: 600, fontSize: '15px' }}>{ev.capacityLimit} kişi</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      {isFree ? 'Kayıtlı Kişi' : 'Kalan Kontenjan'}
+                    </div>
+                    {isFull ? (
+                      <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--danger, #ef4444)' }}>Doldu</span>
+                    ) : (
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: isFree ? 'var(--text-secondary)' : 'var(--color-primary)' }}>
+                        {isFree ? registeredCount : ev.spotsLeft} kişi
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                    {isFree ? 'Kayıtlı Kişi' : 'Kalan Kontenjan'}
-                  </span>
-                  {isFull ? (
-                    <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--danger, #ef4444)' }}>Kontenjan Doldu</span>
-                  ) : (
-                    <span style={{ fontWeight: 600, fontSize: '14px', color: isFree ? 'var(--text-secondary)' : 'var(--color-primary)' }}>
-                      {isFree ? registeredCount : ev.spotsLeft} kişi
-                    </span>
-                  )}
-                </div>
-                {ev.capacityLimit && <div style={{ height: '1px', background: 'var(--border)' }} />}
+                <div style={{ height: '1px', background: 'var(--border)' }} />
               </>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                <Ticket size={15} aria-hidden />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                <Ticket size={13} aria-hidden />
                 Etkinlik Ücreti
-              </span>
-              <span style={{ fontWeight: 700, fontSize: '15px', color: isFree ? 'var(--color-primary)' : 'var(--text)' }}>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '20px', color: isFree ? 'var(--color-primary)' : 'var(--text)' }}>
                 {isFree ? 'Ücretsiz' : fmtTL(ev.ticketPriceKurus)}
               </span>
             </div>
