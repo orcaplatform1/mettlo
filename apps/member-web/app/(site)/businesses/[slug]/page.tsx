@@ -126,7 +126,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 28, alignItems: 'start' }}>
+        <div className="profile-detail-grid">
           {/* Sol */}
           <div>
             {ba.description && (
@@ -211,7 +211,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
           </div>
 
           {/* Sağ — bilgi kartı */}
-          <div>
+          <div className="profile-detail-sidebar">
             <div className="card">
               <h3 className="h5" style={{ marginBottom: 12 }}>Bilgiler</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

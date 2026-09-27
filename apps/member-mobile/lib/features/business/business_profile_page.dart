@@ -9,7 +9,6 @@ import '../../core/theme/tokens.dart';
 final businessProfileProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, slug) async =>
     await ref.watch(apiClientProvider).get('/business/${Uri.encodeComponent(slug)}', auth: false) as Map<String, dynamic>);
 
-
 const _kCategoryLabels = {
   'FITNESS_GYM': 'Spor Salonu', 'PILATES_STUDIO': 'Pilates Stüdyosu',
   'YOGA_STUDIO': 'Yoga Stüdyosu', 'DANCE_STUDIO': 'Dans Stüdyosu',
@@ -17,6 +16,21 @@ const _kCategoryLabels = {
   'RUNNING_CLUB': 'Koşu Kulübü', 'WELLNESS_CENTER': 'Wellness Merkezi',
   'NUTRITION_CLINIC': 'Beslenme Kliniği', 'RECOVERY_STUDIO': 'Recovery Stüdyo',
   'SPORTS_CLUB': 'Spor Kulübü', 'OTHER': 'İşletme',
+  // Yemek kategorileri
+  'HEALTHY_FOOD': 'Sağlıklı Yemek', 'SMOOTHIE_BAR': 'Smoothie Bar',
+  'MEAL_PREP': 'Meal Prep', 'PROTEIN_BAR': 'Protein Bar',
+  'HEALTHY_CAFE': 'Sağlıklı Kafe', 'SPORTS_NUTRITION': 'Spor Beslenmesi',
+  'VEGAN': 'Vegan', 'VEGETARIAN': 'Vejetaryen',
+  'GLUTEN_FREE': 'Glutensiz', 'RAW_FOOD': 'Ham Gıda',
+  'FUNCTIONAL_NUTRITION': 'Fonksiyonel Beslenme',
+  'FUNCTIONAL_BEVERAGES': 'Fonksiyonel İçecek', 'SPECIAL_DIET': 'Özel Diyet',
+};
+
+const _kFoodCategories = {
+  'HEALTHY_FOOD', 'SMOOTHIE_BAR', 'MEAL_PREP', 'PROTEIN_BAR',
+  'HEALTHY_CAFE', 'SPORTS_NUTRITION', 'VEGAN', 'VEGETARIAN',
+  'GLUTEN_FREE', 'RAW_FOOD', 'FUNCTIONAL_NUTRITION',
+  'FUNCTIONAL_BEVERAGES', 'SPECIAL_DIET',
 };
 
 class BusinessProfilePage extends ConsumerWidget {
@@ -36,10 +50,11 @@ class BusinessProfilePage extends ConsumerWidget {
           final isVerified = ba['verificationStatus'] == 'APPROVED';
           final locations = ba['locations'] as List<dynamic>? ?? [];
           final coaches = ba['coachWorkplaces'] as List<dynamic>? ?? [];
+          final category = ba['category'] as String? ?? '';
+          final isFood = _kFoodCategories.contains(category);
 
           return CustomScrollView(
             slivers: [
-              // App bar ile cover
               SliverAppBar(
                 expandedHeight: ba['coverUrl'] != null ? 220 : 80,
                 pinned: true,
@@ -79,11 +94,12 @@ class BusinessProfilePage extends ConsumerWidget {
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Row(children: [
                             Flexible(child: Text(ba['name'] as String, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18))),
-                            if (isVerified) ...[const SizedBox(width: 6), const Icon(Icons.verified, size: 18, color: MettloColors.primary)],
+                            // Mavi doğrulama rozeti — turuncu değil
+                            if (isVerified) ...[const SizedBox(width: 6), const Icon(Icons.check_circle, size: 18, color: Color(0xFF3B82F6))],
                           ]),
                           const SizedBox(height: 4),
                           Wrap(spacing: 8, children: [
-                            _Chip(_kCategoryLabels[ba['category']] ?? ba['category'] as String),
+                            _Chip(_kCategoryLabels[category] ?? category),
                             if (ba['city'] != null)
                               _Chip('${ba['city']['name']}${ba['district'] != null ? ', ${ba['district']['name']}' : ''}', icon: Icons.place_outlined),
                           ]),
@@ -97,8 +113,10 @@ class BusinessProfilePage extends ConsumerWidget {
                         const SizedBox(width: 12),
                         if ((ba['ratingCount'] as int? ?? 0) > 0)
                           _StatBox(label: 'Puan', value: '${ba['ratingAvg']} ★'),
-                        const SizedBox(width: 12),
-                        _StatBox(label: 'Koç', value: '${coaches.length}'),
+                        if (!isFood) ...[
+                          const SizedBox(width: 12),
+                          _StatBox(label: 'Koç', value: '${coaches.length}'),
+                        ],
                       ]),
 
                       // Butonlar
@@ -127,8 +145,8 @@ class BusinessProfilePage extends ConsumerWidget {
                         for (final loc in locations) _LocationTile(loc: loc as Map<String, dynamic>),
                       ],
 
-                      // Koçlar
-                      if (coaches.isNotEmpty) ...[
+                      // Koçlar — sadece fitness kategorilerinde
+                      if (!isFood && coaches.isNotEmpty) ...[
                         const SizedBox(height: 24),
                         const Text('Koçlar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                         const SizedBox(height: 8),
@@ -207,7 +225,6 @@ class _WebsiteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        // Tracking — fire-and-forget
         apiRef.read(apiClientProvider).post('/business/$businessId/website-click', body: {'targetUrl': website}).catchError((_) {});
         final uri = Uri.tryParse(website);
         if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -270,18 +287,19 @@ class _CoachTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final creator = ww['creator'] as Map<String, dynamic>;
-    final user = creator['user'] as Map<String, dynamic>;
+    final creatorUser = creator['user'] as Map<String, dynamic>;
+    final avatarUrl = creatorUser['avatarUrl'] as String?;
+    final username = creatorUser['username'] as String;
 
     return GestureDetector(
-      onTap: () => context.push('/coach/${user['username']}'),
+      onTap: () => context.push('/profile/$username'),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Row(children: [
-          creator['coverUrl'] != null
-              ? ClipRRect(borderRadius: BorderRadius.circular(8),
-                  child: Image.network(creator['coverUrl'] as String, width: 44, height: 44, fit: BoxFit.cover))
+          avatarUrl != null
+              ? ClipOval(child: Image.network(avatarUrl, width: 44, height: 44, fit: BoxFit.cover))
               : Container(width: 44, height: 44, decoration: BoxDecoration(
-                  color: MettloColors.primary.withOpacity(.1), borderRadius: BorderRadius.circular(8)),
+                  color: MettloColors.primary.withOpacity(.1), shape: BoxShape.circle),
                   child: Center(child: Text((creator['displayName'] as String)[0],
                     style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: MettloColors.primary)))),
           const SizedBox(width: 10),
