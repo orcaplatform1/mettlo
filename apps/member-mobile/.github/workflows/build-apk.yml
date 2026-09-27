@@ -32,7 +32,19 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Upload APK
+      - name: Deploy APK to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: build/app/outputs/flutter-apk/app-release.apk
+          target: /var/www/mettlo.tr/apps/member-web/public/
+          strip_components: 4
+          overwrite: true
+          rename: mettlo.apk
+
+      - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: mettlo-release-${{ github.run_number }}
