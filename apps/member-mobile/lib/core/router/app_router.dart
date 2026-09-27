@@ -229,10 +229,7 @@ class _Shell extends ConsumerWidget {
         title: Row(mainAxisSize: MainAxisSize.min, children: [
           Image.asset('assets/images/logo.png', height: 28),
           const SizedBox(width: 8),
-          ShaderMask(
-            shaderCallback: (b) => MettloColors.gradientSunrise.createShader(b),
-            child: const Text('METTLO', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 3, color: Colors.white)),
-          ),
+          const Text('METTLO', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 3, color: Colors.white)),
         ]),
         actions: [
           Builder(
@@ -257,7 +254,7 @@ class _Shell extends ConsumerWidget {
       body: child,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF0A0A15),
+          color: Colors.transparent,
           border: Border(top: BorderSide(color: Color(0xFF1E1E2E), width: 1)),
         ),
         child: SafeArea(
