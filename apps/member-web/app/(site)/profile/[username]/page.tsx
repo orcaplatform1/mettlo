@@ -158,36 +158,54 @@ export default async function ProfilePage({ params }: Props) {
   }
 
   if (p.type === 'member') {
+    const memberFollowStatus = (!isOwn && token) ? await apiTry<any>(`/social/following/status/${encodeURIComponent(p.username)}`, { token }) : null;
     return (
       <>
-        {/* Kapak — yalnızca abone üyelerde */}
-        {p.coverUrl && (
-          <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(to top, var(--color-bg), transparent)' }} />
+        <div className="profile-hero">
+          <div className="profile-cover">
+            {p.coverUrl
+              ? <img src={p.coverUrl} alt="" />
+              : <div style={{ width: '100%', height: '100%', background: 'var(--gradient-sunrise-dark)' }} />}
           </div>
-        )}
-        <div className="container section-sm" style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', paddingTop: p.coverUrl ? 0 : undefined }}>
-          <div style={p.coverUrl ? { marginTop: -56 } : {}}><AvatarPopup name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" /></div>
-          <h1 className="h3" style={{ marginTop: 16 }}>{p.name}</h1>
-          <p className="text-tertiary">@{p.username}</p>
-          <div style={{ marginTop: 8 }}><OnlineStatus username={p.username} label /></div>
-          <div className="row row-wrap" style={{ justifyContent: 'center', marginTop: 16 }}>
-            <span className="badge">Üyelik: {new Date(p.memberSince).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</span>
-            {p.streak && <span className="badge badge-gold">Seri: {p.streak.current} gün</span>}
-          </div>
-          {isOwn && <Link href="/app/settings" className="btn btn-secondary btn-sm btn-pill" style={{ marginTop: 20 }}>Profili Düzenle</Link>}
-          {!isOwn && session && <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} style={{ marginTop: 20 }} />}
-          {!isOwn && session && (
-            <div className="row row-wrap" style={{ gap: 8, marginTop: 8, justifyContent: 'center' }}>
-              <ReportButton targetType="user" targetId={p.username} />
-              <BlockButton username={p.username} isBlocked={blockStatus?.blocked ?? false} />
+          <div className="container">
+            <div className="profile-head">
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <AvatarPopup name={p.name ?? p.username} src={p.avatarUrl} size={112} className="avatar-lg" />
+              </div>
+              <div className="row row-wrap" style={{ marginLeft: 'auto', paddingBottom: 8, gap: 10 }}>
+                {isOwn && <Link href="/app/settings" className="btn btn-secondary btn-pill btn-sm">Profili Düzenle</Link>}
+                {!isOwn && session && <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} />}
+                {!isOwn && session && !isStaff && <FollowButton username={p.username} initialFollowing={memberFollowStatus?.isFollowing ?? false} />}
+                {!isOwn && session && (
+                  <>
+                    <ReportButton targetType="user" targetId={p.username} />
+                    <BlockButton username={p.username} isBlocked={blockStatus?.blocked ?? false} />
+                  </>
+                )}
+              </div>
             </div>
-          )}
+            <div style={{ marginTop: 14 }}>
+              <h1 className="h2 row" style={{ gap: 8, flexWrap: 'wrap' }}>{p.name ?? p.username}<OnlineStatus username={p.username} label size={11} /></h1>
+              <p className="text-tertiary" style={{ marginTop: 2 }}>@{p.username}</p>
+              <div className="row row-wrap" style={{ marginTop: 12, gap: 8 }}>
+                <span className="badge">Üyelik: {new Date(p.memberSince).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}</span>
+                {p.streak && <span className="badge badge-gold">Seri: {p.streak.current} gün</span>}
+              </div>
+            </div>
+            <div className="row row-wrap" style={{ gap: 16, marginTop: 16 }}>
+              <FollowStats username={p.username} followersCount={memberFollowStatus?.followers ?? 0} followingCount={memberFollowStatus?.following ?? 0} />
+              {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <ProfileStories username={p.username} isOwn={isOwn} />
+            </div>
+          </div>
+        </div>
+
+        <div className="container" style={{ maxWidth: 720, paddingBlock: '32px 48px' }}>
           {/* Abone olunan koçlar */}
           {p.subscribedTo?.length > 0 && (
-            <div style={{ marginTop: 20, width: '100%', textAlign: 'left' }}>
+            <div>
               <p className="caption text-secondary" style={{ marginBottom: 8 }}>Abone olunan koçlar</p>
               <div className="row row-wrap" style={{ gap: 8 }}>
                 {p.subscribedTo.map((c: any) => (
@@ -199,10 +217,6 @@ export default async function ProfilePage({ params }: Props) {
               </div>
             </div>
           )}
-        </div>
-
-        <div className="container" style={{ maxWidth: 720, paddingBottom: 48 }}>
-          <ProfileStories username={p.username} isOwn={isOwn} />
         </div>
         <SuperAdminPanel username={p.username} data={admin} />
         <StaffPanel username={p.username} />

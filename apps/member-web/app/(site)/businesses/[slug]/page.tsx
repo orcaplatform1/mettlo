@@ -70,83 +70,88 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
 
   return (
     <div>
-      {/* Hero — kapak fotoğrafı */}
-      <div style={{
-        height: ba.coverUrl ? 240 : 120,
-        background: ba.coverUrl
-          ? `url(${ba.coverUrl}) center/cover`
-          : 'linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%)',
-        position: 'relative',
-      }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.55))' }} />
-      </div>
+      {/* ── HERO — koç profiliyle aynı şablon ── */}
+      <div className="profile-hero">
+        <div className="profile-cover">
+          {ba.coverUrl
+            ? <img src={ba.coverUrl} alt="" />
+            : <div style={{ width: '100%', height: '100%', background: 'var(--gradient-sunrise-dark)' }} />}
+        </div>
 
-      <div className="container" style={{ maxWidth: 900 }}>
-        {/* Profil başlığı */}
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-end', marginTop: ba.logoUrl ? -40 : -16, marginBottom: 20, flexWrap: 'wrap' }}>
-          {ba.logoUrl ? (
-            <img src={ba.logoUrl} alt={ba.name} width={88} height={88}
-              style={{ borderRadius: 14, objectFit: 'cover', border: '4px solid var(--color-bg)', flexShrink: 0, background: 'var(--color-surface-1)' }} />
-          ) : (
-            <div style={{ width: 88, height: 88, borderRadius: 14, border: '4px solid var(--color-bg)', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, flexShrink: 0 }}>
-              {ba.name[0]}
-            </div>
-          )}
-          <div style={{ flex: 1, minWidth: 200, paddingBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <h1 className="h2" style={{ margin: 0 }}>{ba.name}</h1>
-              {isVerified && (
-                <CheckCircle size={20} style={{ color: '#3b82f6', flexShrink: 0 }} aria-label="Doğrulanmış İşletme" />
+        <div className="container">
+          <div className="profile-head">
+            {/* Logo — avatar yeri */}
+            {ba.logoUrl ? (
+              <img src={ba.logoUrl} alt={ba.name} width={112} height={112}
+                style={{ borderRadius: 16, objectFit: 'cover', border: '4px solid var(--color-bg)', flexShrink: 0, background: 'var(--color-surface-1)' }} />
+            ) : (
+              <div style={{ width: 112, height: 112, borderRadius: 16, border: '4px solid var(--color-bg)', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 800, flexShrink: 0 }}>
+                {ba.name[0]}
+              </div>
+            )}
+            {/* Aksiyon butonları sağda */}
+            <div className="row row-wrap" style={{ marginLeft: 'auto', paddingBottom: 8, gap: 10 }}>
+              {token && !isOwner && (
+                <BusinessFollowButton businessId={ba.id} initialFollowing={initialFollowing} />
               )}
-            </div>
-            <div className="row" style={{ gap: 12, flexWrap: 'wrap', marginTop: 6 }}>
-              <span className="badge">{ALL_CATEGORY_TR[ba.category] ?? ba.category}</span>
-              {ba.city && (
-                <span className="row body-sm text-secondary" style={{ gap: 4 }}>
-                  <MapPin size={13} /> {ba.city.name}{ba.district ? `, ${ba.district.name}` : ''}
-                </span>
+              {token && !isOwner && ba.owner?.username && (
+                <MessageButton username={ba.owner.username} subscribeHref={`/login?next=/businesses/${slug}`}
+                  businessId={ba.id} style={{ display: 'flex', alignItems: 'center' }} />
               )}
-              {ba.ratingCount > 0 && (
-                <span className="row body-sm text-secondary" style={{ gap: 4 }}>
-                  <Star size={13} /> {ba.ratingAvg} ({ba.ratingCount})
-                </span>
+              {ba.website && <WebsiteButton businessId={ba.id} website={ba.website} />}
+              {isOwner && (
+                <Link href={`/app/advertising?businessId=${ba.id}`} className="btn btn-ghost btn-sm row" style={{ gap: 5 }}>
+                  <Megaphone size={14} /> Reklamlar
+                </Link>
+              )}
+              {isFood && (
+                <Link href={`/businesses/${slug}/menu`} className="btn btn-ghost btn-sm row" style={{ gap: 6 }}>
+                  <Utensils size={14} /> Menü
+                </Link>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Takipçi + aksiyonlar satırı */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border-soft)' }}>
-          <span className="row body-sm" style={{ gap: 4 }}>
-            <Users size={15} style={{ color: 'var(--color-text-tertiary)' }} />
-            <strong>{ba.followersCount}</strong>
-            <span className="text-secondary">takipçi</span>
-          </span>
-          {ba.website && <WebsiteButton businessId={ba.id} website={ba.website} />}
-          {ba.phonePublic && (
-            <a href={`tel:${ba.phonePublic}`} className="btn btn-ghost btn-sm row" style={{ gap: 6 }}>
-              <Phone size={14} /> {ba.phonePublic}
-            </a>
-          )}
-          {token && !isOwner && (
-            <BusinessFollowButton businessId={ba.id} initialFollowing={initialFollowing} />
-          )}
-          {/* İşletme sahibine mesaj at — businessId geçilerek MEMBER kısıtlaması aşılır */}
-          {token && !isOwner && ba.owner?.username && (
-            <MessageButton username={ba.owner.username} subscribeHref={`/login?next=/businesses/${slug}`}
-              businessId={ba.id} style={{ display: 'flex', alignItems: 'center' }} />
-          )}
-          {isOwner && (
-            <Link href={`/app/advertising?businessId=${ba.id}`} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Megaphone size={14} /> Reklamlar
-            </Link>
-          )}
-          {isFood && (
-            <Link href={`/businesses/${slug}/menu`} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Utensils size={14} /> Menü
-            </Link>
-          )}
+          {/* İsim + kullanıcı adı + rozetler */}
+          <div style={{ marginTop: 14 }}>
+            <h1 className="h2 row" style={{ gap: 8, flexWrap: 'wrap' }}>
+              {ba.name}
+              {isVerified && <CheckCircle size={20} style={{ color: '#3b82f6', flexShrink: 0 }} aria-label="Doğrulanmış İşletme" />}
+            </h1>
+            <p className="text-tertiary" style={{ marginTop: 2 }}>@{ba.slug}</p>
+            {ba.shortDesc && <p className="text-secondary" style={{ marginTop: 6 }}>{ba.shortDesc}</p>}
+            <div className="row row-wrap" style={{ marginTop: 12, gap: 8 }}>
+              <span className="badge">{ALL_CATEGORY_TR[ba.category] ?? ba.category}</span>
+              {ba.city && (
+                <span className="badge row" style={{ gap: 4 }}>
+                  <MapPin size={11} aria-hidden /> {ba.city.name}{ba.district ? `, ${ba.district.name}` : ''}
+                </span>
+              )}
+              {ba.ratingCount > 0 && (
+                <span className="badge row" style={{ gap: 4 }}>
+                  <Star size={11} aria-hidden /> {ba.ratingAvg} ({ba.ratingCount})
+                </span>
+              )}
+              {ba.phonePublic && (
+                <a href={`tel:${ba.phonePublic}`} className="badge row" style={{ gap: 4, textDecoration: 'none', color: 'inherit' }}>
+                  <Phone size={11} aria-hidden /> {ba.phonePublic}
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Takipçi sayısı — koç profiliyle aynı büyüklük */}
+          <div style={{ marginTop: 16 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+              <strong style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>{ba.followersCount.toLocaleString('tr-TR')}</strong>
+              <span style={{ color: 'var(--color-text-secondary)', fontSize: 15, fontWeight: 500 }}>Takipçi</span>
+            </span>
+          </div>
         </div>
+      </div>
+
+      <div className="container" style={{ maxWidth: 900, paddingTop: 32 }}>
+        {/* Bölüm ayırıcı yerine boşluk */}
 
         {/* Kampanyalar */}
         {activeCampaigns.length > 0 && (

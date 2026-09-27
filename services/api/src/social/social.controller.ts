@@ -45,9 +45,12 @@ export class SocialController {
   async followStatus(@CurrentUser() me: AuthUser, @Param('username') username: string) {
     const target = await this.prisma.user.findFirst({ where: { username: username.toLowerCase() }, select: { id: true } });
     if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
-    const existing = await this.prisma.follow.findUnique({ where: { followerId_creatorId: { followerId: me.id, creatorId: target.id } } });
-    const followers = await this.prisma.follow.count({ where: { creatorId: target.id } });
-    return { isFollowing: !!existing, followers };
+    const [existing, followers, following] = await this.prisma.$transaction([
+      this.prisma.follow.findUnique({ where: { followerId_creatorId: { followerId: me.id, creatorId: target.id } } }),
+      this.prisma.follow.count({ where: { creatorId: target.id } }),
+      this.prisma.follow.count({ where: { followerId: target.id } }),
+    ]);
+    return { isFollowing: !!existing, followers, following };
   }
 
   /** Koçun takipçilerini listele (profil sayfası popup) */
