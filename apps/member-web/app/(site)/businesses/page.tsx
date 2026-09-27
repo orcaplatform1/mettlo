@@ -99,7 +99,7 @@ export default async function BusinessListPage({ searchParams }: Props) {
               <Link key={key} href={`/businesses${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
             ))}
           </div>
-          <p className="caption text-tertiary" style={{ margin: '10px 0 6px', fontWeight: 600 }}>Sağlıklı Beslenme &amp; Restoranlar</p>
+          <p id="restoranlar" className="caption text-tertiary" style={{ margin: '10px 0 6px', fontWeight: 600 }}>Sağlıklı Beslenme &amp; Restoranlar</p>
           <div className="row row-wrap" style={{ gap: 6 }}>
             {categories.filter(([key]) => FOOD_CATEGORIES.has(key)).map(([key, label]) => (
               <Link key={key} href={`/businesses${qs({ q: sp.q, cityId: sp.cityId, category: key })}`} className="chip" aria-current={sp.category === key ? 'page' : undefined}>{label}</Link>
