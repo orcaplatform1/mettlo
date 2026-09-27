@@ -52,7 +52,7 @@ export class PublicEventsController {
     const event = await this.prisma.event.findUnique({
       where: { slug },
       include: {
-        organizer: { select: { name: true, username: true, avatarUrl: true } },
+        organizer: { select: { name: true, username: true, avatarUrl: true, creatorProfile: { select: { verified: true } } } },
         business: { select: { name: true, slug: true } },
         city: { select: { name: true } },
         _count: { select: { tickets: { where: { status: 'ACTIVE' } }, registrations: true } },

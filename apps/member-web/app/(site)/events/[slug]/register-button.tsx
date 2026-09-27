@@ -62,7 +62,7 @@ export function EventRegisterButton({ eventId, slug, isFree, priceKurus }: Props
         className="btn btn-primary"
         style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 600 }}
       >
-        {loading ? 'İşleniyor…' : isFree ? 'Ücretsiz Kayıt Ol' : `Bilet Al — ${fmtTL(priceKurus)}`}
+        {loading ? 'İşleniyor…' : isFree ? 'Ücretsiz Katıl' : 'Bilet Al'}
       </button>
       {!isFree && (
         <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>

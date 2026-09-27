@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Calendar, MapPin, Users, Clock, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { Calendar, MapPin, Clock, ExternalLink, CheckCircle, Users, Ticket } from 'lucide-react';
 import { getEvent } from '@/app/lib/data';
 import { EventRegisterButton } from './register-button';
 
@@ -30,75 +31,171 @@ export default async function EventDetailPage({ params }: Props) {
 
   const isFree = ev.ticketPriceKurus === 0;
   const isFull = ev.spotsLeft !== null && ev.spotsLeft <= 0;
+  const registeredCount = (ev._count?.tickets ?? 0) + (ev._count?.registrations ?? 0);
+
+  const locationStr = ev.isOnline
+    ? 'Online Etkinlik'
+    : [ev.locationName, ev.locationAddress, ev.city?.name].filter(Boolean).join(', ');
+
+  const mapsQuery = ev.isOnline
+    ? null
+    : encodeURIComponent([ev.locationName, ev.locationAddress, ev.city?.name].filter(Boolean).join(' '));
+
+  const organizerVerified = ev.organizer?.creatorProfile?.verified === true;
 
   return (
     <div className="container section-sm">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         {ev.coverImageUrl && (
-          <img src={ev.coverImageUrl} alt={ev.title} style={{ width: '100%', height: '320px', objectFit: 'cover', borderRadius: '16px', marginBottom: '24px' }} />
+          <img
+            src={ev.coverImageUrl}
+            alt={ev.title}
+            style={{ width: '100%', height: '320px', objectFit: 'cover', borderRadius: '16px', marginBottom: '24px' }}
+          />
         )}
 
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-          <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', background: 'var(--accent)', color: '#fff' }}>
-            {isFree ? 'Ücretsiz' : fmtTL(ev.ticketPriceKurus)}
-          </span>
-          {ev.isOnline && (
+        {/* Online badge — fiyat rozeti kaldırıldı */}
+        {ev.isOnline && (
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
             <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
               Online
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
-        <h1 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '16px' }}>{ev.title}</h1>
+        <h1 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '20px' }}>{ev.title}</h1>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+          {/* Tarih/saat */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Clock size={16} aria-hidden />
             <span>{dtFmt(ev.startsAt)}{ev.endsAt ? ` — ${dtFmt(ev.endsAt)}` : ''}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MapPin size={16} aria-hidden />
-            <span>{ev.isOnline ? 'Online Etkinlik' : [ev.locationName, ev.locationAddress, ev.city?.name].filter(Boolean).join(', ')}</span>
-          </div>
-          {ev.capacityLimit && (
+
+          {/* Konum + Haritada Aç */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Users size={16} aria-hidden />
-              <span>
-                Kapasite: {ev.capacityLimit}
-                {ev.spotsLeft !== null ? ` — ${ev.spotsLeft > 0 ? `${ev.spotsLeft} kişilik yer kaldı` : 'Kapasite doldu'}` : ''}
-              </span>
+              <MapPin size={16} aria-hidden />
+              <span>{locationStr}</span>
             </div>
-          )}
+            {mapsQuery && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ marginLeft: '24px', fontSize: '13px', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <ExternalLink size={12} aria-hidden />
+                Haritada Aç
+              </a>
+            )}
+          </div>
+
+          {/* Organizatör mini profil */}
           {ev.organizer && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Calendar size={16} aria-hidden />
-              <span>Organizatör: <strong>{ev.organizer.name || ev.organizer.username}</strong></span>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <Calendar size={16} style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden />
+              <div>
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Organizatör</span>
+                <Link
+                  href={`/profile/${ev.organizer.username}`}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+                >
+                  {ev.organizer.avatarUrl ? (
+                    <img
+                      src={ev.organizer.avatarUrl}
+                      alt={ev.organizer.name || ev.organizer.username}
+                      width={32}
+                      height={32}
+                      style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ color: '#fff', fontSize: '13px', fontWeight: 700 }}>
+                        {(ev.organizer.name || ev.organizer.username || '?')[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text)' }}>
+                        {ev.organizer.name || ev.organizer.username}
+                      </span>
+                      {organizerVerified && (
+                        <CheckCircle size={14} style={{ color: 'var(--color-primary)', flexShrink: 0 }} aria-label="Doğrulanmış" />
+                      )}
+                    </div>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>@{ev.organizer.username}</span>
+                  </div>
+                </Link>
+              </div>
             </div>
           )}
         </div>
 
+        {/* Açıklama */}
         {ev.description && (
-          <div style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text)', marginBottom: '32px', whiteSpace: 'pre-line' }}>
+          <div style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text)', marginBottom: '28px', whiteSpace: 'pre-line' }}>
             {ev.description}
           </div>
         )}
 
+        {/* Online bağlantısı */}
         {ev.isOnline && ev.onlineLink && (
           <div style={{ padding: '16px', background: 'var(--surface-2)', borderRadius: '10px', marginBottom: '24px' }}>
             <p style={{ fontSize: '13px', marginBottom: '8px', color: 'var(--text-secondary)' }}>Etkinlik bağlantısı (kayıt sonrası aktif):</p>
-            <a href={ev.onlineLink} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--accent)' }}>
+            <a href={ev.onlineLink} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--color-primary)' }}>
               <ExternalLink size={14} aria-hidden /> {ev.onlineLink}
             </a>
           </div>
         )}
 
-        {/* Kayıt / bilet alma butonu */}
-        {!isFull ? (
-          <EventRegisterButton eventId={ev.id} slug={ev.slug} isFree={isFree} priceKurus={ev.ticketPriceKurus} />
-        ) : (
-          <div style={{ padding: '14px 20px', background: 'var(--surface-2)', borderRadius: '10px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
-            Bu etkinliğin kapasitesi doldu.
+        {/* Kontenjan & ücret bilgi kartı */}
+        {(ev.capacityLimit || !isFree) && (
+          <div style={{ padding: '18px 20px', background: 'var(--surface-2)', borderRadius: '12px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {ev.capacityLimit && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    <Users size={15} aria-hidden />
+                    Kontenjan
+                  </span>
+                  <span style={{ fontWeight: 600, fontSize: '14px' }}>{ev.capacityLimit} kişi</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    {isFree ? 'Kayıtlı Kişi' : 'Kalan Kontenjan'}
+                  </span>
+                  {isFull ? (
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--danger, #ef4444)' }}>Kontenjan Doldu</span>
+                  ) : (
+                    <span style={{ fontWeight: 600, fontSize: '14px', color: isFree ? 'var(--text-secondary)' : 'var(--color-primary)' }}>
+                      {isFree ? registeredCount : ev.spotsLeft} kişi
+                    </span>
+                  )}
+                </div>
+                {ev.capacityLimit && <div style={{ height: '1px', background: 'var(--border)' }} />}
+              </>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <Ticket size={15} aria-hidden />
+                Etkinlik Ücreti
+              </span>
+              <span style={{ fontWeight: 700, fontSize: '15px', color: isFree ? 'var(--color-primary)' : 'var(--text)' }}>
+                {isFree ? 'Ücretsiz' : fmtTL(ev.ticketPriceKurus)}
+              </span>
+            </div>
           </div>
+        )}
+
+        {/* Kayıt butonu veya dolu mesajı */}
+        {isFull ? (
+          <div style={{ padding: '14px 20px', background: 'var(--surface-2)', borderRadius: '10px', textAlign: 'center', border: '1.5px solid var(--danger, #ef4444)', color: 'var(--danger, #ef4444)', fontSize: '14px', fontWeight: 600 }}>
+            Kontenjan Doldu
+          </div>
+        ) : (
+          <EventRegisterButton eventId={ev.id} slug={ev.slug} isFree={isFree} priceKurus={ev.ticketPriceKurus} />
         )}
       </div>
     </div>
