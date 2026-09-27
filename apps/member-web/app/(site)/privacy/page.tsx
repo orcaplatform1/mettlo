@@ -25,6 +25,8 @@ const sections: LegalSection[] = [
       <li>Ödeme, fatura ve iade süreçlerini tamamlamak; yasal yükümlülükleri yerine getirmek.</li>
       <li>Platform güvenliğini sağlamak, dolandırıcılığı ve kötüye kullanımı önlemek, uyuşmazlıkları çözmek.</li>
       <li>Destek taleplerinize yanıt vermek, hizmeti iyileştirmek ve anonim istatistikler üretmek.</li>
+      <li>Mağaza siparişlerini, kargo süreçlerini ve etkinlik biletlerini yönetmek; sipariş ve bilet bildirimlerini iletmek.</li>
+      <li>İşletme listelerini ve iş ilanlarını yayımlamak, başvuruları ilan sahibine iletmek.</li>
       <li>Onay verdiyseniz kampanya ve duyuru iletileri göndermek (dilediğiniz zaman geri çekebilirsiniz).</li>
     </ul>) },
   { id: 'saglik', title: 'Sağlık verileri', body: (<>

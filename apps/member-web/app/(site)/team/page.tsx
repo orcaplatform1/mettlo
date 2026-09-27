@@ -73,8 +73,8 @@ export default async function TeamPage() {
                         <StarDot role={m.staffRole} />
                       </div>
                       <div>
-                        <p style={{ fontWeight: 700, fontSize: 15 }}>{m.name}</p>
-                        <p className="caption text-tertiary">@{m.username}</p>
+                        <Link href={`/profile/${m.username}`} style={{ fontWeight: 700, fontSize: 15, color: 'inherit', textDecoration: 'none' }} className="hover-underline">{m.name}</Link>
+                        <p className="caption text-tertiary"><Link href={`/profile/${m.username}`} style={{ color: 'inherit', textDecoration: 'none' }} className="hover-underline">@{m.username}</Link></p>
                       </div>
                       <span className="badge" style={{ color: ROLE_COLOR[m.staffRole] ?? 'var(--color-text-secondary)', borderColor: `${ROLE_COLOR[m.staffRole] ?? '#6b7280'}44`, background: `${ROLE_COLOR[m.staffRole] ?? '#6b7280'}12` }}>{ROLE_LABEL[m.staffRole] ?? 'Ekip'}</span>
                     </div>

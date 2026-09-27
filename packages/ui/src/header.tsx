@@ -101,18 +101,32 @@ export function SiteHeader({ user, panelHref }: { user: HeaderUser | null; panel
       </div>
       <button type="button" className="nav-backdrop" data-open={open} aria-hidden tabIndex={-1} onClick={() => setOpen(false)} />
       <div className="mobile-nav" data-open={open}>
-        {/* Mettlo başlığı + kurumsal linkler */}
+        {/* 1. Giriş butonları — en üstte (giriş yapılmamışsa) */}
+        {!user && (
+          <>
+            <Link href="/login" className="btn btn-secondary btn-pill" style={{ textAlign: 'center' }}>Üye / Abone Girişi</Link>
+            <Link href="/login/coach" className="btn btn-electric btn-pill" style={{ textAlign: 'center' }}>Koç Girişi</Link>
+            <div className="mobile-nav-divider" />
+          </>
+        )}
+        {/* Giriş yapılmışsa kullanıcı linkleri üstte */}
+        {user && (
+          <>
+            <Link href={panelHref ?? '/app'}>Panelim</Link>
+            <Link href={`/profile/${user.username}`}>@{user.username}</Link>
+            <div className="mobile-nav-divider" />
+          </>
+        )}
+        {/* 2. Mettlo kurumsal menüsü */}
         <p className="mobile-nav-section-title">Mettlo</p>
         {ABOUT_NAV.map((n) => <Link key={n.href} href={n.href} className="mobile-nav-sub">{n.label}</Link>)}
-        {/* Ana menü */}
+        {/* 3. Ana keşif menüsü */}
         <div className="mobile-nav-divider" />
-        {NAV.map((n) => <Link key={n.href} href={n.href}>{n.label}</Link>)}
-        {/* Kullanıcı linkleri */}
-        {user && <Link href={panelHref ?? '/app'}>Panelim</Link>}
-        {user && <Link href={`/profile/${user.username}`}>@{user.username}</Link>}
-        {/* Giriş butonları — sadece mobilde görünür */}
-        {!user && <Link href="/login" className="btn btn-secondary btn-pill" style={{ textAlign: 'center', marginTop: 8 }}>Üye / Abone Girişi</Link>}
-        {!user && <Link href="/login/coach" className="btn btn-electric btn-pill" style={{ textAlign: 'center' }}>Koç Girişi</Link>}
+        {NAV.map((n) => (
+          n.href.includes('?')
+            ? <a key={n.href} href={n.href}>{n.label}</a>
+            : <Link key={n.href} href={n.href}>{n.label}</Link>
+        ))}
       </div>
     </header>
   );

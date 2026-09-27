@@ -15,6 +15,10 @@ export const sections: LegalSection[] = [
       <li><b>Koç:</b> Mettlo tarafından onaylanmış, Platform üzerinde program, canlı ders, topluluk ve koçluk hizmeti sunan bağımsız içerik üreticisi.</li>
       <li><b>Yönetim Ekibi:</b> Platform’un işleyişinden, moderasyondan ve destekten sorumlu Mettlo yetkilileri.</li>
       <li><b>İçerik:</b> Platform üzerinde yayımlanan program, antrenman, video, yazı, yorum, mesaj, görsel ve benzeri her türlü materyal.</li>
+      <li><b>İşletme:</b> Platform'da listelenen spor salonu, stüdyo, restoran, kafe, beslenme kliniği gibi fiziksel mekânlar ve bunların sahipleri/yetkilileri.</li>
+      <li><b>Mağaza:</b> Platform üzerinden satışa sunulan supplement, spor araçları ve kıyafet gibi fiziksel ürünlerin satış bölümü.</li>
+      <li><b>Etkinlik:</b> Koçlar veya işletmeler tarafından Platform üzerinden düzenlenen, bilet veya kayıt gerektiren fiziksel ya da çevrimiçi organizasyon.</li>
+      <li><b>İş İlanı:</b> Fitness ve wellness sektöründe açık pozisyonların duyurulduğu bölüm; ilan sahibi, Mettlo'nun çalışanı değil bağımsız işverendir.</li>
     </ul>) },
   { id: 'uyelik', title: 'Üyelik ve hesap güvenliği', body: (<>
     <ul>
@@ -69,6 +73,44 @@ export const sections: LegalSection[] = [
       <li>Platform’un yazılımı, tasarımı, logosu, marka unsurları ve Mettlo tarafından üretilen tüm içerikler Mettlo’ya (ve marka sahibi Traders.TR’ye) aittir; izinsiz kopyalanamaz, çoğaltılamaz, dağıtılamaz.</li>
       <li>Kullanıcılar ve koçlar, kendi ürettikleri içeriklerin hakkına sahip olduklarını ve üçüncü kişilerin haklarını ihlal etmediklerini taahhüt eder. İçerik sahibi, Platform’un hizmeti sunabilmesi için içeriği barındırma, gösterme ve teknik olarak işleme konusunda Mettlo’ya sınırlı, münhasır olmayan bir lisans verir.</li>
       <li>Hak ihlali bildirimleri <a href={`mailto:${MAILS.contact}`}>{MAILS.contact}</a> adresine iletilebilir; hukuka aykırı olduğu tespit edilen içerik kaldırılır.</li>
+    </ul>
+  </>) },
+  { id: 'isletmeler', title: 'İşletmeler ve restoranlar', body: (<>
+    <p>Mettlo, spor salonları, pilates stüdyoları, wellness merkezleri, sağlıklı restoranlar, smoothie barlar ve benzeri fiziksel mekânları ("İşletme") listeleyebilir. İşletme sahipleri veya yetkili temsilcileri aşağıdaki koşulları kabul etmiş sayılır:</p>
+    <ul>
+      <li>İşletme bilgileri (adres, çalışma saatleri, menü, fotoğraf) doğru, güncel ve yanıltıcı olmayan içerik içermelidir.</li>
+      <li>Sunulan hizmet ve ürünler yürürlükteki gıda, sağlık, çevre ve tüketici mevzuatına uygun olmalıdır.</li>
+      <li>Kullanıcılar tarafından yapılan gerçek değerlendirmeler kaldırılamaz; kurallara aykırı yorum bildirilebilir ve moderasyon ekibince incelenir.</li>
+      <li>İşletme listesinin kaldırılması veya askıya alınması gerektiğinde Mettlo bu hakkı önceden bildirim yaparak ya da acil durumlarda derhal kullanabilir.</li>
+    </ul>
+  </>) },
+  { id: 'magaza', title: 'Mağaza: supplement, spor araçları ve kıyafet', body: (<>
+    <p>Mettlo Mağazası üzerinden supplement ve besin destekleri, spor araçları/ekipmanları ve spor kıyafetleri satışı yapılabilir. Bu ürünlerin alım, iade ve cayma koşulları <a href="/distance-sales-agreement">Mesafeli Satış Sözleşmesi</a>'nde ayrıntılı düzenlenmiştir. Ek olarak:</p>
+    <ul>
+      <li><b>Supplement ve besin destekleri:</b> Ürün içerikleri, kullanım talimatları ve uyarılar etiket üzerinde gösterilir. Mağazadaki ürün bilgileri bilgilendirme amaçlıdır; tıbbi tavsiye değildir. Kronik rahatsızlık, ilaç kullanımı veya gebelik durumunda satın alma öncesinde sağlık uzmanına danışılmalıdır. Ambalajı açılmış supplement ürünleri, hijyen gerekçesiyle iade edilemez.</li>
+      <li><b>Spor araçları ve ekipmanları:</b> Kullanım kılavuzuna uygun kullanılmalı; yanlış kullanımdan doğan yaralanmalardan Mettlo sorumlu tutulamaz. Hasarlı veya ayıplı ürünlerde 6502 sayılı Kanun kapsamındaki haklarınız saklıdır.</li>
+      <li><b>Spor kıyafetleri:</b> Yıkanmamış, kullanılmamış ve etiketi sökülmemiş ürünler 14 gün içinde iade edilebilir. Kullanılmış veya hijyen koşulları sağlanmayan ürünler iade kapsamı dışındadır.</li>
+      <li>Mağaza ürünleri farklı tedarikçilerden sağlanabilir; ürün kalitesi ve güvenliliği tedarikçi ve Mettlo tarafından denetlenir.</li>
+    </ul>
+  </>) },
+  { id: 'etkinlikler', title: 'Etkinlikler', body: (<>
+    <p>Onaylı koçlar ve işletmeler Platform üzerinden boot camp, workshop, açık hava antrenmanı, seminer gibi etkinlikler düzenleyebilir. Etkinlik bilet satışı da Mettlo altyapısı üzerinden yapılır.</p>
+    <ul>
+      <li>Etkinlik bilgileri (tarih, saat, konum, kontenjan, ücret) doğru ve güncel tutulmalıdır; yanıltıcı etkinlik oluşturmak yasaktır.</li>
+      <li>Etkinliğe katılım ücreti, ödeme onaylanır onaylanmaz Kullanıcı'nın hesabına bilet olarak tanımlanır.</li>
+      <li>Etkinlik tarihi geçmiş biletler iade edilemez. Etkinlik düzenleyici tarafından iptal edilirse bilet bedeli 14 gün içinde iade edilir.</li>
+      <li>Etkinlik biletleri, ön bilgilendirmede belirtilmedikçe başkasına devredilemez.</li>
+      <li>Etkinliklerde fiziksel aktivite içeren programlar için sağlık uyarıları geçerlidir; ayrıntılar <a href="/disclaimer">Sorumluluk Reddi</a>'nde yer alır.</li>
+    </ul>
+  </>) },
+  { id: 'is-ilanlari', title: 'İş ilanları', body: (<>
+    <p>Mettlo üzerinden fitness, wellness ve sağlıklı yaşam sektörüne yönelik iş ilanları yayımlanabilir. İlan veren kullanıcı ve işletmeler aşağıdakileri kabul eder:</p>
+    <ul>
+      <li>İlanlar gerçek, aktif bir pozisyon için yayımlanmalıdır; sahte veya yanıltıcı ilan oluşturmak yasaktır.</li>
+      <li>Ücret, çalışma koşulları ve görev tanımı doğru belirtilmelidir; yürürlükteki iş mevzuatına (asgari ücret, eşit fırsat ilkesi vb.) uygunluk ilan sahibinin sorumluluğundadır.</li>
+      <li>Başvuranların kişisel verileri KVKK kapsamında işlenir; ilan sahibi verileri yalnızca işe alım sürecinde kullanmalı, üçüncü kişilerle paylaşmamalıdır.</li>
+      <li>Kurallara aykırı ilanlar uyarı yapılmaksızın kaldırılabilir; ihlal tekrarında hesap askıya alınabilir.</li>
+      <li>Mettlo, işe alım sürecine taraf değildir; aday–işveren ilişkisinden doğan yükümlülükleri üstlenmez.</li>
     </ul>
   </>) },
   { id: 'saglik', title: 'Sağlık ve güvenlik uyarısı', body: (<>

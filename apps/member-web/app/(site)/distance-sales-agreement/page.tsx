@@ -7,21 +7,28 @@ const sections: LegalSection[] = [
   { id: 'taraflar', title: 'Taraflar', body: (<>
     <p><b>SATICI / HİZMET SAĞLAYICI:</b> Mettlo (bir Traders.TR ticari markasıdır). <b>ALICI:</b> Platform üzerinden sipariş veren veya abonelik satın alan, üyelik kaydındaki bilgilerle tanımlı tüketici.</p>
     <CompanyBox />
-    <p>Alıcı’nın ad-soyad, adres ve iletişim bilgileri, sipariş sırasında ve üyelik kaydında beyan ettiği bilgilerdir. Bu sözleşme, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümlerine göre düzenlenmiştir.</p>
+    <p>Alıcı'nın ad-soyad, adres ve iletişim bilgileri, sipariş sırasında ve üyelik kaydında beyan ettiği bilgilerdir. Bu sözleşme, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümlerine göre düzenlenmiştir.</p>
   </>) },
-  { id: 'konu', title: 'Sözleşmenin konusu', body: (<p>Sözleşmenin konusu, Alıcı’nın Platform üzerinden elektronik ortamda sipariş verdiği; koçlara ait üyelik/abonelik planları, program, canlı ders ve seans gibi dijital hizmet ve içerikler ile Mettlo Mağazası’ndaki fiziksel ürünlerin satışı ve ifasıdır. Ürün/hizmetin türü, niteliği, adedi, satış bedeli ve ödeme şekli sipariş özetinde belirtilir.</p>) },
+  { id: 'konu', title: 'Sözleşmenin konusu', body: (<>
+    <p>Sözleşmenin konusu, Alıcı'nın Platform üzerinden elektronik ortamda sipariş verdiği aşağıdaki hizmet ve ürünlerin satışı ve ifasıdır. Ürün/hizmetin türü, niteliği, adedi, satış bedeli ve ödeme şekli sipariş özetinde belirtilir:</p>
+    <ul>
+      <li><b>Dijital hizmet ve içerikler:</b> Koçlara ait üyelik/abonelik planları, program, canlı ders ve seans.</li>
+      <li><b>Fiziksel ürünler — Mağaza:</b> Supplement ve besin destekleri, spor araçları/ekipmanları, spor kıyafetleri ve ilgili aksesuarlar.</li>
+      <li><b>Etkinlik biletleri:</b> Koçlar veya işletmeler tarafından Platform üzerinden düzenlenen boot camp, workshop, seminer ve benzeri etkinlikler için bilet.</li>
+    </ul>
+  </>) },
   { id: 'bedel', title: 'Bedel ve ödeme', body: (
     <ul>
-      <li>Tüm fiyatlar Türk Lirası cinsindendir ve <b>KDV dahildir</b>. Sipariş özetindeki tutar, Alıcı’dan tahsil edilecek nihai tutardır. Varsa kargo bedeli ayrıca gösterilir.</li>
-      <li>Ödeme, lisanslı ödeme kuruluşu üzerinden kredi/banka kartı ile yapılır. Kart bilgileri Mettlo’da saklanmaz.</li>
-      <li>Abonelikler, seçilen dönemde (aylık/yıllık) yenilenir; her yenileme öncesi ve sonrası tutar, Alıcı’ya sipariş/ödeme kayıtlarında gösterilir. Alıcı, aboneliği dilediği zaman iptal edebilir; iptal, içinde bulunulan dönemin sonunda geçerli olur.</li>
+      <li>Tüm fiyatlar Türk Lirası cinsindendir ve <b>KDV dahildir</b>. Sipariş özetindeki tutar, Alıcı'dan tahsil edilecek nihai tutardır. Varsa kargo bedeli ayrıca gösterilir.</li>
+      <li>Ödeme, lisanslı ödeme kuruluşu üzerinden kredi/banka kartı ile yapılır. Kart bilgileri Mettlo'da saklanmaz.</li>
+      <li>Abonelikler, seçilen dönemde (aylık/yıllık) yenilenir; her yenileme öncesi ve sonrası tutar, Alıcı'ya sipariş/ödeme kayıtlarında gösterilir. Alıcı, aboneliği dilediği zaman iptal edebilir; iptal, içinde bulunulan dönemin sonunda geçerli olur.</li>
       <li>Fatura, Mettlo tarafından düzenlenir ve elektronik ortamda iletilir.</li>
     </ul>) },
   { id: 'ifa', title: 'İfa ve teslimat', body: (<>
     <ul>
-      <li><b>Dijital hizmet ve içerikler:</b> Ödemenin onaylanmasıyla birlikte Alıcı’nın hesabına anında tanımlanır ve erişim açılır.</li>
-      <li><b>Fiziksel ürünler:</b> Sipariş onayından itibaren en geç 30 gün içinde teslim edilir; teslimat süresi ürün sayfasında belirtilir. Teslimat, Alıcı’nın beyan ettiği adrese, anlaşmalı kargo firması ile yapılır. Ürün, Alıcı’ya veya adresindeki kişiye teslim edilir; teslimde ambalajın hasarsız olduğu kontrol edilmelidir.</li>
-      <li>Mücbir sebepler veya stok yetersizliği nedeniyle ifa edilemeyen siparişlerde Alıcı’ya bilgi verilir; ödeme en geç 14 gün içinde iade edilir.</li>
+      <li><b>Dijital hizmet ve içerikler:</b> Ödemenin onaylanmasıyla birlikte Alıcı'nın hesabına anında tanımlanır ve erişim açılır.</li>
+      <li><b>Fiziksel ürünler:</b> Sipariş onayından itibaren en geç 30 gün içinde teslim edilir; teslimat süresi ürün sayfasında belirtilir. Teslimat, Alıcı'nın beyan ettiği adrese, anlaşmalı kargo firması ile yapılır. Ürün, Alıcı'ya veya adresindeki kişiye teslim edilir; teslimde ambalajın hasarsız olduğu kontrol edilmelidir.</li>
+      <li>Mücbir sebepler veya stok yetersizliği nedeniyle ifa edilemeyen siparişlerde Alıcı'ya bilgi verilir; ödeme en geç 14 gün içinde iade edilir.</li>
     </ul>
   </>) },
   { id: 'cayma', title: 'Cayma hakkı', body: (<>
@@ -29,23 +36,32 @@ const sections: LegalSection[] = [
     <p>Mesafeli Sözleşmeler Yönetmeliği m.15 uyarınca aşağıdaki hâllerde <b>cayma hakkı kullanılamaz</b>:</p>
     <ul>
       <li>Elektronik ortamda anında ifa edilen hizmetler ve tüketiciye anında teslim edilen gayri maddi mallar (ör. program, dijital içerik erişimi) — Alıcı, sipariş sırasında ifanın hemen başlamasını onaylar ve bu hâlde cayma hakkını kaybedeceğini kabul eder.</li>
-      <li>Alıcı’nın onayı ile cayma süresi dolmadan ifasına başlanan hizmetler.</li>
-      <li>Ambalajı açılmış olması hâlinde iade edilmesi sağlık ve hijyen bakımından uygun olmayan ürünler (ör. supplement, kişisel bakım ürünleri) ve kullanıldığında yapısı bozulan mallar.</li>
-      <li>Belirli bir tarih veya dönemde yapılacak olan, tarihi/saati belirlenmiş canlı ders ve seans gibi hizmetler (kullanım tarihi geçmişse).</li>
+      <li>Alıcı'nın onayı ile cayma süresi dolmadan ifasına başlanan hizmetler.</li>
+      <li>Ambalajı açılmış olması hâlinde iade edilmesi sağlık ve hijyen bakımından uygun olmayan ürünler (ör. ambalajı açılmış supplement, protein tozu, vitamin, kişisel bakım ürünleri) ve kullanıldığında yapısı bozulan mallar.</li>
+      <li>Spor kıyafetleri: kullanılmış, yıkanmış veya etiketi sökülmüş kıyafetler iade edilemez.</li>
+      <li>Belirli bir tarih veya dönemde yapılacak olan, tarihi/saati belirlenmiş canlı ders, seans ve <b>etkinlik bileti</b> gibi hizmetler — etkinlik tarihi geçmişse veya etkinlik başlamışsa cayma hakkı kullanılamaz.</li>
     </ul>
-    <p>Cayma hâlinde bedel, cayma bildiriminin alınmasından itibaren 14 gün içinde, ödeme yapılan yöntemle iade edilir. Ürünün iade kargo bedeli, satıcının belirttiği anlaşmalı kargo kullanılmadıkça Alıcı’ya aittir.</p>
+    <p>Cayma hâlinde bedel, cayma bildiriminin alınmasından itibaren 14 gün içinde, ödeme yapılan yöntemle iade edilir. Ürünün iade kargo bedeli, satıcının belirttiği anlaşmalı kargo kullanılmadıkça Alıcı'ya aittir.</p>
   </>) },
   { id: 'iade-abonelik', title: 'Abonelik iptali ve iadeler', body: (
     <ul>
       <li>Abonelik iptalinde erişim, ödenmiş dönemin sonuna kadar devam eder; kısmi dönem iadesi yapılmaz. Bu, yasal haklarınızı etkilemez.</li>
-      <li>Hizmetin Mettlo’dan kaynaklanan bir teknik sorun nedeniyle sunulamaması hâlinde ilgili dönem bedeli iade edilir veya erişim süresi uzatılır.</li>
-      <li>Ayıplı mal veya hizmet hâlinde Alıcı, 6502 sayılı Kanun’un 11. maddesindeki seçimlik haklara (sözleşmeden dönme, ayıp oranında indirim, ücretsiz onarım/değişim) sahiptir.</li>
+      <li>Hizmetin Mettlo'dan kaynaklanan bir teknik sorun nedeniyle sunulamaması hâlinde ilgili dönem bedeli iade edilir veya erişim süresi uzatılır.</li>
+      <li>Ayıplı mal veya hizmet hâlinde Alıcı, 6502 sayılı Kanun'un 11. maddesindeki seçimlik haklara (sözleşmeden dönme, ayıp oranında indirim, ücretsiz onarım/değişim) sahiptir.</li>
       <li>İade talepleri, destek merkezinden açılan talep ile yönetilir ve yasal sürelerde sonuçlandırılır.</li>
     </ul>) },
-  { id: 'koc', title: 'Koçlar ve hizmetin niteliği', body: (<p>Koçlar bağımsız içerik üreticileridir; sunulan programların ve seansların içeriği ilgili koçun sorumluluğundadır. Mettlo, satış ve ödeme altyapısını sağlar ve faturayı düzenler. Sağlık ve performans açısından sonuç garantisi verilmez; ayrıntılar <a href="/disclaimer">Sorumluluk Reddi</a>’nde yer alır.</p>) },
-  { id: 'onbilgilendirme', title: 'Ön bilgilendirme onayı', body: (<p>Alıcı, sipariş vermeden önce ürün/hizmetin temel nitelikleri, toplam fiyatı (vergiler dâhil), ödeme ve teslimat bilgileri, cayma hakkı ve kullanım şartları hakkında ön bilgilendirmeyi okuyup anladığını, elektronik ortamda teyit ettiğini kabul eder. Bu sözleşme, sipariş onayı anında kurulur ve Alıcı’ya kalıcı veri saklayıcısı ile (e-posta / hesap) iletilir.</p>) },
-  { id: 'uyusmazlik', title: 'Uyuşmazlıkların çözümü', body: (<p>Bu sözleşmeden doğan uyuşmazlıklarda, Ticaret Bakanlığı tarafından her yıl ilan edilen parasal sınırlar dâhilinde Alıcı’nın veya Satıcı’nın yerleşim yerindeki <b>Tüketici Hakem Heyeti</b>, bu sınırların üzerinde ise <b>Tüketici Mahkemesi</b> yetkilidir. Şikâyet ve itirazlar için önce <a href="/help">Yardım Merkezi</a>’nden destek talebi oluşturmanızı öneririz.</p>) },
-  { id: 'yururluk', title: 'Yürürlük', body: (<p>Alıcı, Platform’da siparişi onaylayarak işbu sözleşmenin tüm hükümlerini kabul etmiş sayılır. Sözleşme, sipariş tarihinde yürürlüğe girer; sipariş tarihindeki metin, Alıcı için bağlayıcıdır.</p>) },
+  { id: 'etkinlik-bilet', title: 'Etkinlik biletleri', body: (
+    <ul>
+      <li>Etkinlik biletleri, satın alma anında düzenleyicinin hesabına iletilir; kontenjan dolduktan sonra satış durabilir.</li>
+      <li>Etkinlik <b>düzenleyici tarafından</b> iptal edilirse bilet bedeli 14 gün içinde iade edilir.</li>
+      <li>Alıcı iptal etmek isterse etkinlik tarihine <b>48 saatten fazla</b> süre kalmışsa iade talep edebilir; 48 saatten az kalmışsa iade yapılmaz.</li>
+      <li>Etkinlik ertelenirse yeni tarih kabul edilmezse iade talep edilebilir.</li>
+      <li>Bilet devri, etkinlik sayfasında izin verildiği belirtilmişse mümkündür; aksi hâlde biletin başkasına devredilmesi yasaktır.</li>
+    </ul>) },
+  { id: 'koc', title: 'Koçlar ve hizmetin niteliği', body: (<p>Koçlar bağımsız içerik üreticileridir; sunulan programların ve seansların içeriği ilgili koçun sorumluluğundadır. Mettlo, satış ve ödeme altyapısını sağlar ve faturayı düzenler. Sağlık ve performans açısından sonuç garantisi verilmez; ayrıntılar <a href="/disclaimer">Sorumluluk Reddi</a>'nde yer alır.</p>) },
+  { id: 'onbilgilendirme', title: 'Ön bilgilendirme onayı', body: (<p>Alıcı, sipariş vermeden önce ürün/hizmetin temel nitelikleri, toplam fiyatı (vergiler dâhil), ödeme ve teslimat bilgileri, cayma hakkı ve kullanım şartları hakkında ön bilgilendirmeyi okuyup anladığını, elektronik ortamda teyit ettiğini kabul eder. Bu sözleşme, sipariş onayı anında kurulur ve Alıcı'ya kalıcı veri saklayıcısı ile (e-posta / hesap) iletilir.</p>) },
+  { id: 'uyusmazlik', title: 'Uyuşmazlıkların çözümü', body: (<p>Bu sözleşmeden doğan uyuşmazlıklarda, Ticaret Bakanlığı tarafından her yıl ilan edilen parasal sınırlar dâhilinde Alıcı'nın veya Satıcı'nın yerleşim yerindeki <b>Tüketici Hakem Heyeti</b>, bu sınırların üzerinde ise <b>Tüketici Mahkemesi</b> yetkilidir. Şikâyet ve itirazlar için önce <a href="/help">Yardım Merkezi</a>'nden destek talebi oluşturmanızı öneririz.</p>) },
+  { id: 'yururluk', title: 'Yürürlük', body: (<p>Alıcı, Platform'da siparişi onaylayarak işbu sözleşmenin tüm hükümlerini kabul etmiş sayılır. Sözleşme, sipariş tarihinde yürürlüğe girer; sipariş tarihindeki metin, Alıcı için bağlayıcıdır.</p>) },
 ];
 
 export default function DistanceSales() {
