@@ -7,7 +7,7 @@ import { EmptyState } from '@mettlo/ui';
 import { SITE } from '@mettlo/types';
 import { apiTry } from '@mettlo/web-core';
 import { BranchCard, CoachCard, ProductCard, ProgramCard } from '@/app/components/cards';
-import { DEFAULT_BRANCHES, getAllBranches, getProducts, type Page } from '@/app/lib/data';
+import { DEFAULT_BRANCHES, getAllBranches, getProducts, getEvents, type Page } from '@/app/lib/data';
 
 const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
@@ -45,7 +45,7 @@ export default async function HomePage() {
     apiTry<Page<any>>('/public/creators?limit=8'),
     apiTry<Page<any>>('/public/programs?limit=8'),
     getProducts('?limit=4'),
-    apiTry<Page<any>>('/public/events?limit=4&status=UPCOMING'),
+    getEvents('?limit=4&status=UPCOMING'),
     apiTry<Page<any>>('/business?limit=6'),
   ]);
   const creators = creatorsRaw ? { ...creatorsRaw, items: shuffle(creatorsRaw.items).slice(0, 6) } : null;
