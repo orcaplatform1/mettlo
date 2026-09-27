@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_controller.dart';
 import '../../core/network/api_client.dart';
@@ -116,12 +117,7 @@ class _CommunityCard extends StatelessWidget {
     final isPrivate = c['isPrivate'] == true;
 
     return GestureDetector(
-      onTap: () {
-        // Topluluk detay sayfası — web'e yönlendir (koç abonelik gerektiriyor olabilir)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('mettlo.tr/community/$slug adresini tarayıcıda aç.')),
-        );
-      },
+      onTap: () => context.push('/community/$slug'),
       child: Container(
         decoration: BoxDecoration(
           color: MettloColors.surface1,

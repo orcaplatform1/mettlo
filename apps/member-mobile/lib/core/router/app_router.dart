@@ -5,7 +5,13 @@ import 'badge_counts_provider.dart';
 
 import '../../features/admin/moderation_page.dart';
 import '../../features/advertising/advertising_page.dart';
+import '../../features/advertising/new_ad_page.dart';
+import '../../features/coaching/alerts_page.dart';
+import '../../features/coaching/assessments_page.dart';
 import '../../features/community/community_page.dart';
+import '../../features/community/community_detail_page.dart';
+import '../../features/earnings/bank_account_page.dart';
+import '../../features/jobs/job_applications_page.dart';
 import '../../features/live/live_sessions_page.dart';
 import '../../features/business/business_checkin_page.dart';
 import '../../features/earnings/earnings_page.dart';
@@ -115,8 +121,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/business/:slug/menu', builder: (_, s) => FoodMenuPage(businessId: s.pathParameters['slug']!, businessName: 'Menü')),
       GoRoute(path: '/ai/matching', builder: (_, _) => const AiMatchingPage()),
       GoRoute(path: '/advertising', builder: (_, _) => const AdvertisingPage()),
+      GoRoute(path: '/advertising/new', builder: (_, s) => NewAdPage(businessId: s.uri.queryParameters['businessId'])),
       GoRoute(path: '/community', builder: (_, _) => const CommunityPage()),
+      GoRoute(path: '/community/:slug', builder: (_, s) => CommunityDetailPage(slug: s.pathParameters['slug']!)),
       GoRoute(path: '/live', builder: (_, _) => const LiveSessionsPublicPage()),
+      GoRoute(path: '/alerts', builder: (_, _) => const AlertsPage()),
+      GoRoute(path: '/assessments', builder: (_, _) => const AssessmentsPage()),
+      GoRoute(path: '/earnings/bank-account', builder: (_, _) => const BankAccountPage()),
+      GoRoute(path: '/job-applications', builder: (_, _) => const JobApplicationsPage()),
     ],
   );
 });

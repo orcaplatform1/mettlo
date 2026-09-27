@@ -56,9 +56,11 @@ class _HamburgerMenuPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authControllerProvider);
     final role = auth.user?.role ?? '';
-    final isAdmin = role == 'ADMIN' || role == 'SUPERADMIN' || role == 'MODERATOR';
+    final isAdmin = role == 'ADMIN' || role == 'SUPER_ADMIN' || role == 'MODERATOR';
+    final isSupport = role == 'SUPPORT';
     final isCoach = role == 'CREATOR';
     final isBusiness = role == 'BUSINESS';
+    final isSubscriber = role == 'SUBSCRIBER';
 
     return Align(
       alignment: Alignment.centerRight,
@@ -107,13 +109,29 @@ class _HamburgerMenuPage extends ConsumerWidget {
                   _NavItem(context, 'Restoranlar', Icons.restaurant_outlined, '/restaurants'),
                   _NavItem(context, 'İş İlanları', Icons.work_outline, '/jobs'),
 
+                  if (isSubscriber) ...[
+                    const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
+                    _SmallLabel('ABONELİKLERİM'),
+                    _NavItem(context, 'Aboneliklerim', Icons.star_outline, '/home'),
+                    _NavItem(context, 'Programlarım', Icons.fitness_center_outlined, '/programs'),
+                    _NavItem(context, 'Rezervasyonlar', Icons.event_available_outlined, '/bookings'),
+                    _NavItem(context, "Challenge'lar", Icons.emoji_events_outlined, '/challenges'),
+                    _NavItem(context, 'Sağlık & İlerleme', Icons.monitor_heart_outlined, '/health'),
+                    _NavItem(context, 'AI Koç Eşleştirme', Icons.psychology_outlined, '/ai/matching'),
+                  ],
+
                   if (isCoach) ...[
                     const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
                     _SmallLabel('KOÇ PANELİ'),
                     _NavItem(context, 'Abonelerim', Icons.people_outline, '/subscribers'),
                     _NavItem(context, 'Müşterilerim', Icons.supervised_user_circle_outlined, '/coaching/clients'),
+                    _NavItem(context, 'Uyarılar', Icons.notifications_active_outlined, '/alerts'),
+                    _NavItem(context, 'Değerlendirme Formları', Icons.assignment_outlined, '/assessments'),
                     _NavItem(context, 'Gelirlerim', Icons.account_balance_wallet_outlined, '/earnings'),
+                    _NavItem(context, 'Banka Hesabı', Icons.account_balance_outlined, '/earnings/bank-account'),
                     _NavItem(context, 'Reklamlarım', Icons.campaign_outlined, '/advertising'),
+                    _NavItem(context, 'Yeni Reklam', Icons.add_circle_outline, '/advertising/new'),
+                    _NavItem(context, 'İş Başvurularım', Icons.send_outlined, '/job-applications'),
                     _NavItem(context, 'Çalıştığım Yerler', Icons.location_on_outlined, '/coach/workplaces'),
                     _MenuItem('Web Koç Paneli', onTap: () => _openUrl(context, '/creator')),
                   ],
@@ -122,14 +140,26 @@ class _HamburgerMenuPage extends ConsumerWidget {
                     const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
                     _SmallLabel('İŞLETME PANELİ'),
                     _NavItem(context, 'İşletme Profilim', Icons.store_outlined, '/business'),
+                    _NavItem(context, 'Gelirlerim', Icons.account_balance_wallet_outlined, '/earnings'),
+                    _NavItem(context, 'Banka Hesabı', Icons.account_balance_outlined, '/earnings/bank-account'),
                     _NavItem(context, 'Reklamlarım', Icons.campaign_outlined, '/advertising'),
+                    _NavItem(context, 'Yeni Reklam', Icons.add_circle_outline, '/advertising/new?type=business'),
+                    _NavItem(context, 'İş İlanlarım', Icons.work_outline, '/jobs'),
                     _MenuItem('Web İşletme Paneli', onTap: () => _openUrl(context, '/creator')),
+                  ],
+
+                  if (isSupport) ...[
+                    const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
+                    _SmallLabel('DESTEK EKİBİ'),
+                    _NavItem(context, 'Destek Talepleri', Icons.support_agent_outlined, '/support'),
+                    _MenuItem('Web Destek Paneli', onTap: () => _openUrl(context, '/admin/support')),
                   ],
 
                   if (isAdmin) ...[
                     const Divider(color: MettloColors.borderSubtle, height: 24, indent: 20, endIndent: 20),
                     _SmallLabel('YÖNETİM'),
                     _NavItem(context, 'Şikayet Yönetimi', Icons.flag_outlined, '/moderation'),
+                    _NavItem(context, 'Destek Talepleri', Icons.support_agent_outlined, '/support'),
                     _MenuItem('Web Admin Paneli', onTap: () => _openUrl(context, '/admin')),
                   ],
 
