@@ -73,7 +73,7 @@ export default async function HomePage() {
     apiTry<Page<any>>('/public/programs?limit=8'),
     getProducts('?limit=4'),
     getEvents('?limit=4&status=UPCOMING'),
-    apiTry<Page<any>>('/business?limit=6&category=FITNESS_GYM,PILATES_STUDIO,YOGA_STUDIO,BOXING_GYM,RUNNING_CLUB,WELLNESS_CENTER,NUTRITION_CLINIC,DANCE_STUDIO,CROSSFIT_BOX,SWIMMING_POOL,MARTIAL_ARTS,SPORTS_CLUB'),
+    apiTry<Page<any>>('/business?limit=6&category=FITNESS_GYM,PILATES_STUDIO,YOGA_STUDIO,DANCE_STUDIO,HIIT_STUDIO,BOXING_GYM,RUNNING_CLUB,WELLNESS_CENTER,NUTRITION_CLINIC,RECOVERY_STUDIO,SPORTS_CLUB'),
     apiTry<Page<any>>('/business?limit=6&category=HEALTHY_FOOD,HEALTHY_CAFE,SMOOTHIE_BAR,VEGAN,MEAL_PREP,PROTEIN_BAR,VEGETARIAN,GLUTEN_FREE,RAW_FOOD,FUNCTIONAL_NUTRITION,FUNCTIONAL_BEVERAGES,SPECIAL_DIET,SPORTS_NUTRITION'),
   ]);
   const creators = creatorsRaw ? { ...creatorsRaw, items: shuffle(creatorsRaw.items).slice(0, 6) } : null;
