@@ -101,8 +101,8 @@ export class BusinessController {
           where: { status: 'ACTIVE' },
           select: {
             creator: {
-              select: { displayName: true, headline: true, coverUrl: true, ratingAvg: true,
-                user: { select: { username: true } } },
+              select: { displayName: true, headline: true, ratingAvg: true,
+                user: { select: { username: true, avatarUrl: true } } },
             },
           },
           take: 10,
