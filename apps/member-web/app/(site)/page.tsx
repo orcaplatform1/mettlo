@@ -324,10 +324,10 @@ export default async function HomePage() {
                       {openStatus.label ? <span className="caption" style={{ color: openStatus.color, fontWeight: 600 }}>{openStatus.label}</span> : <span />}
                       {b.city && <span className="caption text-tertiary">📍 {b.city?.name ?? b.city}</span>}
                     </div>
-                    {(b.ratingAvg > 0 || b.ratingCount > 0) && (
+                    {(Number(b.ratingAvg) > 0 || b.ratingCount > 0) && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Star size={13} style={{ color: '#f59e0b', fill: '#f59e0b' }} aria-hidden />
-                        <span className="caption" style={{ fontWeight: 600 }}>{b.ratingAvg?.toFixed(1) ?? '—'}</span>
+                        <span className="caption" style={{ fontWeight: 600 }}>{Number(b.ratingAvg).toFixed(1)}</span>
                         <span className="caption text-tertiary">({b.ratingCount ?? 0} yorum)</span>
                       </div>
                     )}
@@ -376,10 +376,10 @@ export default async function HomePage() {
                       {openStatus.label ? <span className="caption" style={{ color: openStatus.color, fontWeight: 600 }}>{openStatus.label}</span> : <span />}
                       {b.city && <span className="caption text-tertiary">📍 {b.city?.name ?? b.city}</span>}
                     </div>
-                    {(b.ratingAvg > 0 || b.ratingCount > 0) && (
+                    {(Number(b.ratingAvg) > 0 || b.ratingCount > 0) && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Star size={13} style={{ color: '#f59e0b', fill: '#f59e0b' }} aria-hidden />
-                        <span className="caption" style={{ fontWeight: 600 }}>{b.ratingAvg?.toFixed(1) ?? '—'}</span>
+                        <span className="caption" style={{ fontWeight: 600 }}>{Number(b.ratingAvg).toFixed(1)}</span>
                         <span className="caption text-tertiary">({b.ratingCount ?? 0} yorum)</span>
                       </div>
                     )}
