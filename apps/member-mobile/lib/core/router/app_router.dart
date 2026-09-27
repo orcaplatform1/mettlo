@@ -24,6 +24,7 @@ import '../../features/bookings/bookings_page.dart';
 import '../../features/challenges/challenges_page.dart';
 import '../../features/discover/coach_profile_page.dart';
 import '../../features/discover/discover_page.dart';
+import '../../features/discover/member_profile_page.dart';
 import '../../features/health/health_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/messages/messages_page.dart';
@@ -73,6 +74,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(path: '/coach/:username', builder: (_, s) => CoachProfilePage(username: s.pathParameters['username']!)),
+      GoRoute(path: '/profile/:username', builder: (_, s) => MemberProfilePage(username: s.pathParameters['username']!)),
       GoRoute(path: '/program/:slug', builder: (_, s) => ProgramContentPage(slug: s.pathParameters['slug']!)),
       GoRoute(path: '/messages/:id', builder: (_, s) => ThreadPage(id: s.pathParameters['id']!)),
       GoRoute(path: '/support', builder: (_, _) => const SupportListPage()),

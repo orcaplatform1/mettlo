@@ -23,13 +23,13 @@ class MessagesPage extends ConsumerWidget {
       child: ListView(padding: const EdgeInsets.all(20), children: [
         Text('Mesajlar', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 6),
-        const Text('Mesajlaşma izinleri abonelik ve rol durumuna göre belirlenir.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13)),
+        const Text('Tüm üyeler birbirine mesaj atabilir.', style: TextStyle(color: MettloColors.textSecondary, fontSize: 13)),
         const SizedBox(height: 14),
         AsyncBody(
           value: list,
           onRetry: () => ref.invalidate(conversationsProvider),
           builder: (items) => items.isEmpty
-              ? const InfoBanner('Henüz konuşman yok. Abone olduğun bir koçun profilinden "Koça mesaj yaz" ile başlat.')
+              ? const InfoBanner('Henüz konuşman yok. Bir kullanıcının profilinden mesaj göndererek başlat.')
               : Column(children: [
                   for (final c in items)
                     Card(

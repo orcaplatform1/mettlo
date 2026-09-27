@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/theme/tokens.dart';
 
-/// Takip durumunu kontrol eden provider (username bazlı)
-final followStatusProvider = FutureProvider.autoDispose.family<bool, String>((ref, username) async {
+// Tam follow verisi: isFollowing, followers count, following count
+final followDataProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, username) async {
   final data = await ref.watch(apiClientProvider).get('/social/following/status/$username');
-  return (data as Map<String, dynamic>)['following'] == true;
+  return data as Map<String, dynamic>;
 });
 
-/// Kullanıcı takip/takibi bırak butonu
 class FollowButton extends ConsumerStatefulWidget {
   const FollowButton({super.key, required this.username});
   final String username;
@@ -30,7 +30,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
       } else {
         await ref.read(apiClientProvider).post('/me/follow/${widget.username}');
       }
-      ref.invalidate(followStatusProvider(widget.username));
+      ref.invalidate(followDataProvider(widget.username));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
@@ -40,64 +40,64 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
 
   @override
   Widget build(BuildContext context) {
-    final status = ref.watch(followStatusProvider(widget.username));
+    final status = ref.watch(followDataProvider(widget.username));
 
     return status.when(
       loading: () => const SizedBox(width: 120, height: 38, child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))),
       error: (_, __) => const SizedBox.shrink(),
-      data: (following) => SizedBox(
-        height: 38,
-        child: _loading
-            ? const SizedBox(width: 120, child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))))
-            : following
-                ? OutlinedButton.icon(
-                    onPressed: () => _toggle(true),
-                    icon: const Icon(Icons.check, size: 16, color: MettloColors.primary),
-                    label: const Text('Takip Ediliyor', style: TextStyle(color: MettloColors.primary, fontSize: 13)),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: MettloColors.primary),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      data: (d) {
+        final following = d['isFollowing'] == true;
+        return SizedBox(
+          height: 38,
+          child: _loading
+              ? const SizedBox(width: 120, child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))))
+              : following
+                  ? OutlinedButton.icon(
+                      onPressed: () => _toggle(true),
+                      icon: const Icon(Icons.check, size: 16, color: MettloColors.primary),
+                      label: const Text('Takip Ediliyor', style: TextStyle(color: MettloColors.primary, fontSize: 13)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: MettloColors.primary),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                    )
+                  : FilledButton.icon(
+                      onPressed: () => _toggle(false),
+                      icon: const Icon(Icons.person_add_outlined, size: 16),
+                      label: const Text('Takip Et', style: TextStyle(fontSize: 13)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: MettloColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
                     ),
-                  )
-                : FilledButton.icon(
-                    onPressed: () => _toggle(false),
-                    icon: const Icon(Icons.person_add_outlined, size: 16),
-                    label: const Text('Takip Et', style: TextStyle(fontSize: 13)),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: MettloColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                  ),
-      ),
+        );
+      },
     );
   }
 }
 
-/// Takipçi sayısını tıklanabilir chip olarak gösterir
-class FollowersCountChip extends ConsumerStatefulWidget {
-  const FollowersCountChip({super.key, required this.username, required this.count});
+// Takipçi + Takip Edilen — büyük bold sayılar, web ile birebir aynı
+class FollowStats extends ConsumerWidget {
+  const FollowStats({super.key, required this.username, required this.followersCount, required this.followingCount});
   final String username;
-  final int count;
+  final int followersCount;
+  final int followingCount;
 
-  @override
-  ConsumerState<FollowersCountChip> createState() => _FollowersCountChipState();
-}
-
-class _FollowersCountChipState extends ConsumerState<FollowersCountChip> {
-  void _showFollowers() async {
-    List<dynamic>? followers;
+  void _showList(BuildContext context, WidgetRef ref, String type) async {
+    final endpoint = type == 'followers' ? '/social/followers/$username' : '/social/following/$username';
+    List<dynamic>? items;
     try {
-      followers = (await ref.read(apiClientProvider).get('/social/followers/${widget.username}', auth: false)) as List<dynamic>;
+      items = (await ref.read(apiClientProvider).get(endpoint, auth: false)) as List<dynamic>;
     } catch (_) {}
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
+        initialChildSize: 0.55,
         maxChildSize: 0.9,
         minChildSize: 0.3,
         expand: false,
@@ -105,27 +105,29 @@ class _FollowersCountChipState extends ConsumerState<FollowersCountChip> {
           const SizedBox(height: 12),
           Container(width: 40, height: 4, decoration: BoxDecoration(color: MettloColors.border, borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
-          Text('Takipçiler (${widget.count})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          Text(type == 'followers' ? 'Takipçiler ($followersCount)' : 'Takip Edilenler ($followingCount)', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 8),
-          if (followers == null || followers.isEmpty)
-            const Padding(padding: EdgeInsets.all(24), child: Text('Henüz takipçi yok.', style: TextStyle(color: MettloColors.textSecondary)))
+          if (items == null || items.isEmpty)
+            const Padding(padding: EdgeInsets.all(24), child: Text('Henüz kimse yok.', style: TextStyle(color: MettloColors.textSecondary)))
           else
             Expanded(
               child: ListView.separated(
                 controller: sc,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: followers.length,
+                itemCount: items.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (_, i) {
-                  final f = followers![i] as Map<String, dynamic>;
+                  final f = items![i] as Map<String, dynamic>;
+                  final uname = f['username'] as String? ?? '';
                   return ListTile(
+                    onTap: () { Navigator.pop(ctx); context.push('/profile/$uname'); },
                     leading: CircleAvatar(
                       backgroundImage: f['avatarUrl'] != null ? NetworkImage(f['avatarUrl'] as String) : null,
                       backgroundColor: MettloColors.primary,
                       child: f['avatarUrl'] == null ? Text((f['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)) : null,
                     ),
                     title: Text(f['name'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    subtitle: Text('@${f['username'] as String? ?? ''}', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12)),
+                    subtitle: Text('@$uname', style: const TextStyle(color: MettloColors.textTertiary, fontSize: 12)),
                     contentPadding: EdgeInsets.zero,
                   );
                 },
@@ -137,19 +139,40 @@ class _FollowersCountChipState extends ConsumerState<FollowersCountChip> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _showFollowers,
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text('${widget.count}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-        const SizedBox(width: 3),
-        const Text('Takipçi', style: TextStyle(color: MettloColors.textTertiary, fontSize: 13)),
-      ]),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      GestureDetector(
+        onTap: () => _showList(context, ref, 'followers'),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text('$followersCount', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+          const SizedBox(width: 5),
+          const Text('Takipçi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: MettloColors.textSecondary)),
+        ]),
+      ),
+      const SizedBox(width: 24),
+      GestureDetector(
+        onTap: () => _showList(context, ref, 'following'),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text('$followingCount', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+          const SizedBox(width: 5),
+          const Text('Takip', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: MettloColors.textSecondary)),
+        ]),
+      ),
+    ]);
   }
 }
 
-/// Karşılıklı takip rozeti
+// Geriye dönük uyumluluk
+class FollowersCountChip extends ConsumerWidget {
+  const FollowersCountChip({super.key, required this.username, required this.count});
+  final String username;
+  final int count;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      FollowStats(username: username, followersCount: count, followingCount: 0);
+}
+
 class MutualFollowBadge extends ConsumerWidget {
   const MutualFollowBadge({super.key, required this.username});
   final String username;

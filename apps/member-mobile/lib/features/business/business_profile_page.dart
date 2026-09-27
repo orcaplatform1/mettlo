@@ -79,16 +79,13 @@ class BusinessProfilePage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Logo + başlık
+                      // Logo + başlık — dairesel (koç avatarıyla aynı)
                       Row(children: [
                         if (ba['logoUrl'] != null)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.network(ba['logoUrl'] as String, width: 64, height: 64, fit: BoxFit.cover),
-                          )
+                          ClipOval(child: Image.network(ba['logoUrl'] as String, width: 64, height: 64, fit: BoxFit.cover))
                         else
                           Container(width: 64, height: 64, decoration: BoxDecoration(
-                            color: MettloColors.primary.withOpacity(.12), borderRadius: BorderRadius.circular(10)),
+                            color: MettloColors.primary.withOpacity(.12), shape: BoxShape.circle),
                             child: const Icon(Icons.storefront, size: 28, color: MettloColors.primary)),
                         const SizedBox(width: 12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -106,16 +103,16 @@ class BusinessProfilePage extends ConsumerWidget {
                         ])),
                       ]),
 
-                      // İstatistikler
+                      // Takipçi + Koç — web'deki büyük bold layout
                       const SizedBox(height: 16),
                       Row(children: [
-                        _StatBox(label: 'Takipçi', value: '${ba['followersCount'] ?? 0}'),
-                        const SizedBox(width: 12),
-                        if ((ba['ratingCount'] as int? ?? 0) > 0)
-                          _StatBox(label: 'Puan', value: '${ba['ratingAvg']} ★'),
-                        if (!isFood) ...[
-                          const SizedBox(width: 12),
-                          _StatBox(label: 'Koç', value: '${coaches.length}'),
+                        _BigStat(label: 'Takipçi', value: '${ba['followersCount'] ?? 0}'),
+                        const SizedBox(width: 24),
+                        if (!isFood)
+                          _BigStat(label: 'Koç', value: '${coaches.length}'),
+                        if ((ba['ratingCount'] as int? ?? 0) > 0) ...[
+                          const SizedBox(width: 24),
+                          _BigStat(label: 'Puan', value: '${ba['ratingAvg']} ★'),
                         ],
                       ]),
 
@@ -145,17 +142,21 @@ class BusinessProfilePage extends ConsumerWidget {
                         ),
                       ],
 
-                      // Fitness branşları
-                      if ((ba['fitnessBranches'] as List?)?.isNotEmpty == true) ...[
-                        const SizedBox(height: 12),
-                        Wrap(spacing: 6, runSpacing: 6, children: [
-                          for (final b in ba['fitnessBranches'] as List)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: MettloColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(12)),
-                              child: Text(b as String, style: const TextStyle(fontSize: 12, color: MettloColors.primary, fontWeight: FontWeight.w600)),
-                            ),
-                        ]),
+                      // Fitness branşları — her zaman göster
+                      if (isFitness) ...[
+                        const SizedBox(height: 16),
+                        const Text('Branşlar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                        const SizedBox(height: 8),
+                        (ba['fitnessBranches'] as List?)?.isNotEmpty == true
+                            ? Wrap(spacing: 6, runSpacing: 6, children: [
+                                for (final b in ba['fitnessBranches'] as List)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(color: MettloColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(12)),
+                                    child: Text(b as String, style: const TextStyle(fontSize: 12, color: MettloColors.primary, fontWeight: FontWeight.w600)),
+                                  ),
+                              ])
+                            : const Text('Henüz eklenmemiş', style: TextStyle(fontSize: 13, color: MettloColors.textTertiary)),
                       ],
 
                       // Hakkında
@@ -166,40 +167,40 @@ class BusinessProfilePage extends ConsumerWidget {
                         Text(ba['description'] as String, style: TextStyle(color: Colors.grey.shade700, height: 1.5)),
                       ],
 
-                      // Fotoğraflar
-                      if ((ba['photos'] as List?)?.isNotEmpty == true) ...[
-                        const SizedBox(height: 24),
-                        const Text('Fotoğraflar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          height: 140,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: (ba['photos'] as List).length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 8),
-                            itemBuilder: (ctx, i) {
-                              final photo = (ba['photos'] as List)[i] as Map<String, dynamic>;
-                              final url = photo['url'] as String? ?? '';
-                              return GestureDetector(
-                                onTap: () => showDialog(
-                                  context: ctx,
-                                  builder: (_) => Dialog(backgroundColor: Colors.transparent, child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(url, fit: BoxFit.contain))),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(url, width: 160, height: 140, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(width: 160, color: MettloColors.surface2)),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                      // Fotoğraflar — her zaman göster
+                      const SizedBox(height: 24),
+                      const Text('Fotoğraflar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      const SizedBox(height: 10),
+                      (ba['photos'] as List?)?.isNotEmpty == true
+                          ? SizedBox(
+                              height: 140,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: (ba['photos'] as List).length,
+                                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                                itemBuilder: (ctx, i) {
+                                  final photo = (ba['photos'] as List)[i] as Map<String, dynamic>;
+                                  final url = photo['url'] as String? ?? '';
+                                  return GestureDetector(
+                                    onTap: () => showDialog(
+                                      context: ctx,
+                                      builder: (_) => Dialog(backgroundColor: Colors.transparent, child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(url, fit: BoxFit.contain))),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(url, width: 160, height: 140, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(width: 160, color: MettloColors.surface2)),
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : const Text('Henüz fotoğraf eklenmemiş', style: TextStyle(fontSize: 13, color: MettloColors.textTertiary)),
 
-                      // Kampanyalar
-                      if ((ba['campaigns'] as List?)?.isNotEmpty == true) ...[
-                        const SizedBox(height: 24),
-                        const Text('Kampanyalar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                        const SizedBox(height: 8),
+                      // Kampanyalar — her zaman göster
+                      const SizedBox(height: 24),
+                      const Text('Kampanyalar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      if ((ba['campaigns'] as List?)?.isNotEmpty == true)
                         for (final c in ba['campaigns'] as List)
                           Container(
                             margin: const EdgeInsets.only(bottom: 10),
@@ -224,16 +225,17 @@ class BusinessProfilePage extends ConsumerWidget {
                                 Text('Son: ${_formatDate(c['endsAt'] as String)}', style: const TextStyle(fontSize: 11, color: MettloColors.textTertiary)),
                               ],
                             ]),
-                          ),
-                      ],
+                          )
+                      else
+                        const Text('Aktif kampanya bulunmuyor', style: TextStyle(fontSize: 13, color: MettloColors.textTertiary)),
 
-                      // Çalışma saatleri
-                      if ((ba['businessHours'] as List?)?.isNotEmpty == true) ...[
-                        const SizedBox(height: 24),
-                        const Text('Çalışma Saatleri', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                        const SizedBox(height: 8),
-                        for (final h in ba['businessHours'] as List) _HourRow(h: h as Map<String, dynamic>),
-                      ],
+                      // Çalışma saatleri — her zaman göster
+                      const SizedBox(height: 24),
+                      const Text('Çalışma Saatleri', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      (ba['businessHours'] as List?)?.isNotEmpty == true
+                          ? Column(children: [for (final h in ba['businessHours'] as List) _HourRow(h: h as Map<String, dynamic>)])
+                          : const Text('Henüz eklenmemiş', style: TextStyle(fontSize: 13, color: MettloColors.textTertiary)),
 
                       // Konumlar
                       if (locations.isNotEmpty) ...[
@@ -244,14 +246,17 @@ class BusinessProfilePage extends ConsumerWidget {
                       ],
 
                       // Koçlar — sadece fitness kategorilerinde
-                      if (!isFood && coaches.isNotEmpty) ...[
+                      if (!isFood) ...[
                         const SizedBox(height: 24),
                         const Text('Koçlar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                         const SizedBox(height: 8),
-                        for (final ww in coaches) _CoachTile(ww: ww as Map<String, dynamic>),
+                        if (coaches.isNotEmpty)
+                          for (final ww in coaches) _CoachTile(ww: ww as Map<String, dynamic>)
+                        else
+                          const Text('Henüz kayıtlı koç yok', style: TextStyle(fontSize: 13, color: MettloColors.textTertiary)),
                       ],
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ),
@@ -432,6 +437,18 @@ class _Chip extends StatelessWidget {
       Text(label, style: const TextStyle(fontSize: 12, color: MettloColors.primary, fontWeight: FontWeight.w600)),
     ]),
   );
+}
+
+class _BigStat extends StatelessWidget {
+  const _BigStat({required this.label, required this.value});
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
+    Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+    const SizedBox(width: 5),
+    Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: MettloColors.textSecondary)),
+  ]);
 }
 
 String _formatDate(String iso) {

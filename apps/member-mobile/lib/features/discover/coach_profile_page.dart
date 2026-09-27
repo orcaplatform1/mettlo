@@ -178,11 +178,13 @@ class _Body extends ConsumerWidget {
         ]),
         if (!isSubscriber) const Padding(padding: EdgeInsets.only(top: 8), child: Text('Abonelik ödemesi web sitesinde yapılır; ödeme onaylanınca erişimin uygulamada otomatik açılır.', style: TextStyle(color: MettloColors.textTertiary, fontSize: 12))),
         const SizedBox(height: 8),
-        Row(children: [
-          FollowersCountChip(username: username, count: (st['followers'] as num?)?.toInt() ?? 0),
-          const SizedBox(width: 12),
-          MutualFollowBadge(username: username),
-        ]),
+        FollowStats(
+          username: username,
+          followersCount: (st['followers'] as num?)?.toInt() ?? 0,
+          followingCount: (st['following'] as num?)?.toInt() ?? 0,
+        ),
+        const SizedBox(height: 6),
+        MutualFollowBadge(username: username),
         ProfileStoriesSection(username: username, isOwn: isOwnProfile),
         const SizedBox(height: 18),
       ],
