@@ -55,8 +55,16 @@ export class MeController {
   async saveFcmToken(@CurrentUser() me: AuthUser, @Body() body: { token: string }, @Req() req: AuthedRequest) {
     if (!body?.token) return { ok: false };
     const sessionId = (req as any).sessionId as string | undefined;
-    if (sessionId) {
-      await this.prisma.device.updateMany({ where: { sessions: { some: { id: sessionId } } }, data: { pushToken: body.token } });
+    const updated = sessionId
+      ? await this.prisma.device.updateMany({ where: { sessions: { some: { id: sessionId } } }, data: { pushToken: body.token } })
+      : { count: 0 };
+    if (updated.count === 0) {
+      const existing = await this.prisma.device.findFirst({ where: { userId: me.id, platform: 'ANDROID' } });
+      if (existing) {
+        await this.prisma.device.update({ where: { id: existing.id }, data: { pushToken: body.token, lastSeenAt: new Date() } });
+      } else {
+        await this.prisma.device.create({ data: { userId: me.id, platform: 'ANDROID', pushToken: body.token } });
+      }
     }
     return { ok: true };
   }
