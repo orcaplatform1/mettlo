@@ -181,6 +181,9 @@ importers:
 
   apps/admin-web:
     dependencies:
+      '@mettlo/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@mettlo/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
@@ -204,7 +207,7 @@ importers:
         version: 1.48.0(react@19.2.8)
       next:
         specifier: 16.3.6
-        version: 16.3.6(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -233,6 +236,9 @@ importers:
 
   apps/creator-web:
     dependencies:
+      '@mettlo/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@mettlo/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
@@ -259,7 +265,7 @@ importers:
         version: 1.48.0(react@19.2.8)
       next:
         specifier: 16.3.6
-        version: 16.3.6(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -288,6 +294,9 @@ importers:
 
   apps/member-web:
     dependencies:
+      '@mettlo/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@mettlo/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
@@ -314,7 +323,7 @@ importers:
         version: 1.48.0(react@19.2.8)
       next:
         specifier: 16.3.6
-        version: 16.3.6(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -354,24 +363,6 @@ importers:
         specifier: ^5.8.0
         version: 5.9.3
 
-  packages/booking:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.20.4
-      typescript:
-        specifier: ^5.8.0
-        version: 5.9.3
-
-  packages/commerce:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.20.4
-      typescript:
-        specifier: ^5.8.0
-        version: 5.9.3
-
   packages/config:
     dependencies:
       zod:
@@ -381,6 +372,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4
+      next:
+        specifier: '*'
+        version: 16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       typescript:
         specifier: ^5.8.0
         version: 5.9.3
@@ -435,15 +429,6 @@ importers:
         specifier: ^5.8.0
         version: 5.9.3
 
-  packages/invoicing:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.20.4
-      typescript:
-        specifier: ^5.8.0
-        version: 5.9.3
-
   packages/payments:
     devDependencies:
       '@types/node':
@@ -476,7 +461,7 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       next:
         specifier: 16.3.6
-        version: 16.3.6(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -529,7 +514,7 @@ importers:
         version: 19.3.0
       next:
         specifier: 16.3.6
-        version: 16.3.6(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -3962,7 +3947,7 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  next@16.3.6(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+  next@16.3.6(@opentelemetry/api@1.9.1)(@types/node@22.20.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
       '@next/env': 16.3.6
       '@swc/helpers': 0.5.23
@@ -3981,6 +3966,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.3.6
       '@next/swc-win32-arm64-msvc': 16.3.6
       '@next/swc-win32-x64-msvc': 16.3.6
+      '@opentelemetry/api': 1.9.1
       sharp: 0.35.4(@types/node@22.20.4)
     transitivePeerDependencies:
       - '@babel/core'

@@ -38,6 +38,7 @@ const schema = z.object({
 });
 
 export type Env = z.infer<typeof schema>;
+export { createPrivateAppConfig, createPublicAppConfig } from './next-config';
 
 let cached: Env | undefined;
 

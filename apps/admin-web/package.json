@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mettlo/config": "workspace:*",
     "@mettlo/design-system": "workspace:*",
     "@mettlo/types": "workspace:*",
     "@mettlo/ui": "workspace:*",
