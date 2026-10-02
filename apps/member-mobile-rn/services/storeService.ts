@@ -2,15 +2,15 @@ import { api } from './api';
 
 export const storeService = {
   async products(params?: { category?: string; search?: string; page?: number }) {
-    const res = await api.get('/store/products', { params });
+    const res = await api.get('/public/products', { params: { limit: 20, ...params } });
     return res.data;
   },
   async getProduct(slug: string) {
-    const res = await api.get(`/store/products/${slug}`);
+    const res = await api.get(`/public/products/${slug}`);
     return res.data;
   },
   async categories() {
-    const res = await api.get('/store/categories');
+    const res = await api.get('/public/product-categories');
     return res.data;
   },
   async addToCart(productId: string, quantity = 1) {

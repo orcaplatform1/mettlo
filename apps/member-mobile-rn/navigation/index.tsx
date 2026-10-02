@@ -2,8 +2,12 @@ import React, { useEffect } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Colors, Space, BOTTOM_TAB_H } from '../constants/tokens';
+import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors, Space } from '../constants/tokens';
+import { absUrl } from '../services/api';
+import { NavIcon } from '../components/ui/NavIcon';
 import { useAuthStore } from '../store/authStore';
 
 // Screens
@@ -26,6 +30,9 @@ import { NutritionScreen } from '../screens/nutrition/NutritionScreen';
 import { StoreScreen } from '../screens/store/StoreScreen';
 import { PricingScreen } from '../screens/pricing/PricingScreen';
 import { BusinessListScreen } from '../screens/business/BusinessListScreen';
+import { ReservationsScreen } from '../screens/profile/ReservationsScreen';
+import { FavoritesScreen } from '../screens/profile/FavoritesScreen';
+import { SettingsScreen } from '../screens/profile/SettingsScreen';
 
 export type RootStackParamList = {
   Tabs: { screen?: keyof TabParamList } | undefined;
@@ -48,6 +55,9 @@ export type RootStackParamList = {
   Store: undefined;
   Pricing: undefined;
   BusinessList: { category?: string } | undefined;
+  Reservations: undefined;
+  Favorites: undefined;
+  Settings: undefined;
 };
 
 export type TabParamList = {
@@ -63,34 +73,47 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 const MettloTheme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: Colors.bg, card: Colors.surface1, text: Colors.textPrimary, border: Colors.borderSubtle, primary: Colors.primary, notification: Colors.error },
+  colors: { ...DefaultTheme.colors, background: 'transparent', card: Colors.surface1, text: Colors.textPrimary, border: Colors.borderSubtle, primary: Colors.primary, notification: Colors.error },
 };
 
-function TabIcon({ name, active }: { name: string; active: boolean }) {
-  const icons: Record<string, [string, string]> = {
-    Home: ['⌂', '⌂'],
-    Explore: ['◎', '◎'],
-    Programs: ['▶', '▶'],
-    Messages: ['✉', '✉'],
-    Profile: ['◉', '◉'],
-  };
-  const [icon] = icons[name] ?? ['●', '●'];
-  return (
-    <Text style={{ fontSize: 22, color: active ? Colors.primary : Colors.textMuted }}>{icon}</Text>
-  );
+function ProfileTabIcon({ active }: { active: boolean }) {
+  const avatarUrl = absUrl(useAuthStore((s) => (s.user as any)?.avatarUrl));
+  if (avatarUrl) {
+    return (
+      <View style={[tabAvatarStyles.wrap, active && tabAvatarStyles.wrapActive]}>
+        <Image source={{ uri: avatarUrl }} style={tabAvatarStyles.img} />
+      </View>
+    );
+  }
+  return <NavIcon name="Profile" active={active} size={28} />;
 }
 
+const tabAvatarStyles = StyleSheet.create({
+  wrap: { width: 30, height: 30, borderRadius: 15, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
+  wrapActive: { borderColor: Colors.primary },
+  img: { width: '100%', height: '100%' },
+  fallback: { backgroundColor: Colors.surface3, alignItems: 'center', justifyContent: 'center' },
+});
+
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 52 + insets.bottom;
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarShowLabel: true,
-        tabBarLabelStyle: styles.tabLabel,
+        tabBarStyle: {
+          ...styles.tabBar,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+        },
+        tabBarShowLabel: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
-        tabBarIcon: ({ focused }) => <TabIcon name={route.name} active={focused} />,
+        tabBarIcon: ({ focused }) => {
+          if (route.name === 'Profile') return <ProfileTabIcon active={focused} />;
+          return <NavIcon name={route.name as 'Home' | 'Explore' | 'Programs' | 'Messages'} active={focused} size={28} />;
+        },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Ana Sayfa' }} />
@@ -104,10 +127,12 @@ function MainTabs() {
 
 function SplashScreen() {
   return (
-    <View style={styles.splash}>
+    <LinearGradient colors={['#0B1220', '#0E0D1F', '#1A0B12']} style={styles.splash}>
+      <Image source={require('../assets/icon.png')} style={styles.splashIcon} resizeMode="contain" />
       <Text style={styles.splashLogo}>METTLO</Text>
-      <ActivityIndicator color={Colors.primary} size="small" style={{ marginTop: Space.s24 }} />
-    </View>
+      <LinearGradient colors={['#F97316', '#FB7185', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.splashBar} />
+      <ActivityIndicator color={Colors.primary} size="small" style={{ marginTop: Space.s32 }} />
+    </LinearGradient>
   );
 }
 
@@ -141,6 +166,9 @@ export function AppNavigator() {
             <Stack.Screen name="Store" component={StoreScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="Pricing" component={PricingScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="BusinessList" component={BusinessListScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="Reservations" component={ReservationsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="Explore" component={ExploreScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="Programs" component={ProgramsScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="Messages" component={MessagesScreen} options={{ presentation: 'card' }} />
@@ -156,11 +184,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface1,
     borderTopColor: Colors.borderSubtle,
     borderTopWidth: 1,
-    height: BOTTOM_TAB_H + 16,
-    paddingBottom: 8,
-    paddingTop: 6,
+    paddingTop: 8,
   },
-  tabLabel: { fontSize: 10, fontWeight: '600' },
-  splash: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bg },
+  splash: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  splashIcon: { width: 72, height: 72, marginBottom: Space.s16 },
   splashLogo: { fontSize: 32, fontWeight: '900', color: Colors.textPrimary, letterSpacing: 8 },
+  splashBar: { width: 48, height: 3, borderRadius: 99, marginTop: Space.s8 },
 });

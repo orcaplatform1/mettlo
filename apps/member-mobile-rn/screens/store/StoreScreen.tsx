@@ -78,7 +78,7 @@ export function StoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   heroBanner: { paddingHorizontal: Space.s16, paddingVertical: Space.s16, gap: Space.s4 },
   catScroll: { flexGrow: 0 },
   catContent: { paddingHorizontal: Space.s16, paddingBottom: Space.s8, gap: Space.s8 },

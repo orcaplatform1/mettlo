@@ -104,7 +104,7 @@ export function HealthScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s16, gap: Space.s4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Space.s16, gap: Space.s12 },
   statCard: {

@@ -7,7 +7,7 @@ interface AuthState {
   status: Status;
   user: Me | null;
   login: (username: string, password: string, totp?: string) => Promise<void>;
-  register: (name: string, username: string, email: string, password: string) => Promise<void>;
+  register: (payload: import('../services/authService').RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
   setUser: (user: Me) => void;
@@ -34,8 +34,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ status: 'authenticated', user: res.user });
   },
 
-  register: async (name, username, email, password) => {
-    const res = await authService.register({ name, username, email, password });
+  register: async (payload) => {
+    const res = await authService.register(payload);
     await authService.saveTokens({ accessToken: res.accessToken, refreshToken: res.refreshToken });
     set({ status: 'authenticated', user: res.user });
   },

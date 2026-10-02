@@ -98,7 +98,7 @@ export function ProgramsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s4, gap: Space.s4 },
   filterScroll: { flexGrow: 0 },
   filterContent: { paddingHorizontal: Space.s16, paddingVertical: Space.s8, gap: Space.s8 },

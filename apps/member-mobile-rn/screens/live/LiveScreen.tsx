@@ -61,7 +61,7 @@ export function LiveScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s8 },
   tabScroll: { flexGrow: 0 },
   tabContent: { paddingHorizontal: Space.s16, paddingVertical: Space.s8, gap: Space.s8 },

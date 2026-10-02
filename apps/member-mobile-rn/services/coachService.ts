@@ -1,20 +1,34 @@
-import { api } from './api';
+import { api, absUrl } from './api';
+
+const fixCreator = (c: any) => ({
+  ...c,
+  coverUrl: absUrl(c.coverUrl),
+  user: c.user ? { ...c.user, avatarUrl: absUrl(c.user.avatarUrl) } : c.user,
+});
+
+const fixProfile = (d: any) => ({
+  ...d,
+  avatarUrl: absUrl(d.avatarUrl),
+  coverUrl: absUrl(d.coverUrl),
+  coachWorkplaces: (d.coachWorkplaces ?? []).map((w: any) => ({
+    ...w,
+    creator: w.creator
+      ? { ...w.creator, user: w.creator.user ? { ...w.creator.user, avatarUrl: absUrl(w.creator.user.avatarUrl) } : w.creator.user }
+      : w.creator,
+  })),
+});
 
 export const coachService = {
-  async list(params?: { branch?: string; search?: string; page?: number }) {
-    const res = await api.get('/coaches', { params });
-    return res.data;
+  async list(params?: { branch?: string; search?: string; page?: number; limit?: number }) {
+    const res = await api.get('/public/creators', { params: { limit: 20, ...params } });
+    return { ...res.data, items: (res.data.items ?? []).map(fixCreator) };
   },
   async getProfile(username: string) {
-    const res = await api.get(`/coaches/${username}`);
-    return res.data;
+    const res = await api.get(`/public/profiles/${encodeURIComponent(username.toLowerCase())}`);
+    return fixProfile(res.data);
   },
-  async getPackages(username: string) {
-    const res = await api.get(`/coaches/${username}/packages`);
-    return res.data;
-  },
-  async getAvailability(username: string, date: string) {
-    const res = await api.get(`/coaches/${username}/availability`, { params: { date } });
-    return res.data;
+  async getClasses(username: string) {
+    const res = await api.get(`/public/creators/${username}/classes`);
+    return res.data ?? [];
   },
 };

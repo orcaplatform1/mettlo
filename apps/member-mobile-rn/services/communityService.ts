@@ -6,11 +6,11 @@ export const communityService = {
     return res.data;
   },
   async list(params?: { page?: number }) {
-    const res = await api.get('/community', { params });
+    const res = await api.get('/public/communities', { params: { limit: 20, ...params } });
     return res.data;
   },
   async get(slug: string) {
-    const res = await api.get(`/community/${slug}`);
+    const res = await api.get(`/public/communities/${slug}`);
     return res.data;
   },
   async getPosts(slug: string, page = 1) {

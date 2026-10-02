@@ -91,11 +91,21 @@ export function ExploreScreen() {
             <FlatList
               horizontal
               data={(coaches?.items ?? coaches?.coaches ?? []).slice(0, 10)}
-              keyExtractor={(c: any) => c.id}
+              keyExtractor={(c: any) => c.user?.username ?? c.displayName ?? c.id}
               renderItem={({ item }: { item: any }) => (
                 <MettloCoachCard
-                  coach={item}
-                  onPress={() => nav.navigate('CoachDetail', { username: item.username })}
+                  coach={{
+                    id: item.user?.username ?? item.displayName ?? '',
+                    name: item.displayName ?? item.user?.username ?? '',
+                    username: item.user?.username ?? '',
+                    avatarUrl: item.user?.avatarUrl,
+                    branch: item.branches?.[0]?.name,
+                    specialty: item.headline,
+                    isVerified: item.verified,
+                    rating: item.ratingAvg ? parseFloat(item.ratingAvg) : undefined,
+                    reviewCount: item.ratingCount,
+                  }}
+                  onPress={() => nav.navigate('CoachDetail', { username: item.user?.username ?? '' })}
                 />
               )}
               showsHorizontalScrollIndicator={false}
@@ -137,7 +147,7 @@ export function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   scroll: { flex: 1 },
   header: { paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s12, gap: Space.s16 },
   searchBar: {

@@ -2,11 +2,11 @@ import { api } from './api';
 
 export const programService = {
   async list(params?: { branch?: string; level?: string; duration?: number; page?: number }) {
-    const res = await api.get('/programs', { params });
+    const res = await api.get('/public/programs', { params: { limit: 20, ...params } });
     return res.data;
   },
   async get(slug: string) {
-    const res = await api.get(`/programs/${slug}`);
+    const res = await api.get(`/public/programs/${slug}`);
     return res.data;
   },
   async purchase(slug: string) {

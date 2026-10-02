@@ -81,7 +81,7 @@ export function NutritionScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s8, gap: Space.s4 },
   searchWrap: { paddingHorizontal: Space.s16, paddingBottom: Space.s8 },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface2, borderRadius: Radius.md, paddingHorizontal: Space.s14, height: 46, gap: Space.s10, borderWidth: 1, borderColor: Colors.borderSubtle },

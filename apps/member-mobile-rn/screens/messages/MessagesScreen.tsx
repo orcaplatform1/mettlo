@@ -56,7 +56,7 @@ export function MessagesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s12 },
   list: { paddingHorizontal: Space.s16, gap: Space.s2 },
   thread: { flexDirection: 'row', alignItems: 'center', gap: Space.s14, paddingVertical: Space.s14, borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle },

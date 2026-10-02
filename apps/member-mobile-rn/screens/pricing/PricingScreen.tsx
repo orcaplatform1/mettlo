@@ -115,7 +115,7 @@ export function PricingScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: Space.s20, paddingTop: Space.s20, paddingBottom: Space.s8, gap: Space.s8 },
   center: { textAlign: 'center' },
   toggleWrap: { flexDirection: 'row', margin: Space.s20, backgroundColor: Colors.surface2, borderRadius: Radius.xl, padding: Space.s4 },

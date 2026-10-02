@@ -86,7 +86,7 @@ export function CommunityDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.s16, paddingHorizontal: Space.s16, paddingTop: Space.s16, paddingBottom: Space.s8 },
   list: { padding: Space.s16, gap: Space.s16 },
   post: { backgroundColor: Colors.surface1, borderRadius: Radius.card, padding: Space.s14, gap: Space.s10, borderWidth: 1, borderColor: Colors.borderSubtle },

@@ -38,6 +38,10 @@ api.interceptors.response.use(
   },
 );
 
+/** Relative /uploads/... URL → absolute https://mettlo.tr/... */
+export const absUrl = (url?: string | null): string | undefined =>
+  url ? (url.startsWith('http') ? url : `https://mettlo.tr${url}`) : undefined;
+
 export class ApiError extends Error {
   constructor(
     public status: number,

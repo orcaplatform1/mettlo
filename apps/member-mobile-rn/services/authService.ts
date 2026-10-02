@@ -2,7 +2,17 @@ import * as SecureStore from 'expo-secure-store';
 import { api } from './api';
 
 export interface LoginPayload { username: string; password: string; totp?: string }
-export interface RegisterPayload { name: string; username: string; email: string; password: string }
+export interface RegisterPayload {
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+  password: string;
+  birthDate: string;
+  acceptTerms: boolean;
+  acceptKvkk: boolean;
+  marketingConsent: boolean;
+}
 export interface AuthTokens { accessToken: string; refreshToken: string }
 export interface Me {
   id: string; name: string; username: string; email: string;

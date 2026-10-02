@@ -62,19 +62,27 @@ export const Space = {
   s64: 64,
 } as const;
 
+export const FontFamily = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semiBold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+  extraBold: 'Inter_800ExtraBold',
+} as const;
+
 export const Typography = {
-  displayXL: { fontSize: 40, lineHeight: 48, fontWeight: '800' as const, letterSpacing: -0.8 },
-  display: { fontSize: 32, lineHeight: 40, fontWeight: '800' as const, letterSpacing: -0.6 },
-  h1: { fontSize: 28, lineHeight: 36, fontWeight: '700' as const, letterSpacing: -0.4 },
-  h2: { fontSize: 24, lineHeight: 32, fontWeight: '700' as const, letterSpacing: -0.3 },
-  h3: { fontSize: 20, lineHeight: 28, fontWeight: '700' as const },
-  h4: { fontSize: 18, lineHeight: 26, fontWeight: '600' as const },
-  h5: { fontSize: 16, lineHeight: 24, fontWeight: '600' as const },
-  bodyLg: { fontSize: 17, lineHeight: 26 },
-  body: { fontSize: 15, lineHeight: 23 },
-  bodySm: { fontSize: 13, lineHeight: 20 },
-  caption: { fontSize: 12, lineHeight: 18 },
-  label: { fontSize: 11, lineHeight: 16, fontWeight: '600' as const, letterSpacing: 0.8 },
+  displayXL: { fontSize: 40, lineHeight: 48, fontWeight: '800' as const, fontFamily: FontFamily.extraBold, letterSpacing: -0.8 },
+  display: { fontSize: 32, lineHeight: 40, fontWeight: '800' as const, fontFamily: FontFamily.extraBold, letterSpacing: -0.6 },
+  h1: { fontSize: 28, lineHeight: 36, fontWeight: '700' as const, fontFamily: FontFamily.bold, letterSpacing: -0.4 },
+  h2: { fontSize: 24, lineHeight: 32, fontWeight: '700' as const, fontFamily: FontFamily.bold, letterSpacing: -0.3 },
+  h3: { fontSize: 20, lineHeight: 28, fontWeight: '700' as const, fontFamily: FontFamily.bold },
+  h4: { fontSize: 18, lineHeight: 26, fontWeight: '600' as const, fontFamily: FontFamily.semiBold },
+  h5: { fontSize: 16, lineHeight: 24, fontWeight: '600' as const, fontFamily: FontFamily.semiBold },
+  bodyLg: { fontSize: 17, lineHeight: 26, fontFamily: FontFamily.regular },
+  body: { fontSize: 15, lineHeight: 23, fontFamily: FontFamily.regular },
+  bodySm: { fontSize: 13, lineHeight: 20, fontFamily: FontFamily.regular },
+  caption: { fontSize: 12, lineHeight: 18, fontFamily: FontFamily.regular },
+  label: { fontSize: 11, lineHeight: 16, fontWeight: '600' as const, fontFamily: FontFamily.semiBold, letterSpacing: 0.8 },
 } as const;
 
 export const Shadow = {

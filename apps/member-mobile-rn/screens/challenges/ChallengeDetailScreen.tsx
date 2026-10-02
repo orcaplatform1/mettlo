@@ -98,7 +98,7 @@ export function ChallengeDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   cover: { height: 240 },
   backBtn: { position: 'absolute', top: 16, left: 16, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: Radius.md, paddingHorizontal: 12, paddingVertical: 8 },
   body: { padding: Space.s20, gap: Space.s20 },
