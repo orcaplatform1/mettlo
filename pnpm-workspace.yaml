@@ -2,8 +2,10 @@ packages:
   - "apps/*"
   - "services/*"
   - "packages/*"
-  # Mobil uygulama Flutter/Dart'tir (pnpm paketi degil, pubspec.yaml ile yonetilir); workspace disinda tutulur.
+  # Flutter mobil uygulama (pubspec.yaml ile yönetilir); pnpm workspace dışındadır.
   - "!apps/member-mobile"
+  # React Native mobil uygulama (bağımlılıkları kendi node_modules ile yönetilir; Expo SDK bağımlılığı çakışmasını önlemek için workspace dışındadır)
+  - "!apps/member-mobile-rn"
 allowBuilds:
   "@prisma/client": true
   "@prisma/engines": true
