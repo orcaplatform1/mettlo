@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MettloText } from '../../components/ui/MettloText';
 import { MettloAvatar } from '../../components/ui/MettloAvatar';
 import { Colors, Radius, Space } from '../../constants/tokens';
-import { api } from '../../services/api';
+import { api, absUrl } from '../../services/api';
 import type { RootStackParamList } from '../../navigation';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -148,7 +148,7 @@ export function AdminUsersScreen() {
               activeOpacity={0.75}
               onPress={() => nav.navigate('AdminUserDetail', { userId: u.id })}
             >
-              <MettloAvatar uri={u.avatarUrl} name={u.name} size={44} />
+              <MettloAvatar uri={absUrl(u.avatarUrl)} name={u.name} size={44} />
               <View style={styles.info}>
                 <View style={styles.nameRow}>
                   <MettloText variant="body" style={{ fontWeight: '600' }}>{u.name}</MettloText>
