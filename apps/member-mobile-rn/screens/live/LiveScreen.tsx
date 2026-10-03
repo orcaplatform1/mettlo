@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { MettloText } from '../../components/ui/MettloText';
 import { MettloLiveCard } from '../../components/cards/MettloLiveCard';
@@ -16,6 +17,7 @@ const TABS = [
 ];
 
 export function LiveScreen() {
+  const nav = useNavigation();
   const [tab, setTab] = useState('upcoming');
 
   const { data, isLoading } = useQuery({
@@ -49,7 +51,7 @@ export function LiveScreen() {
           keyExtractor={(s: any) => s.id}
           renderItem={({ item }: { item: any }) => (
             <View style={styles.cardWrap}>
-              <MettloLiveCard session={item} onPress={() => {/* TODO: live join */}} />
+              <MettloLiveCard session={item} onPress={() => (nav as any).navigate('LiveDetail', { slug: item.slug })} />
             </View>
           )}
           contentContainerStyle={styles.list}

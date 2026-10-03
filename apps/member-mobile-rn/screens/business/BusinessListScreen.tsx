@@ -11,6 +11,25 @@ import { Colors, Radius, Space } from '../../constants/tokens';
 import { businessService } from '../../services/businessService';
 import type { RootStackParamList } from '../../navigation';
 
+const CATEGORY_TR: Record<string, string> = {
+  FITNESS_GYM: 'Fitness & Spor Salonu',
+  YOGA_STUDIO: 'Yoga Stüdyosu',
+  PILATES_STUDIO: 'Pilates Stüdyosu',
+  MARTIAL_ARTS: 'Dövüş Sanatları',
+  SWIMMING_POOL: 'Yüzme Havuzu',
+  SPORTS_CLUB: 'Spor Kulübü',
+  HEALTHY_FOOD: 'Sağlıklı Yiyecek',
+  SUPPLEMENT_STORE: 'Takviye Mağazası',
+  SPORTS_EQUIPMENT: 'Spor Ekipmanları',
+  WELLNESS_CENTER: 'Wellness Merkezi',
+  PHYSIOTHERAPY: 'Fizyoterapi',
+  OUTDOOR_SPORTS: 'Açık Hava Sporları',
+  RUNNING_CLUB: 'Koşu Kulübü',
+  CYCLING: 'Bisiklet',
+  CROSSFIT: 'CrossFit',
+  OTHER: 'Diğer',
+};
+
 type Route = RouteProp<RootStackParamList, 'BusinessList'>;
 
 export function BusinessListScreen() {
@@ -54,7 +73,8 @@ export function BusinessListScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }: { item: any }) => (
-            <Pressable style={({ pressed }) => [styles.card, { opacity: pressed ? 0.85 : 1 }]}>
+            <Pressable style={({ pressed }) => [styles.card, { opacity: pressed ? 0.85 : 1 }]}
+              onPress={() => (nav as any).navigate('BusinessDetail', { slug: item.slug })}>
               <View style={styles.cardImg}>
                 {item.logoUrl ? (
                   <Image source={{ uri: item.logoUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
@@ -64,7 +84,7 @@ export function BusinessListScreen() {
               </View>
               <View style={styles.cardBody}>
                 <MettloText variant="h5">{item.name}</MettloText>
-                <MettloText variant="caption" color={Colors.primary}>{item.category}</MettloText>
+                <MettloText variant="caption" color={Colors.primary}>{CATEGORY_TR[item.category] ?? item.category}</MettloText>
                 {item.district && <MettloText variant="caption" color={Colors.textMuted}>📍 {item.district}</MettloText>}
               </View>
             </Pressable>

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MettloText } from '../../components/ui/MettloText';
 import { MettloButton } from '../../components/ui/MettloButton';
 import { MettloBadge } from '../../components/ui/MettloBadge';
@@ -20,6 +20,13 @@ export function ProgramDetailScreen() {
   const nav = useNavigation();
   const route = useRoute<Route>();
   const { slug } = route.params;
+
+  const qc = useQueryClient();
+  const purchaseMut = useMutation({
+    mutationFn: () => programService.purchase(slug),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['program', slug] }); Alert.alert('Başarılı!', 'Programa kaydoldun.'); },
+    onError: (e: any) => Alert.alert('Hata', e?.response?.data?.message ?? 'Satın alma sırasında bir sorun oluştu.'),
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['program', slug],
@@ -104,7 +111,8 @@ export function ProgramDetailScreen() {
         </View>
         <MettloButton
           label={p.isPurchased ? 'Devam Et' : 'Satın Al'}
-          onPress={() => {/* TODO: purchase/start flow */}}
+          onPress={() => purchaseMut.mutate()}
+          loading={purchaseMut.isPending}
           size="lg"
           style={{ flex: 1, marginLeft: Space.s16 }}
         />

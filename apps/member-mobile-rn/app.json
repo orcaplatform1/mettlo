@@ -20,6 +20,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
+        "backgroundColor": "#F97316",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "tr.mettlo.app",

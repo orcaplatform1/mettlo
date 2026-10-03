@@ -26,19 +26,19 @@ interface User {
 
 const ROLE_COLORS: Record<string, string> = {
   SUPER_ADMIN: '#EF4444',
-  ADMIN: '#F97316',
-  MODERATOR: '#8B5CF6',
-  SUPPORT: '#3B82F6',
+  ADMIN: '#10B981',
+  MODERATOR: '#F59E0B',
+  SUPPORT: '#C084FC',
   CREATOR: '#10B981',
   SUBSCRIBER: '#F59E0B',
   MEMBER: Colors.textMuted,
 };
 
 const ROLE_LABELS: Record<string, string> = {
-  SUPER_ADMIN: 'Süper Admin',
-  ADMIN: 'Admin',
-  MODERATOR: 'Moderatör',
-  SUPPORT: 'Destek',
+  SUPER_ADMIN: 'Kurucu',
+  ADMIN: 'Yönetici',
+  MODERATOR: 'Topluluk Kontrolörü',
+  SUPPORT: 'Müşteri İlişkileri',
   CREATOR: 'Koç',
   SUBSCRIBER: 'Abone',
   MEMBER: 'Üye',
@@ -148,7 +148,7 @@ export function AdminUsersScreen() {
               activeOpacity={0.75}
               onPress={() => nav.navigate('AdminUserDetail', { userId: u.id })}
             >
-              <MettloAvatar uri={absUrl(u.avatarUrl)} name={u.name} size={44} />
+              <MettloAvatar uri={absUrl(u.avatarUrl)} name={u.name} size={44} role={u.role} verified={u.isCoach} />
               <View style={styles.info}>
                 <View style={styles.nameRow}>
                   <MettloText variant="body" style={{ fontWeight: '600' }}>{u.name}</MettloText>

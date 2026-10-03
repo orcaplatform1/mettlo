@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title, description, alternates: { canonical },
       robots: isFounder ? { index: true, follow: true } : { index: false, follow: false },
-      openGraph: { type: 'profile', title, description, url: absoluteUrl(canonical), images: [{ url: p.avatarUrl || '/og-image.png', width: 1200, height: 630 }] },
+      openGraph: { type: 'profile', title, description, url: absoluteUrl(canonical), images: [{ url: p.avatarUrl || '/og-image.webp', width: 1200, height: 630 }] },
       twitter: { card: 'summary_large_image', title, description },
     };
   }
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = p.seoDescription || (p.bio ? p.bio.slice(0, 155) : `${p.displayName} ile Mettlo'da programlara, canlı derslere ve 1:1 koçluğa katıl.`);
   return {
     title, description, alternates: { canonical },
-    openGraph: { type: 'profile', title, description, url: absoluteUrl(canonical), images: [{ url: p.coverUrl || p.avatarUrl || '/og-image.png', width: 1200, height: 630 }] },
+    openGraph: { type: 'profile', title, description, url: absoluteUrl(canonical), images: [{ url: p.coverUrl || p.avatarUrl || '/og-image.webp', width: 1200, height: 630 }] },
     twitter: { card: 'summary_large_image', title, description },
   };
 }

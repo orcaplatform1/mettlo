@@ -7,8 +7,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { AppNavigator } from './navigation';
 import { registerForPushNotifications, navigateFromNotification } from './services/notificationService';
+
+const isExpoGo = Constants.appOwnership === 'expo';
 import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient({
@@ -27,6 +30,7 @@ function NotificationBootstrap() {
 
   useEffect(() => {
     if (authStatus !== 'authenticated') return;
+    if (isExpoGo) return;
 
     registerForPushNotifications().catch(() => {});
 
@@ -38,7 +42,6 @@ function NotificationBootstrap() {
       navigateFromNotification(response.notification);
     });
 
-    // Uygulama kapalıyken tıklanan bildirim
     Notifications.getLastNotificationResponseAsync().then(response => {
       if (!response) return;
       setTimeout(() => navigateFromNotification(response.notification), 800);

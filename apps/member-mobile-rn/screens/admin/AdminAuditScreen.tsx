@@ -53,8 +53,8 @@ export function AdminAuditScreen() {
   }
 
   const ROLE_COLOR: Record<string, string> = {
-    SUPER_ADMIN: '#EF4444', ADMIN: '#F97316', MODERATOR: '#8B5CF6',
-    SUPPORT: '#3B82F6', CREATOR: '#10B981', SYSTEM: Colors.textMuted,
+    SUPER_ADMIN: '#EF4444', ADMIN: '#10B981', MODERATOR: '#F59E0B',
+    SUPPORT: '#C084FC', CREATOR: '#10B981', SYSTEM: Colors.textMuted,
   };
 
   return (

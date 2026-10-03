@@ -118,6 +118,39 @@ export function AdminDashboardScreen() {
             ))}
           </View>
           <MettloText style={styles.note}>Yalnızca toplu istatistikler gösterilir. Kişisel veriler yalnızca süper admin tarafından görüntülenir.</MettloText>
+
+          <MettloText style={styles.sectionTitle}>HIZLI ERİŞİM</MettloText>
+          <View style={styles.menuList}>
+            {([
+              ['👥', 'Kullanıcılar', () => nav.navigate('AdminUsers')],
+              ['✅', 'Koç Onayları', () => nav.navigate('AdminCoaches', { filter: 'PENDING' })],
+              ['🚩', 'Şikâyetler', () => nav.navigate('AdminReports')],
+              ['🎫', 'Destek Biletleri', () => nav.navigate('AdminTickets', { filter: 'OPEN' })],
+              ['⭐', 'Değerlendirmeler', () => nav.navigate('AdminReviews')],
+              ['💳', 'Ödemeler & Finans', () => nav.navigate('AdminPayments')],
+              ['💸', 'Ödeme Talepleri', () => nav.navigate('AdminPayouts')],
+              ['🛒', 'Mağaza', () => nav.navigate('AdminStore')],
+              ['🏢', 'İşletmeler', () => nav.navigate('AdminBusinesses')],
+              ['📢', 'Reklamlar', () => nav.navigate('AdminAds')],
+              ['🎪', 'Etkinlikler', () => nav.navigate('AdminEvents')],
+              ['👔', 'İş İlanları', () => nav.navigate('AdminJobs')],
+              ['💼', 'Kariyer Başvuruları', () => nav.navigate('AdminCareers')],
+              ['📬', 'İletişim Mesajları', () => nav.navigate('AdminContact')],
+              ['👮', 'Roller & Yetkiler', () => nav.navigate('AdminRoles')],
+              ['📸', 'Hikâyeler', () => nav.navigate('AdminStories')],
+              ['🌿', 'Spor Branşları', () => nav.navigate('AdminBranches')],
+              ['🏷️', 'Alt Kategoriler', () => nav.navigate('AdminSubCategories')],
+              ['💹', 'Komisyon Ayarları', () => nav.navigate('AdminCommission')],
+              ['🔧', 'Platform Özellikleri', () => nav.navigate('AdminFeatures')],
+              ['📋', 'Denetim Logları', () => nav.navigate('AdminAudit')],
+            ] as [string, string, () => void][]).map(([icon, label, onPress]) => (
+              <TouchableOpacity key={label} style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+                <MettloText style={styles.menuIcon}>{icon}</MettloText>
+                <MettloText style={styles.menuLabel}>{label}</MettloText>
+                <MettloText style={{ color: Colors.textMuted }}>›</MettloText>
+              </TouchableOpacity>
+            ))}
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -137,4 +170,9 @@ const styles = StyleSheet.create({
   tileValueAlert: { color: Colors.error },
   tileLabel: { fontSize: 12, color: Colors.textMuted, lineHeight: 16 },
   note: { fontSize: 12, color: Colors.textMuted, lineHeight: 17, textAlign: 'center', paddingHorizontal: Space.s8 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1, marginTop: Space.s8, marginBottom: Space.s4 },
+  menuList: { backgroundColor: Colors.surface1, borderRadius: Radius.card, borderWidth: 1, borderColor: Colors.borderSubtle, overflow: 'hidden' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Space.s16, paddingVertical: Space.s14, borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle, gap: Space.s12 },
+  menuIcon: { fontSize: 18, width: 26 },
+  menuLabel: { flex: 1, fontSize: 14, color: Colors.textPrimary },
 });

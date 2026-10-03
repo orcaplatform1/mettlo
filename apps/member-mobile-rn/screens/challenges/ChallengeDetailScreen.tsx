@@ -1,10 +1,10 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MettloText } from '../../components/ui/MettloText';
 import { MettloButton } from '../../components/ui/MettloButton';
 import { MettloBadge } from '../../components/ui/MettloBadge';
@@ -20,6 +20,13 @@ export function ChallengeDetailScreen() {
   const nav = useNavigation();
   const route = useRoute<Route>();
   const { slug } = route.params;
+
+  const qc = useQueryClient();
+  const joinMut = useMutation({
+    mutationFn: () => challengeService.join(slug),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['challenge', slug] }); Alert.alert('Katıldın!', 'Challenge\'a başarıyla katıldın.'); },
+    onError: () => Alert.alert('Hata', 'Katılım sırasında bir sorun oluştu.'),
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['challenge', slug],
@@ -87,7 +94,8 @@ export function ChallengeDetailScreen() {
       <View style={styles.ctaBar}>
         <MettloButton
           label={c.isJoined ? 'Katıldın ✓' : 'Challenge\'a Katıl'}
-          onPress={() => {/* TODO: join challenge */}}
+          onPress={() => joinMut.mutate()}
+          loading={joinMut.isPending}
           disabled={c.isJoined}
           fullWidth
           size="lg"

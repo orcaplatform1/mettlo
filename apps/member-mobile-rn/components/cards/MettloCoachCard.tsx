@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MettloText } from '../ui/MettloText';
 import { MettloBadge } from '../ui/MettloBadge';
+import { VerifiedBadgeOverlay } from '../ui/VerifiedBadge';
 import { Colors, Radius, Space, Typography } from '../../constants/tokens';
 
 export interface CoachCardData {
@@ -26,11 +27,7 @@ export function MettloCoachCard({ coach, onPress }: Props) {
             <MettloText style={styles.avatarInitial}>{coach.name[0]?.toUpperCase()}</MettloText>
           </View>
         )}
-        {coach.isVerified && (
-          <View style={styles.verifiedBadge}>
-            <MettloText style={styles.verifiedTick}>✓</MettloText>
-          </View>
-        )}
+        {coach.isVerified && <VerifiedBadgeOverlay avatarSize={64} />}
       </View>
 
       <View style={styles.body}>
@@ -61,13 +58,6 @@ const styles = StyleSheet.create({
   avatar: { width: 64, height: 64, borderRadius: 32 },
   avatarFallback: { backgroundColor: Colors.surface3, alignItems: 'center', justifyContent: 'center' },
   avatarInitial: { ...Typography.h4, color: Colors.textPrimary },
-  verifiedBadge: {
-    position: 'absolute', bottom: -2, right: -2,
-    width: 18, height: 18, borderRadius: 9,
-    backgroundColor: Colors.verified, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: Colors.surface1,
-  },
-  verifiedTick: { fontSize: 10, color: '#fff', fontWeight: '700' },
   body: { gap: Space.s4 },
   branch: { fontWeight: '600', letterSpacing: 0.3 },
   row: { flexDirection: 'row', gap: Space.s8, marginTop: Space.s4 },

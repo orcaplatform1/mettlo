@@ -11,7 +11,7 @@ export const organizationLd = () => ({
   '@type': 'Organization',
   name: SITE.name,
   url: siteUrl,
-  logo: absoluteUrl('/logo-512.png'),
+  logo: absoluteUrl('/logo-512.webp'),
   description: SITE.description,
 });
 

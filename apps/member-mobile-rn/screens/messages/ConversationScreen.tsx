@@ -16,7 +16,7 @@ type Route = RouteProp<RootStackParamList, 'Conversation'>;
 export function ConversationScreen() {
   const nav = useNavigation();
   const route = useRoute<Route>();
-  const { conversationId, otherName, otherUsername, otherAvatarUrl } = route.params;
+  const { conversationId, otherName, otherUsername, otherAvatarUrl, otherRole } = route.params;
   const [text, setText] = useState('');
   const flatRef = useRef<FlatList>(null);
   const qc = useQueryClient();
@@ -55,11 +55,17 @@ export function ConversationScreen() {
         <Pressable onPress={() => nav.goBack()} hitSlop={12} style={styles.backBtn}>
           <MettloText color={Colors.textMuted} style={{ fontSize: 20 }}>←</MettloText>
         </Pressable>
-        <MettloAvatar uri={otherAvatarUrl ?? absUrl(undefined)} name={otherName} size={36} />
-        <View style={styles.headerInfo}>
-          <MettloText style={styles.headerName} numberOfLines={1}>{otherName ?? 'Mesaj'}</MettloText>
-          {otherUsername && <MettloText style={styles.headerUser}>@{otherUsername}</MettloText>}
-        </View>
+        <Pressable
+          style={styles.headerPressable}
+          onPress={() => otherUsername && (nav as any).navigate('CoachDetail', { username: otherUsername })}
+          hitSlop={4}
+        >
+          <MettloAvatar uri={otherAvatarUrl ?? absUrl(undefined)} name={otherName} size={36} role={otherRole} verified={otherRole === 'CREATOR' || otherRole === 'BUSINESS'} />
+          <View style={styles.headerInfo}>
+            <MettloText style={styles.headerName} numberOfLines={1}>{otherName ?? 'Mesaj'}</MettloText>
+            {otherUsername && <MettloText style={styles.headerUser}>@{otherUsername}</MettloText>}
+          </View>
+        </Pressable>
       </View>
 
       {isLoading ? <MettloLoadingState /> : (
@@ -93,7 +99,7 @@ export function ConversationScreen() {
 
             return (
               <View style={styles.rowLeft}>
-                <MettloAvatar uri={senderAvatar} name={senderName} size={32} />
+                <MettloAvatar uri={senderAvatar} name={senderName} size={32} role={item.sender?.role} verified={item.sender?.role === 'CREATOR' || item.sender?.role === 'BUSINESS'} />
                 <View style={[styles.bubble, styles.bubbleOther]}>
                   {item.deleted ? (
                     <MettloText style={styles.deletedText}>Bu mesaj silindi</MettloText>
@@ -138,6 +144,7 @@ export function ConversationScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'transparent' },
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.s10, paddingHorizontal: Space.s16, paddingVertical: Space.s12, borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle },
+  headerPressable: { flexDirection: 'row', alignItems: 'center', gap: Space.s10, flex: 1 },
   backBtn: { marginRight: Space.s4 },
   headerInfo: { flex: 1 },
   headerName: { fontSize: 15, fontWeight: '700', color: Colors.textPrimary },

@@ -7,8 +7,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 import { MettloText } from '../../components/ui/MettloText';
-import { MettloButton } from '../../components/ui/MettloButton';
+import { MettloAvatar } from '../../components/ui/MettloAvatar';
 import { MettloSectionHeader } from '../../components/ui/MettloSectionHeader';
+import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 import { MettloCoachCard } from '../../components/cards/MettloCoachCard';
 import { MettloProgramCard } from '../../components/cards/MettloProgramCard';
 import { MettloChallengeCard } from '../../components/cards/MettloChallengeCard';
@@ -20,6 +21,8 @@ import { challengeService } from '../../services/challengeService';
 import { liveService } from '../../services/liveService';
 import { businessService } from '../../services/businessService';
 import { eventService } from '../../services/eventService';
+import { storeService } from '../../services/storeService';
+import { absUrl } from '../../services/api';
 import type { RootStackParamList } from '../../navigation';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -75,6 +78,11 @@ export function HomeScreen() {
     queryFn: () => eventService.list({ limit: 6 }),
   });
 
+  const { data: storeData } = useQuery({
+    queryKey: ['home-store'],
+    queryFn: () => storeService.products({ page: 1 }),
+  });
+
   const coaches      = coachData?.items ?? [];
   const programs     = programData?.items ?? [];
   const challenges   = challengeData?.items ?? [];
@@ -82,46 +90,40 @@ export function HomeScreen() {
   const gyms         = gymData?.items ?? [];
   const restaurants  = restaurantData?.items ?? [];
   const events       = eventData?.items ?? [];
+  const storeItems   = storeData?.items ?? storeData?.products ?? [];
 
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <ScrollView showsVerticalScrollIndicator={false} bounces>
 
-        {/* ── Hero image (tam genişlik, web ile birebir) ── */}
-        <View style={{ width: SW, height: SW * 1.18, overflow: 'hidden' }}>
-          <ExpoImage source={require('../../assets/hero.webp')} style={StyleSheet.absoluteFill} contentFit="cover" />
-          <LinearGradient
-            colors={['transparent', 'rgba(11,18,32,0.4)', 'rgba(11,18,32,0.88)', '#0B1220']}
-            locations={[0.25, 0.55, 0.80, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-          {/* Logo üst sol */}
-          <View style={styles.heroLogoRow}>
-            <Image source={require('../../assets/icon.png')} style={styles.heroLogo} resizeMode="contain" />
-            <MettloText variant="h4" style={{ letterSpacing: 4, fontWeight: '900' }}>METTLO</MettloText>
-          </View>
-          {/* Metin + buton alt */}
-          <View style={styles.heroBottom}>
-            <MettloText variant="h1" style={styles.heroTitle}>
-              {'Bugün Başla.\n'}
-              <MettloText variant="h1" color={Colors.primary}>Kendini Yeniden Keşfet.</MettloText>
-            </MettloText>
-            <MettloText variant="body" color="rgba(249,250,251,0.78)" style={{ lineHeight: 22, marginTop: 8 }}>
-              Sana özel programlar, uzman koçlar, gelişim takibi ve günlük alışkanlıklar.
-            </MettloText>
-            <MettloButton
-              label="Hemen Başla →"
-              size="lg"
-              fullWidth
-              onPress={() => nav.navigate('Explore')}
-              style={{ marginTop: 16 }}
+        {/* ── Hero ── */}
+        <View>
+          {/* Görsel — 2172×724 yatay; %68 sağa kaydırılmış: erkek→köpek→kız→PC/tel/saat görünür */}
+          <View style={{ width: SW, height: SW * 0.60, overflow: 'hidden' }}>
+            <ExpoImage
+              source={require('../../assets/hero.webp')}
+              style={StyleSheet.absoluteFill}
+              contentFit="cover"
+              contentPosition={{ left: '100%' }}
             />
+            {/* Alttan hafif karartma */}
+            <LinearGradient
+              colors={['transparent', 'rgba(11,18,32,0.55)']}
+              locations={[0.5, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+            {/* Logo sol üst */}
+            <View style={styles.heroLogoRow}>
+              <Image source={require('../../assets/icon.png')} style={styles.heroLogo} resizeMode="contain" />
+              <MettloText variant="h4" style={{ letterSpacing: 4, fontWeight: '900' }}>METTLO</MettloText>
+            </View>
           </View>
+
         </View>
 
         {/* ── Branşlar (web görsel ile) ── */}
         <View style={styles.section}>
-          <MettloSectionHeader title="Branşlar" subtitle="KEŞFET" cta="Tümü" onCta={() => nav.navigate('Explore')} />
+          <MettloSectionHeader title="Branşlar" cta="Tümü" onCta={() => nav.navigate('Explore')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
             {BRANCHES.map((b) => (
               <Pressable key={b.slug} style={({ pressed }) => [styles.branchCard, { opacity: pressed ? 0.85 : 1 }]} onPress={() => nav.navigate('Explore')}>
@@ -136,7 +138,7 @@ export function HomeScreen() {
         {/* ── Uzman Koçlar ── */}
         {coaches.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Uzman Koçlar" subtitle="KEŞFET" cta="Tümü →" onCta={() => nav.navigate('Explore')} />
+            <MettloSectionHeader title="Uzman Koçlar" cta="Tümü →" onCta={() => nav.navigate('Explore')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
               {coaches.map((coach: any) => (
                 <MettloCoachCard
@@ -162,7 +164,7 @@ export function HomeScreen() {
         {/* ── Popüler Programlar ── */}
         {programs.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Popüler Programlar" subtitle="PROGRAMLAR" cta="Tümü →" onCta={() => nav.navigate('Programs')} />
+            <MettloSectionHeader title="Popüler Programlar" cta="Tümü →" onCta={() => nav.navigate('Programs')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
               {programs.map((p: any) => (
                 <MettloProgramCard key={p.slug} program={p} onPress={() => nav.navigate('ProgramDetail', { slug: p.slug })} />
@@ -174,7 +176,7 @@ export function HomeScreen() {
         {/* ── Canlı Dersler ── */}
         {liveSessions.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Canlı Dersler" subtitle="LIVE" cta="Tümü →" onCta={() => nav.navigate('Live')} />
+            <MettloSectionHeader title="Canlı Dersler" cta="Tümü →" onCta={() => nav.navigate('Live')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
               {liveSessions.map((s: any) => (
                 <MettloLiveCard key={s.id} session={s} onPress={() => nav.navigate('Live')} />
@@ -186,7 +188,7 @@ export function HomeScreen() {
         {/* ── Challenge'lar ── */}
         {challenges.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Aktif Challenge'lar" subtitle="CHALLENGE" cta="Tümü →" onCta={() => nav.navigate('Challenges')} />
+            <MettloSectionHeader title="Aktif Challenge'lar" cta="Tümü →" onCta={() => nav.navigate('Challenges')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
               {challenges.map((c: any) => (
                 <MettloChallengeCard key={c.id ?? c.slug} challenge={c} onPress={() => nav.navigate('ChallengeDetail', { slug: c.slug })} />
@@ -198,20 +200,35 @@ export function HomeScreen() {
         {/* ── Fitness İşletmeleri ── */}
         {gyms.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Fitness İşletmeleri" subtitle="İŞLETMELER" cta="Tümü →" onCta={() => nav.navigate('BusinessList', { category: 'FITNESS_GYM' })} />
+            <MettloSectionHeader title="Fitness İşletmeleri" cta="Tümü →" onCta={() => nav.navigate('BusinessList', { category: 'FITNESS_GYM' })} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
-              {gyms.map((b: any) => (
-                <Pressable key={b.id} style={styles.bizCard} onPress={() => nav.navigate('BusinessList', {})}>
-                  <View style={styles.bizLogo}>
-                    {b.logoUrl
-                      ? <ExpoImage source={{ uri: b.logoUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                      : <MettloText style={{ fontSize: 24 }}>🏋️</MettloText>}
-                  </View>
-                  <MettloText variant="bodySm" style={{ fontWeight: '700' }} numberOfLines={1}>{b.name}</MettloText>
-                  {b.city && <MettloText variant="caption" color={Colors.textMuted}>📍 {b.city.name ?? b.city}</MettloText>}
-                  {b.ratingAvg && <MettloText variant="caption" color={Colors.highlight}>★ {parseFloat(b.ratingAvg).toFixed(1)}</MettloText>}
-                </Pressable>
-              ))}
+              {gyms.map((b: any) => {
+                const isVerified = b.verificationStatus === 'VERIFIED' || b.verificationStatus === 'APPROVED';
+                const rating = Number(b.ratingAvg);
+                return (
+                  <Pressable key={b.id} style={({ pressed }) => [styles.bizCard, { opacity: pressed ? 0.85 : 1 }]} onPress={() => nav.navigate('BusinessList', {})}>
+                    <LinearGradient colors={['rgba(249,115,22,0.08)', 'rgba(17,9,40,0.0)']} style={StyleSheet.absoluteFill} />
+                    {/* Logo + isim satırı */}
+                    <View style={styles.bizHeader}>
+                      <MettloAvatar uri={absUrl(b.logoUrl)} name={b.name} size={52} verified={isVerified} />
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <MettloText style={styles.bizName} numberOfLines={1}>{b.name}</MettloText>
+                        {b.slug && <MettloText variant="caption" color={Colors.textMuted} numberOfLines={1}>@{b.slug}</MettloText>}
+                      </View>
+                    </View>
+                    {b.city && (
+                      <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>📍 {b.city?.name ?? b.city}</MettloText>
+                    )}
+                    {rating > 0 && (
+                      <View style={styles.bizRating}>
+                        <MettloText style={styles.bizStar}>★</MettloText>
+                        <MettloText variant="caption" style={{ fontWeight: '700' }}>{rating.toFixed(1)}</MettloText>
+                        <MettloText variant="caption" color={Colors.textMuted}>({b.ratingCount ?? 0} yorum)</MettloText>
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </View>
         )}
@@ -219,20 +236,34 @@ export function HomeScreen() {
         {/* ── Restoranlar & Kafeler ── */}
         {restaurants.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Restoranlar & Kafeler" subtitle="SAĞLIKLI BESLENME" cta="Tümü →" onCta={() => nav.navigate('BusinessList', { category: 'HEALTHY_FOOD' })} />
+            <MettloSectionHeader title="Restoranlar & Kafeler" cta="Tümü →" onCta={() => nav.navigate('BusinessList', { category: 'HEALTHY_FOOD' })} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
-              {restaurants.map((b: any) => (
-                <Pressable key={b.id} style={styles.bizCard} onPress={() => nav.navigate('BusinessList', {})}>
-                  <View style={styles.bizLogo}>
-                    {b.logoUrl
-                      ? <ExpoImage source={{ uri: b.logoUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                      : <MettloText style={{ fontSize: 24 }}>🥗</MettloText>}
-                  </View>
-                  <MettloText variant="bodySm" style={{ fontWeight: '700' }} numberOfLines={1}>{b.name}</MettloText>
-                  {b.city && <MettloText variant="caption" color={Colors.textMuted}>📍 {b.city.name ?? b.city}</MettloText>}
-                  {b.ratingAvg && <MettloText variant="caption" color={Colors.highlight}>★ {parseFloat(b.ratingAvg).toFixed(1)}</MettloText>}
-                </Pressable>
-              ))}
+              {restaurants.map((b: any) => {
+                const isVerified = b.verificationStatus === 'VERIFIED' || b.verificationStatus === 'APPROVED';
+                const rating = Number(b.ratingAvg);
+                return (
+                  <Pressable key={b.id} style={({ pressed }) => [styles.bizCard, { opacity: pressed ? 0.85 : 1 }]} onPress={() => nav.navigate('BusinessList', {})}>
+                    <LinearGradient colors={['rgba(249,115,22,0.08)', 'rgba(17,9,40,0.0)']} style={StyleSheet.absoluteFill} />
+                    <View style={styles.bizHeader}>
+                      <MettloAvatar uri={absUrl(b.logoUrl)} name={b.name} size={52} verified={isVerified} />
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <MettloText style={styles.bizName} numberOfLines={1}>{b.name}</MettloText>
+                        {b.slug && <MettloText variant="caption" color={Colors.textMuted} numberOfLines={1}>@{b.slug}</MettloText>}
+                      </View>
+                    </View>
+                    {b.city && (
+                      <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>📍 {b.city?.name ?? b.city}</MettloText>
+                    )}
+                    {rating > 0 && (
+                      <View style={styles.bizRating}>
+                        <MettloText style={styles.bizStar}>★</MettloText>
+                        <MettloText variant="caption" style={{ fontWeight: '700' }}>{rating.toFixed(1)}</MettloText>
+                        <MettloText variant="caption" color={Colors.textMuted}>({b.ratingCount ?? 0} yorum)</MettloText>
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </View>
         )}
@@ -240,7 +271,7 @@ export function HomeScreen() {
         {/* ── Etkinlikler ── */}
         {events.length > 0 && (
           <View style={styles.section}>
-            <MettloSectionHeader title="Yaklaşan Etkinlikler" subtitle="ETKİNLİKLER" cta="Tümü →" onCta={() => {}} />
+            <MettloSectionHeader title="Yaklaşan Etkinlikler" cta="Tümü →" onCta={() => {}} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
               {events.map((e: any) => {
                 const date = e.startsAt ? new Date(e.startsAt) : null;
@@ -264,9 +295,46 @@ export function HomeScreen() {
           </View>
         )}
 
+        {/* ── Mettlo Mağaza ── */}
+        <View style={styles.section}>
+          <MettloSectionHeader title="Mettlo Mağaza" cta="Tümüne Bak →" onCta={() => nav.navigate('Store')} />
+          {storeItems.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hList}>
+              {storeItems.slice(0, 8).map((p: any) => (
+                <Pressable key={p.id} style={({ pressed }) => [styles.storeCard, { opacity: pressed ? 0.85 : 1 }]} onPress={() => nav.navigate('Store')}>
+                  <View style={styles.storeImage}>
+                    {p.imageUrl
+                      ? <ExpoImage source={{ uri: absUrl(p.imageUrl) }} style={StyleSheet.absoluteFill} contentFit="cover" />
+                      : <LinearGradient colors={[Colors.surface2, Colors.surface3]} style={StyleSheet.absoluteFill} />}
+                  </View>
+                  <View style={styles.storeBody}>
+                    <MettloText variant="bodySm" numberOfLines={2} style={{ fontWeight: '600' }}>{p.title ?? p.name}</MettloText>
+                    <MettloText variant="caption" color={Colors.primary} style={{ fontWeight: '700', marginTop: Space.s4 }}>
+                      {p.priceKurus != null ? `₺${(p.priceKurus / 100).toFixed(0)}` : p.price ?? ''}
+                    </MettloText>
+                  </View>
+                </Pressable>
+              ))}
+            </ScrollView>
+          ) : (
+            <Pressable style={styles.storeBanner} onPress={() => nav.navigate('Store')}>
+              <LinearGradient colors={['rgba(249,115,22,0.13)', 'rgba(236,72,153,0.09)']} style={styles.storeBannerInner}>
+                <MettloText style={{ fontSize: 36 }}>🛍️</MettloText>
+                <MettloText variant="h4" style={{ marginTop: Space.s8 }}>Spor Giyim & Ekipman</MettloText>
+                <MettloText variant="bodySm" color={Colors.textMuted} style={{ marginTop: Space.s4 }}>
+                  Takviye, giyim ve spor ekipmanları çok yakında.
+                </MettloText>
+                <View style={[styles.jobsBtn, { marginTop: Space.s12 }]}>
+                  <MettloText variant="bodySm" style={{ fontWeight: '700', color: Colors.primary }}>Mağazaya Git →</MettloText>
+                </View>
+              </LinearGradient>
+            </Pressable>
+          )}
+        </View>
+
         {/* ── İş İlanları Banner ── */}
         <View style={styles.section}>
-          <Pressable style={styles.jobsBanner} onPress={() => {}}>
+          <Pressable style={styles.jobsBanner} onPress={() => nav.navigate('JobApplications')}>
             <LinearGradient colors={['rgba(249,115,22,0.12)', 'rgba(236,72,153,0.08)']} style={styles.jobsBannerInner}>
               <MettloText variant="caption" color={Colors.primary} style={{ letterSpacing: 1, fontWeight: '700' }}>FİTNESS SEKTÖRÜNDE KARİYER</MettloText>
               <MettloText variant="h4" style={{ marginTop: Space.s4 }}>İş İlanları</MettloText>
@@ -289,9 +357,9 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'transparent' },
 
-  heroLogoRow: { position: 'absolute', top: 56, left: 20, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  heroLogoRow: { position: 'absolute', top: 16, left: 20, flexDirection: 'row', alignItems: 'center', gap: 10 },
   heroLogo: { width: 32, height: 32 },
-  heroBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20 },
+  heroBottom: { padding: 20, paddingTop: 16 },
   heroTitle: { fontWeight: '800', lineHeight: 38 },
 
   section: { marginTop: 4 },
@@ -307,15 +375,24 @@ const styles = StyleSheet.create({
   },
 
   bizCard: {
-    width: 140, backgroundColor: Colors.surface1, borderRadius: Radius.card,
-    borderWidth: 1, borderColor: Colors.borderSubtle,
-    padding: Space.s12, gap: Space.s4,
+    width: 210, backgroundColor: Colors.surface1, borderRadius: Radius.card,
+    borderWidth: 1, borderColor: 'rgba(249,115,22,0.18)',
+    padding: Space.s14, overflow: 'hidden',
+    shadowColor: '#F97316', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  bizLogo: {
-    width: 48, height: 48, borderRadius: Radius.md,
-    backgroundColor: Colors.surface2, overflow: 'hidden',
-    alignItems: 'center', justifyContent: 'center', marginBottom: Space.s8,
+  bizHeader: { flexDirection: 'row', alignItems: 'center', gap: Space.s12 },
+  bizLogoImg: { borderRadius: Radius.md, flexShrink: 0 },
+  bizName: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary },
+  bizRating: { flexDirection: 'row', alignItems: 'center', gap: Space.s4, marginTop: Space.s8 },
+  bizStar: { fontSize: 13, color: '#f59e0b' },
+
+  storeCard: {
+    width: 150, backgroundColor: Colors.surface1, borderRadius: Radius.card,
+    borderWidth: 1, borderColor: Colors.borderSubtle, overflow: 'hidden',
   },
+  storeImage: { height: 130 },
+  storeBody: { padding: Space.s10 },
 
   eventCard: {
     width: 180, backgroundColor: Colors.surface1, borderRadius: Radius.card,
@@ -328,6 +405,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(249,115,22,0.25)',
   },
 
+  storeBanner: { marginHorizontal: Space.s16, borderRadius: Radius.card, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(249,115,22,0.2)' },
+  storeBannerInner: { padding: Space.s20 },
   jobsBanner: { marginHorizontal: Space.s16, borderRadius: Radius.card, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(249,115,22,0.2)' },
   jobsBannerInner: { padding: Space.s20 },
   jobsBtn: {

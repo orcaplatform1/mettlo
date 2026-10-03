@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MettloText } from '../../components/ui/MettloText';
@@ -93,7 +93,7 @@ export function PricingScreen() {
           {billing === 'yearly' && (
             <MettloText variant="caption" color={Colors.textMuted}>Yıllık ₺1.680 · ₺84 tasarruf</MettloText>
           )}
-          <MettloButton label="Premium'a Geç" size="lg" fullWidth onPress={() => {/* TODO: subscription flow (App Store / Play Store IAP) */}} />
+          <MettloButton label="Premium'a Geç" size="lg" fullWidth onPress={() => Alert.alert('Yakında', 'Premium abonelik yakında aktif olacak.')} />
           <View style={styles.featureList}>
             {PREMIUM_FEATURES.map((f) => (
               <View key={f} style={styles.featureRow}>

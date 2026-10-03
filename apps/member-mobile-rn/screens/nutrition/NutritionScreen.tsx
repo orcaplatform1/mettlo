@@ -11,6 +11,7 @@ import { Colors, Radius, Space } from '../../constants/tokens';
 import { recipeService } from '../../services/recipeService';
 
 export function NutritionScreen() {
+  const nav = useNavigation();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
 
@@ -71,7 +72,7 @@ export function NutritionScreen() {
           refreshing={false}
           renderItem={({ item }: { item: any }) => (
             <View style={styles.cardWrap}>
-              <MettloRecipeCard recipe={item} onPress={() => {/* TODO: recipe detail */}} />
+              <MettloRecipeCard recipe={item} onPress={() => (nav as any).navigate('RecipeDetail', { slug: item.slug })} />
             </View>
           )}
         />

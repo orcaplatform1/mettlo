@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website', siteName: SITE.name, locale: SITE.locale, url: siteUrl, title: `${SITE.name} — ${SITE.tagline}`, description: SITE.description,
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Mettlo' }],
+    images: [{ url: '/og-image.webp', width: 1200, height: 630, alt: 'Mettlo' }],
   },
-  twitter: { card: 'summary_large_image', title: `${SITE.name} — ${SITE.tagline}`, description: SITE.description, images: ['/og-image.png'] },
+  twitter: { card: 'summary_large_image', title: `${SITE.name} — ${SITE.tagline}`, description: SITE.description, images: ['/og-image.webp'] },
   icons: {
     icon: [{ url: '/favicon.ico', sizes: 'any' }, { url: '/icon-32.png', sizes: '32x32', type: 'image/png' }, { url: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],

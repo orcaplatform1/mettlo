@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await load((await params).slug);
   if (!p) return { title: 'Program bulunamadı', robots: { index: false } };
   const description = (p.description ?? `${p.durationDays} günlük program`).slice(0, 155);
-  return { title: p.title, description, alternates: { canonical: `/program/${p.slug}` }, openGraph: { type: 'article', title: p.title, description, url: absoluteUrl(`/program/${p.slug}`), images: [{ url: p.imageUrl || '/og-image.png' }] } };
+  return { title: p.title, description, alternates: { canonical: `/program/${p.slug}` }, openGraph: { type: 'article', title: p.title, description, url: absoluteUrl(`/program/${p.slug}`), images: [{ url: p.imageUrl || '/og-image.webp' }] } };
 }
 
 export default async function ProgramPage({ params }: Props) {

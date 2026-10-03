@@ -24,7 +24,7 @@ function Copyright() {
       <span className="nowrap">
         <span className="brand-white">Traders</span><span className="brand-blue">.TR</span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/footerflag.png" alt="" aria-hidden className="footer-flag" />
+        <img src="/footerflag.webp" alt="" aria-hidden className="footer-flag" />
       </span>{' '}
       ticari markasıdır. Bu platformda yer alan tüm içerikler, tasarımlar, marka unsurları ve fikrî mülkiyet hakları ilgili yasal mevzuat kapsamında korunmaktadır.
     </p>

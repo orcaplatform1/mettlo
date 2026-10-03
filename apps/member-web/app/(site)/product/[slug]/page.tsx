@@ -12,7 +12,7 @@ const load = (slug: string) => apiTry<any>(`/public/products/${encodeURIComponen
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await load((await params).slug);
   if (!p) return { title: 'Ürün bulunamadı', robots: { index: false } };
-  return { title: `${p.name}${p.brand ? ` — ${p.brand.name}` : ''}`, description: (p.description ?? p.name).slice(0, 155), alternates: { canonical: `/product/${p.slug}` }, openGraph: { type: 'website', images: [{ url: p.images?.[0] || '/og-image.png' }] } };
+  return { title: `${p.name}${p.brand ? ` — ${p.brand.name}` : ''}`, description: (p.description ?? p.name).slice(0, 155), alternates: { canonical: `/product/${p.slug}` }, openGraph: { type: 'website', images: [{ url: p.images?.[0] || '/og-image.webp' }] } };
 }
 
 export default async function ProductPage({ params }: Props) {

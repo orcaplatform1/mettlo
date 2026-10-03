@@ -57,6 +57,9 @@ export function CreatorDashboardScreen() {
   const menuItems = [
     { icon: '👥', label: 'Danışanlarım', onPress: () => nav.navigate('CreatorClients') },
     { icon: '💰', label: 'Kazançlarım', onPress: () => nav.navigate('CreatorEarnings') },
+    { icon: '👤', label: 'Abonelerim', onPress: () => nav.navigate('CreatorSubscribers') },
+    { icon: '💎', label: 'Abonelik Planları', onPress: () => nav.navigate('CreatorPlans') },
+    { icon: '📨', label: 'Ücretsiz Davetler', onPress: () => nav.navigate('CreatorInvites') },
     { icon: '📋', label: 'Programlarım', onPress: () => nav.navigate('CreatorPrograms') },
     { icon: '📅', label: 'Rezervasyonlarım', onPress: () => nav.navigate('Reservations') },
     { icon: '📡', label: 'Canlı Yayın', onPress: () => nav.navigate('Live') },

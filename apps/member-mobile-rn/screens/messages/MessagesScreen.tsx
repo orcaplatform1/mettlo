@@ -52,9 +52,10 @@ export function MessagesScreen() {
                   otherName: name,
                   otherUsername: username,
                   otherAvatarUrl: avatarUrl,
+                  otherRole: other?.role,
                 })}
               >
-                <MettloAvatar uri={avatarUrl} name={name} size={52} />
+                <MettloAvatar uri={avatarUrl} name={name} size={52} role={other?.role} verified={other?.role === 'CREATOR' || other?.role === 'BUSINESS'} />
                 <View style={styles.threadBody}>
                   <View style={styles.threadTop}>
                     <View style={{ flex: 1 }}>
