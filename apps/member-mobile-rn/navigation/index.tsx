@@ -104,7 +104,7 @@ export type RootStackParamList = {
   Pricing: undefined;
   BusinessList: { category?: string } | undefined;
   BusinessDetail: { slug: string };
-  Conversation: { conversationId: string; otherName?: string };
+  Conversation: { conversationId: string; otherName?: string; otherUsername?: string; otherAvatarUrl?: string };
   RecipeDetail: { slug: string };
   LiveDetail: { slug: string };
   Reservations: undefined;
