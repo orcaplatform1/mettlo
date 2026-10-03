@@ -31,27 +31,42 @@ export function CoachDetailScreen() {
 
   const [following, setFollowing] = useState<boolean | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
+  const [localFollowers, setLocalFollowers] = useState<number | null>(null);
 
   useEffect(() => {
     if (isSelf) return;
     userService.getFollowStatus(username)
-      .then((d) => setFollowing(d?.isFollowing ?? d?.following ?? false))
+      .then((d) => {
+        setFollowing(d?.isFollowing ?? d?.following ?? false);
+        if (typeof d?.followers === 'number') setLocalFollowers(d.followers);
+      })
       .catch(() => setFollowing(false));
   }, [username, isSelf]);
+
+  const applyFollowResult = (res: any, isFollowing: boolean) => {
+    setFollowing(isFollowing);
+    if (typeof res?.followers === 'number') setLocalFollowers(res.followers);
+  };
 
   const toggleFollow = async () => {
     if (followLoading) return;
     setFollowLoading(true);
     try {
       if (following) {
-        await userService.unfollow(username);
-        setFollowing(false);
+        const res = await userService.unfollow(username);
+        applyFollowResult(res, false);
       } else {
-        await userService.follow(username);
-        setFollowing(true);
+        const res = await userService.follow(username);
+        applyFollowResult(res, true);
       }
     } catch {}
     setFollowLoading(false);
+  };
+
+  // Modal'dan takip değişince senkronize et
+  const handleFollowChange = (isFollowing: boolean) => {
+    setFollowing(isFollowing);
+    setLocalFollowers((c) => c === null ? null : isFollowing ? c + 1 : Math.max(0, c - 1));
   };
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -72,6 +87,13 @@ export function CoachDetailScreen() {
       Alert.alert('Plan Seç', 'Abone olmak istediğin planı seç:', [...opts, { text: 'İptal', style: 'cancel' }]);
     }
   }, [data, nav]);
+
+  // followersCount API'den gelince localFollowers'ı bir kez başlat
+  useEffect(() => {
+    if (data?.followersCount !== undefined && localFollowers === null) {
+      setLocalFollowers(data.followersCount);
+    }
+  }, [data?.followersCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) return <MettloLoadingState />;
   if (isError || !data) return <MettloErrorState onRetry={refetch} />;
@@ -99,7 +121,7 @@ export function CoachDetailScreen() {
 
         {/* ── Avatar + Abone Ol ── */}
         <View style={styles.avatarRow}>
-          <MettloAvatar uri={p.avatarUrl} name={p.displayName ?? p.name} size={84} verified={p.verified} tappable username={p.username} />
+          <MettloAvatar uri={p.avatarUrl} name={p.displayName ?? p.name} size={84} verified={p.verified} tappable username={p.username} following={following} onFollowChange={handleFollowChange} />
           <MettloButton label="Abone Ol" size="md" onPress={handleSubscribe} style={styles.subscribeBtn} />
         </View>
 
@@ -128,7 +150,7 @@ export function CoachDetailScreen() {
           {/* Takipçi / Takip */}
           <View style={styles.socialRow}>
             <MettloText variant="body">
-              <MettloText variant="h5">{p.followersCount ?? 0}</MettloText>
+              <MettloText variant="h5">{localFollowers !== null ? localFollowers : (p.followersCount ?? 0)}</MettloText>
               <MettloText variant="body" color={Colors.textMuted}> Takipçi</MettloText>
             </MettloText>
             <MettloText variant="body" style={{ marginLeft: 20 }}>

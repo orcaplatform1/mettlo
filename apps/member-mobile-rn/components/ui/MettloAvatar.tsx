@@ -17,10 +17,12 @@ interface Props {
   role?: string;
   style?: object;
   tappable?: boolean;
-  username?: string; // geçilirse follow butonu gösterilir
+  username?: string;
+  following?: boolean | null;
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
-export function MettloAvatar({ uri, name, size = 44, verified, role, style, tappable, username }: Props) {
+export function MettloAvatar({ uri, name, size = 44, verified, role, style, tappable, username, following: followingProp, onFollowChange }: Props) {
   const [open, setOpen] = useState(false);
   const initial = name ? name[0].toUpperCase() : '?';
   const showRoleBadge = isStaffRole(role);
@@ -57,6 +59,8 @@ export function MettloAvatar({ uri, name, size = 44, verified, role, style, tapp
           uri={uri}
           name={name}
           username={username}
+          initialFollowing={followingProp}
+          onFollowChange={onFollowChange}
           onClose={() => setOpen(false)}
         />
       )}
@@ -64,18 +68,30 @@ export function MettloAvatar({ uri, name, size = 44, verified, role, style, tapp
   );
 }
 
-function PhotoModal({ uri, name, username, onClose }: { uri: string; name?: string; username?: string; onClose: () => void }) {
+function PhotoModal({ uri, name, username, initialFollowing, onFollowChange, onClose }: {
+  uri: string; name?: string; username?: string;
+  initialFollowing?: boolean | null;
+  onFollowChange?: (isFollowing: boolean) => void;
+  onClose: () => void;
+}) {
   const me = useAuthStore((s) => s.user);
   const isSelf = !!username && username === me?.username;
-  const [following, setFollowing] = useState<boolean | null>(null);
+  // initialFollowing undefined: fetch; null/bool: use directly
+  const [following, setFollowing] = useState<boolean | null>(initialFollowing !== undefined ? (initialFollowing ?? null) : null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!username || isSelf) return;
+    // sadece dışarıdan state geçilmemişse fetch et
+    if (!username || isSelf || initialFollowing !== undefined) return;
     userService.getFollowStatus(username)
       .then((d) => setFollowing(d?.isFollowing ?? d?.following ?? false))
       .catch(() => setFollowing(false));
-  }, [username, isSelf]);
+  }, [username, isSelf, initialFollowing]);
+
+  // dışarıdan gelen initialFollowing değişince sync et
+  useEffect(() => {
+    if (initialFollowing !== undefined) setFollowing(initialFollowing ?? null);
+  }, [initialFollowing]);
 
   const toggle = async () => {
     if (!username || loading) return;
@@ -84,9 +100,11 @@ function PhotoModal({ uri, name, username, onClose }: { uri: string; name?: stri
       if (following) {
         await userService.unfollow(username);
         setFollowing(false);
+        onFollowChange?.(false);
       } else {
         await userService.follow(username);
         setFollowing(true);
+        onFollowChange?.(true);
       }
     } catch {}
     setLoading(false);
