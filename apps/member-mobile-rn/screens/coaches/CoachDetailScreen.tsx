@@ -136,7 +136,8 @@ export function CoachDetailScreen() {
 
   // Admin data
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
-  const [adminData, setAdminData] = useState<any>(null);
+  const [adminBasicData, setAdminBasicData] = useState<any>(null); // /staff (hızlı, audit log yok)
+  const [adminData, setAdminData] = useState<any>(null);           // full (yavaş, audit log var)
   const [adminLoadError, setAdminLoadError] = useState<string | null>(null);
 
   // Admin inbox modal
@@ -192,14 +193,19 @@ export function CoachDetailScreen() {
       .catch(() => null);
   }, [username, isSelf, me, data]);
 
-  // Admin verisi — /admin/profiles/:username hem id hem de tüm detayı döndürür
+  // Admin verisi — 2 aşama: hızlı /staff (audit yok), sonra arka planda full endpoint
   useEffect(() => {
     if (!amStaff) return;
     setAdminLoadError(null);
-    api.get(`/admin/profiles/${username}`)
+    // Aşama 1: hızlı, audit log yazmaz, anında görüntülenir
+    api.get(`/admin/profiles/${username}/staff`)
       .then((r) => {
         if (r.data?.id) setAdminUserId(r.data.id);
-        setAdminData(r.data ?? null);
+        setAdminBasicData(r.data);
+        // Aşama 2: ağır sorgu — Hesap Verileri ve Kişisel Bilgiler için, arka planda
+        api.get(`/admin/profiles/${username}`, { timeout: 60000 })
+          .then((r2) => setAdminData(r2.data))
+          .catch(() => null); // Hesap Verileri yüklenmezse sessizce atla
       })
       .catch((e: any) => {
         const status = e?.response?.status ?? '?';
@@ -410,9 +416,10 @@ export function CoachDetailScreen() {
   const reviews: any[] = p.reviews ?? [];
   const workplaces: any[] = p.workplaces ?? [];
 
-  // Admin koç profil bilgileri
-  const cp = adminData?.creatorProfile;
-  const adUser = adminData;
+  // Admin koç profil bilgileri — basic: hızlı /staff, full: ağır endpoint (arka plan)
+  const cp = adminBasicData?.creatorProfile ?? adminData?.creatorProfile;
+  const adBasic = adminBasicData; // hızlı: role, status, creatorProfile
+  const adUser = adminData;       // tam: email, hesap verileri, kişisel bilgiler
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -866,20 +873,28 @@ export function CoachDetailScreen() {
                 </Pressable>
               </View>
 
-              {/* Kişisel Bilgiler */}
+              {/* Kişisel Bilgiler — adBasic anında, adUser arka planda gelir */}
               <Accordion title="Kişisel Bilgiler">
                 {adminLoadError
                   ? <MettloText variant="caption" color={Colors.error}>{adminLoadError}</MettloText>
-                  : adUser
+                  : (adBasic || adUser)
                     ? <View style={{ gap: Space.s8 }}>
-                        <AdminRow label="E-posta" value={adUser.email ?? '—'} />
-                        <AdminRow label="Rol" value={adUser.role ?? '—'} />
-                        <AdminRow label="Durum" value={adUser.status ?? '—'} />
-                        <AdminRow label="Kayıt tarihi" value={adUser.createdAt ? new Date(adUser.createdAt).toLocaleDateString('tr-TR') : '—'} />
-                        <AdminRow label="Doğum tarihi" value={adUser.birthDate ? new Date(adUser.birthDate).toLocaleDateString('tr-TR') : '—'} />
-                        {adUser.personal?.fullName && <AdminRow label="Ad Soyad" value={adUser.personal.fullName} />}
-                        {adUser.personal?.phone && <AdminRow label="Telefon" value={adUser.personal.phone} />}
-                        {adUser.personal?.gender && <AdminRow label="Cinsiyet" value={adUser.personal.gender} />}
+                        <AdminRow label="Kullanıcı adı" value={`@${(adBasic ?? adUser)?.username ?? '—'}`} />
+                        <AdminRow label="Rol" value={(adBasic ?? adUser)?.role ?? '—'} />
+                        <AdminRow label="Durum" value={(adBasic ?? adUser)?.status ?? '—'} />
+                        {adUser
+                          ? <>
+                              <AdminRow label="E-posta" value={adUser.email ?? '—'} />
+                              <AdminRow label="Kayıt tarihi" value={adUser.createdAt ? new Date(adUser.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                              <AdminRow label="Doğum tarihi" value={adUser.birthDate ? new Date(adUser.birthDate).toLocaleDateString('tr-TR') : '—'} />
+                              {adUser.personal?.fullName && <AdminRow label="Ad Soyad" value={adUser.personal.fullName} />}
+                              {adUser.personal?.phone && <AdminRow label="Telefon" value={adUser.personal.phone} />}
+                              {adUser.personal?.gender && <AdminRow label="Cinsiyet" value={adUser.personal.gender} />}
+                            </>
+                          : <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s4 }}>
+                              Tam bilgiler yükleniyor…
+                            </MettloText>
+                        }
                       </View>
                     : <ActivityIndicator color={Colors.primary} size="small" />
                 }
@@ -892,7 +907,7 @@ export function CoachDetailScreen() {
                   <AdminRow label="Görünen ad" value={cp.displayName ?? '—'} />
                   <View style={{ flexDirection: 'row', gap: Space.s6, marginTop: Space.s8 }}>
                     <View style={styles.statusChip}>
-                      <MettloText style={styles.statusChipTxt}>{adUser?.status ?? 'ACTIVE'}</MettloText>
+                      <MettloText style={styles.statusChipTxt}>{(adBasic ?? adUser)?.status ?? 'ACTIVE'}</MettloText>
                     </View>
                     {cp.status === 'ACTIVE' && cp.isPublic !== false && (
                       <View style={[styles.statusChip, styles.statusChipGreen]}>
@@ -900,30 +915,35 @@ export function CoachDetailScreen() {
                       </View>
                     )}
                   </View>
-                  <View style={{ marginTop: Space.s12, gap: Space.s6 }}>
-                    <AdminRow label="Beyan edilen öğrenci / kullanılan davet"
-                      value={`${cp.inviteQuotaDeclared ?? 0} / ${cp.inviteQuotaUsed ?? 0}`} />
-                    <AdminRow label="Abone / takipçi / puan"
-                      value={`${cp.subscribersCount ?? 0} · ${cp.followersCount ?? 0} · ${parseFloat(cp.ratingAvg ?? '0').toFixed(1)} (${cp.ratingCount ?? 0})`} />
-                  </View>
+                  {adUser && (
+                    <View style={{ marginTop: Space.s12, gap: Space.s6 }}>
+                      <AdminRow label="Beyan / kullanılan davet"
+                        value={`${adUser.creatorProfile?.inviteQuotaDeclared ?? 0} / ${adUser.creatorProfile?.inviteQuotaUsed ?? 0}`} />
+                      <AdminRow label="Abone / takipçi / puan"
+                        value={`${adUser.creatorProfile?.subscribersCount ?? 0} · ${adUser.creatorProfile?.followersCount ?? 0} · ${parseFloat(adUser.creatorProfile?.ratingAvg ?? '0').toFixed(1)} (${adUser.creatorProfile?.ratingCount ?? 0})`} />
+                    </View>
+                  )}
                 </View>
               )}
 
-              {/* Hesap Verileri */}
-              {!adUser && (
+              {/* Temel admin verisi yüklenene kadar spinner */}
+              {!adBasic && !adminLoadError && (
                 <View style={{ alignItems: 'center', paddingVertical: Space.s16 }}>
-                  {adminLoadError
-                    ? <MettloText variant="caption" color={Colors.error} style={{ textAlign: 'center' }}>{adminLoadError}</MettloText>
-                    : <>
-                        <ActivityIndicator color={Colors.primary} size="small" />
-                        <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>Veriler yükleniyor…</MettloText>
-                      </>
-                  }
+                  <ActivityIndicator color={Colors.primary} size="small" />
+                  <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>Veriler yükleniyor…</MettloText>
                 </View>
               )}
-              {adUser && (
+              {!adBasic && adminLoadError && (
+                <MettloText variant="caption" color={Colors.error} style={{ textAlign: 'center', marginVertical: Space.s8 }}>{adminLoadError}</MettloText>
+              )}
+              {adBasic && (
                 <>
                   <MettloText variant="h5" style={{ marginBottom: Space.s8, marginTop: Space.s8 }}>Hesap Verileri</MettloText>
+                  {!adUser && (
+                    <MettloText variant="caption" color={Colors.textMuted} style={{ marginBottom: Space.s8 }}>
+                      Hesap detayları arka planda yükleniyor…
+                    </MettloText>
+                  )}
                   <Accordion title="Abonelikler" count={adUser.subscriptions?.length ?? 0}>
                     {(adUser.subscriptions?.length ?? 0) === 0
                       ? <MettloText variant="caption" color={Colors.textMuted}>Abonelik yok.</MettloText>
@@ -1059,10 +1079,10 @@ export function CoachDetailScreen() {
               </View>
 
               {/* Durum chip'leri */}
-              {adUser && (
+              {(adBasic || adUser) && (
                 <View style={{ flexDirection: 'row', gap: Space.s6, marginBottom: Space.s12 }}>
                   <View style={styles.statusChipGray}><MettloText style={styles.statusChipGrayTxt}>KOÇ</MettloText></View>
-                  <View style={styles.statusChipGreen}><MettloText style={[styles.statusChipTxt, { color: Colors.success, fontWeight: '700' }]}>{adUser.status}</MettloText></View>
+                  <View style={styles.statusChipGreen}><MettloText style={[styles.statusChipTxt, { color: Colors.success, fontWeight: '700' }]}>{(adBasic ?? adUser)?.status ?? '—'}</MettloText></View>
                   {cp?.status && (
                     <View style={styles.statusChipGreen}>
                       <MettloText style={[styles.statusChipTxt, { color: Colors.success, fontWeight: '700' }]}>{cp.status}</MettloText>
@@ -1071,7 +1091,7 @@ export function CoachDetailScreen() {
                 </View>
               )}
 
-              {/* Koç başvurusu kartı */}
+              {/* Koç başvurusu kartı - /staff endpoint'ten anında gelir */}
               {cp?.approvedBy && (
                 <View style={styles.coachApplicationCard}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: Space.s8, marginBottom: Space.s8 }}>
