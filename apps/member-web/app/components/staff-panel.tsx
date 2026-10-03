@@ -6,7 +6,7 @@ import { getStaffSummary } from '@/app/lib/admin';
 import { CoachDecisionForm, DeleteForm, EditProfileForm, SanctionForms } from './staff-forms';
 
 const fmt = (d?: string) => (d ? new Date(d).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : '');
-const ROLE: Record<string, string> = { SUPER_ADMIN: 'süper admin', ADMIN: 'admin' };
+const ROLE: Record<string, string> = { SUPER_ADMIN: 'Kurucu', ADMIN: 'Yönetici', MODERATOR: 'Topluluk Kontrolörü', SUPPORT: 'Müşteri İlişkileri' };
 
 /** Üye / abone / koç profilinde admin ve süper admine görünen yönetim paneli: düzenle, askıya al, yasakla, sil, koç başvurusu kararı. */
 export async function StaffPanel({ username }: { username: string }) {
