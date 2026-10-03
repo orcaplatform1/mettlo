@@ -140,21 +140,21 @@ export class MeController {
 
   @Post('follow/:username')
   async follow(@CurrentUser() me: AuthUser, @Param('username') username: string) {
-    const coach = await this.prisma.user.findFirst({ where: { username: username.toLowerCase(), role: 'CREATOR', status: 'ACTIVE' }, select: { id: true, username: true } });
-    if (!coach || coach.id === me.id) throw new NotFoundException('Koç bulunamadı');
-    await this.prisma.follow.upsert({ where: { followerId_creatorId: { followerId: me.id, creatorId: coach.id } }, update: {}, create: { followerId: me.id, creatorId: coach.id } });
-    const n = await this.prisma.follow.count({ where: { creatorId: coach.id } });
-    await this.prisma.creatorProfile.update({ where: { userId: coach.id }, data: { followersCount: n } });
+    const target = await this.prisma.user.findFirst({ where: { username: username.toLowerCase() }, select: { id: true, username: true } });
+    if (!target || target.id === me.id) throw new NotFoundException('Kullanıcı bulunamadı');
+    await this.prisma.follow.upsert({ where: { followerId_creatorId: { followerId: me.id, creatorId: target.id } }, update: {}, create: { followerId: me.id, creatorId: target.id } });
+    const n = await this.prisma.follow.count({ where: { creatorId: target.id } });
+    await this.prisma.creatorProfile.updateMany({ where: { userId: target.id }, data: { followersCount: n } });
     return { following: true, followers: n };
   }
 
   @Delete('follow/:username')
   async unfollow(@CurrentUser() me: AuthUser, @Param('username') username: string) {
-    const coach = await this.prisma.user.findFirst({ where: { username: username.toLowerCase(), role: 'CREATOR' }, select: { id: true } });
-    if (!coach) throw new NotFoundException('Koç bulunamadı');
-    await this.prisma.follow.deleteMany({ where: { followerId: me.id, creatorId: coach.id } });
-    const n = await this.prisma.follow.count({ where: { creatorId: coach.id } });
-    await this.prisma.creatorProfile.update({ where: { userId: coach.id }, data: { followersCount: n } });
+    const target = await this.prisma.user.findFirst({ where: { username: username.toLowerCase() }, select: { id: true } });
+    if (!target) throw new NotFoundException('Kullanıcı bulunamadı');
+    await this.prisma.follow.deleteMany({ where: { followerId: me.id, creatorId: target.id } });
+    const n = await this.prisma.follow.count({ where: { creatorId: target.id } });
+    await this.prisma.creatorProfile.updateMany({ where: { userId: target.id }, data: { followersCount: n } });
     return { following: false, followers: n };
   }
 

@@ -15,6 +15,7 @@ import { userService } from '../../services/userService';
 import { absUrl } from '../../services/api';
 
 const { height: SH } = Dimensions.get('window');
+const SHEET_MAX = SH * 0.72;
 
 type UserRow = {
   username: string;
@@ -47,16 +48,21 @@ export function FollowListModal({ visible, mode, username, onClose, onNavigate }
 
   const title = mode === 'followers' ? 'Takipçiler' : 'Takip Edilenler';
 
+  const handlePress = (u: string) => {
+    onNavigate?.(u);
+    onClose();
+  };
+
   const renderItem = ({ item }: { item: UserRow }) => {
     const displayName = item.displayName ?? item.name ?? item.username;
     return (
       <Pressable
-        style={styles.row}
-        onPress={() => { onClose(); onNavigate?.(item.username); }}
+        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+        onPress={() => handlePress(item.username)}
       >
-        <MettloAvatar uri={absUrl(item.avatarUrl)} name={displayName} size={44} />
+        <MettloAvatar uri={absUrl(item.avatarUrl)} name={displayName} size={46} />
         <View style={styles.rowInfo}>
-          <MettloText variant="bodySm" style={{ fontWeight: '700' }} numberOfLines={1}>{displayName}</MettloText>
+          <MettloText variant="bodySm" style={styles.rowName} numberOfLines={1}>{displayName}</MettloText>
           <MettloText variant="caption" color={Colors.textMuted}>@{item.username}</MettloText>
         </View>
       </Pressable>
@@ -65,59 +71,63 @@ export function FollowListModal({ visible, mode, username, onClose, onNavigate }
 
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
-      {/* Backdrop */}
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      {/* Tam ekran container — column layout */}
+      <View style={styles.container}>
+        {/* Üst yarı: koyu backdrop, tıklayınca kapat */}
+        <Pressable style={styles.backdrop} onPress={onClose} />
 
-      {/* Bottom sheet */}
-      <View style={styles.sheet}>
-        {/* Handle */}
-        <View style={styles.handle} />
+        {/* Alt: sheet — backdrop'ın altında, tıklamayı absorbe eder */}
+        <View style={styles.sheet}>
+          {/* Handle */}
+          <View style={styles.handle} />
 
-        {/* Başlık */}
-        <View style={styles.header}>
-          <MettloText variant="h5">{title}</MettloText>
-          <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-            <MettloText style={styles.closeTxt}>✕</MettloText>
-          </Pressable>
+          {/* Başlık */}
+          <View style={styles.header}>
+            <MettloText variant="h5">{title}</MettloText>
+            <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
+              <MettloText style={styles.closeTxt}>✕</MettloText>
+            </Pressable>
+          </View>
+
+          {/* Liste */}
+          {loading ? (
+            <View style={styles.center}>
+              <ActivityIndicator color={Colors.primary} size="large" />
+            </View>
+          ) : list.length === 0 ? (
+            <View style={styles.center}>
+              <MettloText color={Colors.textMuted} style={{ textAlign: 'center' }}>
+                {mode === 'followers' ? 'Henüz takipçi yok' : 'Henüz takip edilen yok'}
+              </MettloText>
+            </View>
+          ) : (
+            <FlatList
+              data={list}
+              keyExtractor={(item) => item.username}
+              renderItem={renderItem}
+              ItemSeparatorComponent={() => <View style={styles.sep} />}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: Space.s32 }}
+            />
+          )}
         </View>
-
-        {/* Liste */}
-        {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={Colors.primary} size="large" />
-          </View>
-        ) : list.length === 0 ? (
-          <View style={styles.center}>
-            <MettloText color={Colors.textMuted} style={{ textAlign: 'center' }}>
-              {mode === 'followers' ? 'Henüz takipçi yok' : 'Henüz takip edilen yok'}
-            </MettloText>
-          </View>
-        ) : (
-          <FlatList
-            data={list}
-            keyExtractor={(item) => item.username}
-            renderItem={renderItem}
-            ItemSeparatorComponent={() => <View style={styles.sep} />}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: Space.s32 }}
-          />
-        )}
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+  },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    maxHeight: SH * 0.72,
+    maxHeight: SHEET_MAX,
     backgroundColor: Colors.surface1,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
@@ -149,7 +159,10 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: Space.s12, gap: Space.s12,
+    borderRadius: Radius.md,
   },
-  rowInfo: { flex: 1, gap: 2 },
+  rowPressed: { backgroundColor: Colors.surface2 },
+  rowInfo: { flex: 1, gap: 3 },
+  rowName: { fontWeight: '700' },
   sep: { height: 1, backgroundColor: Colors.borderSubtle },
 });
