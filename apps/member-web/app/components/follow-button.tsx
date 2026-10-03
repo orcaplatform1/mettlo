@@ -2,7 +2,7 @@
 import { useState, useTransition, useEffect } from 'react';
 import { UserPlus, UserCheck, UserMinus, X } from 'lucide-react';
 
-export function FollowButton({ username, initialFollowing = false }: { username: string; initialFollowing?: boolean }) {
+export function FollowButton({ username, initialFollowing = false, onFollowChange }: { username: string; initialFollowing?: boolean; onFollowChange?: (isFollowing: boolean) => void }) {
   const [following, setFollowing] = useState(initialFollowing);
   const [hover, setHover] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -14,6 +14,7 @@ export function FollowButton({ username, initialFollowing = false }: { username:
       if (res.ok) {
         const data = await res.json();
         setFollowing(data.following);
+        onFollowChange?.(data.following);
       }
     });
   };

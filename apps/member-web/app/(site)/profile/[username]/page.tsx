@@ -17,7 +17,8 @@ import { BookButton } from '@/app/components/book-button';
 import { ReportButton } from '@/app/components/report-button';
 import { BlockButton } from '@/app/components/block-button';
 import { ReviewReplyButton } from '@/app/components/review-reply-button';
-import { FollowButton, FollowStats, MutualFollowBadge } from '@/app/components/follow-button';
+import { FollowStats, MutualFollowBadge } from '@/app/components/follow-button';
+import { FollowSection } from '@/app/components/follow-section';
 import { ProfileStories } from '@/app/components/stories';
 import { fmtHours, formatTenure } from '@/app/lib/format';
 
@@ -179,7 +180,6 @@ export default async function ProfilePage({ params }: Props) {
               <div className="row row-wrap" style={{ marginLeft: 'auto', paddingBottom: 8, gap: 10 }}>
                 {isOwn && <Link href="/app/settings" className="btn btn-secondary btn-pill btn-sm">Profili Düzenle</Link>}
                 {!isOwn && session && <MessageButton username={p.username} subscribeHref={`/login?next=/profile/${p.username}`} />}
-                {!isOwn && session && !isStaff && <FollowButton username={p.username} initialFollowing={memberFollowStatus?.isFollowing ?? false} />}
                 {!isOwn && session && (
                   <>
                     <ReportButton targetType="user" targetId={p.username} />
@@ -197,7 +197,13 @@ export default async function ProfilePage({ params }: Props) {
               </div>
             </div>
             <div className="row row-wrap" style={{ gap: 16, marginTop: 16 }}>
-              <FollowStats username={p.username} followersCount={memberFollowStatus?.followers ?? 0} followingCount={memberFollowStatus?.following ?? 0} />
+              <FollowSection
+                username={p.username}
+                initialFollowing={memberFollowStatus?.isFollowing ?? false}
+                followersCount={memberFollowStatus?.followers ?? 0}
+                followingCount={memberFollowStatus?.following ?? 0}
+                showFollowButton={!isOwn && !!session && !isStaff}
+              />
               {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
             </div>
             <div style={{ marginTop: 12 }}>
@@ -287,7 +293,6 @@ export default async function ProfilePage({ params }: Props) {
             <div className="row row-wrap" style={{ marginLeft: 'auto', paddingBottom: 8, gap: 10 }}>
               <CoachInboxButton username={p.username} data={admin} />
               {!isOwn && session && <MessageButton username={p.username} subscribeHref={subscribeHref(p.plans[0]?.id)} />}
-              {!isOwn && session && !isStaff && <FollowButton username={p.username} initialFollowing={followStatus?.isFollowing ?? false} />}
               {!isOwn && session && (
                 <>
                   <ReportButton targetType="user" targetId={p.username} />
@@ -315,7 +320,13 @@ export default async function ProfilePage({ params }: Props) {
 
           {/* Takipçi / Takip + Hikayeler — rozet satırının hemen altında */}
           <div className="row row-wrap" style={{ gap: 16, marginTop: 16 }}>
-            <FollowStats username={p.username} followersCount={followersCount} followingCount={st.following ?? 0} />
+            <FollowSection
+              username={p.username}
+              initialFollowing={followStatus?.isFollowing ?? false}
+              followersCount={followersCount}
+              followingCount={st.following ?? 0}
+              showFollowButton={!isOwn && !!session && !isStaff}
+            />
             {!isOwn && session && !isStaff && <MutualFollowBadge username={p.username} />}
           </div>
           <div style={{ marginTop: 12 }}>
