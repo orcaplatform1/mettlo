@@ -1,5 +1,5 @@
-import React from 'react';
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
@@ -7,11 +7,15 @@ import { MettloText } from '../../components/ui/MettloText';
 import { MettloButton } from '../../components/ui/MettloButton';
 import { MettloBadge } from '../../components/ui/MettloBadge';
 import { MettloAvatar } from '../../components/ui/MettloAvatar';
+import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 import { MettloLoadingState } from '../../components/ui/MettloLoadingState';
 import { MettloErrorState } from '../../components/ui/MettloErrorState';
 import { MettloCopyright } from '../../components/ui/MettloCopyright';
+import { ProfileStories } from '../../components/ui/ProfileStories';
 import { Colors, Radius, Space } from '../../constants/tokens';
 import { coachService } from '../../services/coachService';
+import { userService } from '../../services/userService';
+import { useAuthStore } from '../../store/authStore';
 import type { RootStackParamList } from '../../navigation';
 
 type Route = RouteProp<RootStackParamList, 'CoachDetail'>;
@@ -22,11 +26,52 @@ export function CoachDetailScreen() {
   const nav = useNavigation();
   const route = useRoute<Route>();
   const { username } = route.params;
+  const me = useAuthStore((s) => s.user);
+  const isSelf = !!me && me.username === username;
+
+  const [following, setFollowing] = useState<boolean | null>(null);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  useEffect(() => {
+    if (isSelf) return;
+    userService.getFollowStatus(username)
+      .then((d) => setFollowing(d?.isFollowing ?? d?.following ?? false))
+      .catch(() => setFollowing(false));
+  }, [username, isSelf]);
+
+  const toggleFollow = async () => {
+    if (followLoading) return;
+    setFollowLoading(true);
+    try {
+      if (following) {
+        await userService.unfollow(username);
+        setFollowing(false);
+      } else {
+        await userService.follow(username);
+        setFollowing(true);
+      }
+    } catch {}
+    setFollowLoading(false);
+  };
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['coach-profile', username],
     queryFn: () => coachService.getProfile(username),
   });
+
+  const handleSubscribe = useCallback(() => {
+    const plans = (data as any)?.plans ?? [];
+    if (plans.length === 0) { Alert.alert('Plan Yok', 'Bu koçun şu an aktif abonelik planı bulunmuyor.'); return; }
+    if (plans.length === 1) {
+      Alert.alert('Abone Ol', `${plans[0].name} — ₺${plans[0].priceWeb}/ay`, [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Devam Et', onPress: () => (nav as any).navigate('Pricing') },
+      ]);
+    } else {
+      const opts = plans.map((pl: any) => ({ text: `${pl.name} — ₺${pl.priceWeb}/ay`, onPress: () => (nav as any).navigate('Pricing') }));
+      Alert.alert('Plan Seç', 'Abone olmak istediğin planı seç:', [...opts, { text: 'İptal', style: 'cancel' }]);
+    }
+  }, [data, nav]);
 
   if (isLoading) return <MettloLoadingState />;
   if (isError || !data) return <MettloErrorState onRetry={refetch} />;
@@ -54,8 +99,8 @@ export function CoachDetailScreen() {
 
         {/* ── Avatar + Abone Ol ── */}
         <View style={styles.avatarRow}>
-          <MettloAvatar uri={p.avatarUrl} name={p.displayName ?? p.name} size={84} verified={p.verified} />
-          <MettloButton label="Abone Ol" size="md" onPress={() => {}} style={styles.subscribeBtn} />
+          <MettloAvatar uri={p.avatarUrl} name={p.displayName ?? p.name} size={84} verified={p.verified} tappable username={p.username} />
+          <MettloButton label="Abone Ol" size="md" onPress={handleSubscribe} style={styles.subscribeBtn} />
         </View>
 
         {/* ── İsim + kullanıcı adı + bio ── */}
@@ -91,6 +136,22 @@ export function CoachDetailScreen() {
               <MettloText variant="body" color={Colors.textMuted}> Takip</MettloText>
             </MettloText>
           </View>
+
+          {/* Takip Et butonu */}
+          {!isSelf && (
+            <Pressable
+              style={[styles.followBtn, following && styles.followingBtn]}
+              onPress={toggleFollow}
+              disabled={followLoading}
+            >
+              {followLoading
+                ? <ActivityIndicator color="#fff" size="small" />
+                : <MettloText style={following === true ? [styles.followBtnText, styles.followingBtnText] : styles.followBtnText}>
+                    {following === null ? '...' : following ? 'Takipten Çık' : 'Takip Et'}
+                  </MettloText>
+              }
+            </Pressable>
+          )}
         </View>
 
         {/* ── Stats kartları (web'deki 2-col grid) ── */}
@@ -105,6 +166,11 @@ export function CoachDetailScreen() {
             <MettloText variant="h2">{parseFloat(p.ratingAvg ?? '0').toFixed(1)}</MettloText>
             <MettloText variant="bodySm" color={Colors.textMuted}>{p.ratingCount ?? 0} değerlendirme</MettloText>
           </View>
+        </View>
+
+        {/* ── Hikayeler ── */}
+        <View style={styles.section}>
+          <ProfileStories username={p.username} isOwn={isSelf} />
         </View>
 
         {/* ── Hakkımda ── */}
@@ -177,10 +243,9 @@ export function CoachDetailScreen() {
           <MettloAvatar uri={p.avatarUrl} name={p.displayName ?? p.name} size={32} verified={p.verified} />
           <View style={{ marginLeft: 10 }}>
             <MettloText variant="bodySm" style={{ fontWeight: '700' }} numberOfLines={1}>{p.displayName ?? p.name}</MettloText>
-            {p.verified && <MettloText variant="caption" color={Colors.verified}>✓ Doğrulandı</MettloText>}
           </View>
         </View>
-        <MettloButton label="Abone Ol" size="md" onPress={() => {}} style={styles.stickyBtn} />
+        <MettloButton label="Abone Ol" size="md" onPress={handleSubscribe} style={styles.stickyBtn} />
       </View>
     </SafeAreaView>
   );
@@ -213,6 +278,20 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.borderSubtle,
   },
   socialRow: { flexDirection: 'row', marginTop: Space.s8 },
+  followBtn: {
+    marginTop: Space.s12,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  followingBtn: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: Colors.borderSubtle,
+  },
+  followBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  followingBtnText: { color: Colors.textSecondary },
 
   statsGrid: {
     flexDirection: 'row', gap: Space.s12,

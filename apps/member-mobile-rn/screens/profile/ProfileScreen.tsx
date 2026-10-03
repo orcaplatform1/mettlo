@@ -9,6 +9,7 @@ import { MettloAvatar } from '../../components/ui/MettloAvatar';
 import { MettloBadge } from '../../components/ui/MettloBadge';
 import { MettloButton } from '../../components/ui/MettloButton';
 import { MettloCopyright } from '../../components/ui/MettloCopyright';
+import { ProfileStories } from '../../components/ui/ProfileStories';
 import { Colors, Radius, Space } from '../../constants/tokens';
 import { useAuthStore } from '../../store/authStore';
 import { absUrl } from '../../services/api';
@@ -22,10 +23,10 @@ interface MenuSection { title: string; color?: string; items: MenuItem[] }
 const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN', 'MODERATOR', 'SUPPORT'];
 
 const ROLE_LABEL: Record<string, string> = {
-  SUPER_ADMIN: 'Süper Admin',
-  ADMIN: 'Admin',
-  MODERATOR: 'Moderatör',
-  SUPPORT: 'Destek',
+  SUPER_ADMIN: 'Kurucu',
+  ADMIN: 'Yönetici',
+  MODERATOR: 'Topluluk Kontrolörü',
+  SUPPORT: 'Müşteri İlişkileri',
 };
 
 export function ProfileScreen() {
@@ -169,10 +170,15 @@ export function ProfileScreen() {
               <TouchableOpacity onPress={() => nav.navigate('Settings')} style={styles.settingsBtn} hitSlop={8}>
                 <MettloText style={styles.settingsIcon}>⚙️</MettloText>
               </TouchableOpacity>
-              <MettloAvatar uri={absUrl(user.avatarUrl)} name={user.name} size={84} verified={user.isCoach} />
+              <MettloAvatar uri={absUrl(user.avatarUrl)} name={user.name} size={84} role={role} verified={user.isCoach || role === 'BUSINESS'} tappable username={user.username} />
             </View>
           </View>
         </LinearGradient>
+
+        {/* Hikayeler */}
+        <View style={{ paddingHorizontal: Space.s20, paddingTop: Space.s12 }}>
+          <ProfileStories username={user.username} isOwn />
+        </View>
 
         {!user.isPremium && (
           <TouchableOpacity activeOpacity={0.75} style={styles.premiumBanner} onPress={() => nav.navigate('Pricing')}>

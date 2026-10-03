@@ -18,15 +18,15 @@ export const userService = {
     return res.data;
   },
   async follow(username: string) {
-    const res = await api.post(`/follow/${username}`);
+    const res = await api.post(`/me/follow/${username}`);
     return res.data;
   },
   async unfollow(username: string) {
-    const res = await api.delete(`/follow/${username}`);
+    const res = await api.delete(`/me/follow/${username}`);
     return res.data;
   },
   async getFollowStatus(username: string) {
-    const res = await api.get(`/follow/${username}/status`);
+    const res = await api.get(`/social/following/status/${username}`);
     return res.data;
   },
 };
