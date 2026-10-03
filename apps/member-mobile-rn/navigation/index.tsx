@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
+
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
@@ -10,7 +11,7 @@ import { absUrl } from '../services/api';
 import { NavIcon } from '../components/ui/NavIcon';
 import { useAuthStore } from '../store/authStore';
 
-// Screens
+// Auth
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { ExploreScreen } from '../screens/explore/ExploreScreen';
 import { ProgramsScreen } from '../screens/programs/ProgramsScreen';
@@ -18,6 +19,7 @@ import { MessagesScreen } from '../screens/messages/MessagesScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
+// Detail screens
 import { CoachDetailScreen } from '../screens/coaches/CoachDetailScreen';
 import { ProgramDetailScreen } from '../screens/programs/ProgramDetailScreen';
 import { ChallengesScreen } from '../screens/challenges/ChallengesScreen';
@@ -33,16 +35,33 @@ import { BusinessListScreen } from '../screens/business/BusinessListScreen';
 import { ReservationsScreen } from '../screens/profile/ReservationsScreen';
 import { FavoritesScreen } from '../screens/profile/FavoritesScreen';
 import { SettingsScreen } from '../screens/profile/SettingsScreen';
+// Admin screens
+import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
+import { AdminUsersScreen } from '../screens/admin/AdminUsersScreen';
+import { AdminUserDetailScreen } from '../screens/admin/AdminUserDetailScreen';
+import { AdminCoachesScreen } from '../screens/admin/AdminCoachesScreen';
+import { AdminTicketsScreen } from '../screens/admin/AdminTicketsScreen';
+import { AdminReportsScreen } from '../screens/admin/AdminReportsScreen';
+import { AdminReviewsScreen } from '../screens/admin/AdminReviewsScreen';
+import { AdminPaymentsScreen } from '../screens/admin/AdminPaymentsScreen';
+import { AdminAuditScreen } from '../screens/admin/AdminAuditScreen';
+import { AdminStoreScreen } from '../screens/admin/AdminStoreScreen';
+import { AdminBusinessesScreen } from '../screens/admin/AdminBusinessesScreen';
+import { AdminAdsScreen } from '../screens/admin/AdminAdsScreen';
+// Creator screens
+import { CreatorDashboardScreen } from '../screens/creator/CreatorDashboardScreen';
+import { CreatorClientsScreen } from '../screens/creator/CreatorClientsScreen';
+import { CreatorEarningsScreen } from '../screens/creator/CreatorEarningsScreen';
+import { CreatorProgramsScreen } from '../screens/creator/CreatorProgramsScreen';
+import { CreatorSettingsScreen } from '../screens/creator/CreatorSettingsScreen';
 
 export type RootStackParamList = {
   Tabs: { screen?: keyof TabParamList } | undefined;
   Login: undefined;
   Register: undefined;
-  // Tab screens accessible from stack (nested navigation)
   Explore: undefined;
   Programs: undefined;
   Messages: undefined;
-  // Full screens
   CoachDetail: { username: string };
   ProgramDetail: { slug: string };
   ChallengeDetail: { slug: string };
@@ -58,6 +77,25 @@ export type RootStackParamList = {
   Reservations: undefined;
   Favorites: undefined;
   Settings: undefined;
+  // Admin
+  AdminDashboard: undefined;
+  AdminUsers: undefined;
+  AdminUserDetail: { userId: string };
+  AdminCoaches: { filter?: string } | undefined;
+  AdminTickets: { filter?: string } | undefined;
+  AdminReports: undefined;
+  AdminReviews: undefined;
+  AdminPayments: undefined;
+  AdminAudit: undefined;
+  AdminStore: undefined;
+  AdminBusinesses: undefined;
+  AdminAds: undefined;
+  // Creator / Koç
+  CreatorDashboard: undefined;
+  CreatorClients: undefined;
+  CreatorEarnings: undefined;
+  CreatorPrograms: undefined;
+  CreatorSettings: undefined;
 };
 
 export type TabParamList = {
@@ -70,6 +108,8 @@ export type TabParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 const MettloTheme = {
   ...DefaultTheme,
@@ -92,7 +132,6 @@ const tabAvatarStyles = StyleSheet.create({
   wrap: { width: 30, height: 30, borderRadius: 15, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
   wrapActive: { borderColor: Colors.primary },
   img: { width: '100%', height: '100%' },
-  fallback: { backgroundColor: Colors.surface3, alignItems: 'center', justifyContent: 'center' },
 });
 
 function MainTabs() {
@@ -102,11 +141,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: {
-          ...styles.tabBar,
-          height: tabBarHeight,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-        },
+        tabBarStyle: { ...styles.tabBar, height: tabBarHeight, paddingBottom: insets.bottom > 0 ? insets.bottom : 8 },
         tabBarShowLabel: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
@@ -144,7 +179,7 @@ export function AppNavigator() {
   if (status === 'unknown') return <SplashScreen />;
 
   return (
-    <NavigationContainer theme={MettloTheme}>
+    <NavigationContainer ref={navigationRef} theme={MettloTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {status === 'unauthenticated' ? (
           <>
@@ -154,6 +189,7 @@ export function AppNavigator() {
         ) : (
           <>
             <Stack.Screen name="Tabs" component={MainTabs} />
+            {/* Detail */}
             <Stack.Screen name="CoachDetail" component={CoachDetailScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="ChallengeDetail" component={ChallengeDetailScreen} options={{ presentation: 'card' }} />
@@ -172,6 +208,25 @@ export function AppNavigator() {
             <Stack.Screen name="Explore" component={ExploreScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="Programs" component={ProgramsScreen} options={{ presentation: 'card' }} />
             <Stack.Screen name="Messages" component={MessagesScreen} options={{ presentation: 'card' }} />
+            {/* Admin */}
+            <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminUsers" component={AdminUsersScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminUserDetail" component={AdminUserDetailScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminCoaches" component={AdminCoachesScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminTickets" component={AdminTicketsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminReports" component={AdminReportsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminReviews" component={AdminReviewsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminPayments" component={AdminPaymentsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminAudit" component={AdminAuditScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminStore" component={AdminStoreScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminBusinesses" component={AdminBusinessesScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="AdminAds" component={AdminAdsScreen} options={{ presentation: 'card' }} />
+            {/* Creator / Koç */}
+            <Stack.Screen name="CreatorDashboard" component={CreatorDashboardScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="CreatorClients" component={CreatorClientsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="CreatorEarnings" component={CreatorEarningsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="CreatorPrograms" component={CreatorProgramsScreen} options={{ presentation: 'card' }} />
+            <Stack.Screen name="CreatorSettings" component={CreatorSettingsScreen} options={{ presentation: 'card' }} />
           </>
         )}
       </Stack.Navigator>
@@ -180,12 +235,7 @@ export function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: Colors.surface1,
-    borderTopColor: Colors.borderSubtle,
-    borderTopWidth: 1,
-    paddingTop: 8,
-  },
+  tabBar: { backgroundColor: Colors.surface1, borderTopColor: Colors.borderSubtle, borderTopWidth: 1, paddingTop: 8 },
   splash: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   splashIcon: { width: 72, height: 72, marginBottom: Space.s16 },
   splashLogo: { fontSize: 32, fontWeight: '900', color: Colors.textPrimary, letterSpacing: 8 },

@@ -372,7 +372,9 @@ export function RegisterScreen() {
                   <MettloText style={{ color: birthDate ? Colors.textPrimary : Colors.textMuted, fontSize: 15 }}>
                     {birthDate ? formatDate(birthDate) : 'GG.AA.YYYY'}
                   </MettloText>
-                  <MettloText style={{ fontSize: 18 }}>📅</MettloText>
+                  <Svg viewBox="0 0 24 24" width={20} height={20} fill="none">
+                    <Path d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke={Colors.textMuted} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
                 </TouchableOpacity>
                 <MettloText style={styles.dateHelper}>
                   Mettlo 18 yaş ve üzeri içindir. 18 yaşından küçükler yalnızca ebeveyn / yasal vasi kaydı ile üye olabilir.
@@ -390,9 +392,6 @@ export function RegisterScreen() {
                   suffix="'nı okudum, anladım ve kabul ediyorum."
                   showError={submitted && !terms}
                 />
-                <MettloText style={styles.consentHint}>
-                  📖 <MettloText onPress={() => setShowTermsModal(true)} style={styles.consentLink}>Metni aç ve oku</MettloText>
-                </MettloText>
 
                 <View style={{ marginTop: Space.s8 }}>
                   <ConsentRow
@@ -403,9 +402,6 @@ export function RegisterScreen() {
                     suffix="'ni okudum ve anladım."
                     showError={submitted && !kvkk}
                   />
-                  <MettloText style={styles.consentHint}>
-                    📖 <MettloText onPress={() => setShowKvkkModal(true)} style={styles.consentLink}>Metni aç ve oku</MettloText>
-                  </MettloText>
                 </View>
 
                 <MettloText style={styles.consentNote}>
@@ -541,8 +537,6 @@ const styles = StyleSheet.create({
   dateTriggerError: { borderColor: Colors.error },
   dateHelper: { fontSize: 12, color: Colors.textMuted, lineHeight: 17 },
   consentsWrap: { gap: Space.s4 },
-  consentHint: { fontSize: 13, color: Colors.secondary, marginLeft: Space.s32 },
-  consentLink: { color: Colors.secondary, fontWeight: '600', fontSize: 13, textDecorationLine: 'underline' },
   consentNote: { fontSize: 12, color: Colors.textMuted, lineHeight: 18, marginTop: Space.s8 },
   divider: { flexDirection: 'row', alignItems: 'center', gap: Space.s10 },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.borderSubtle },

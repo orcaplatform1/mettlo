@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,7 +6,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
+import * as Notifications from 'expo-notifications';
 import { AppNavigator } from './navigation';
+import { registerForPushNotifications, navigateFromNotification } from './services/notificationService';
+import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,6 +19,39 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function NotificationBootstrap() {
+  const authStatus = useAuthStore(s => s.status);
+  const notifListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+
+    registerForPushNotifications().catch(() => {});
+
+    notifListener.current = Notifications.addNotificationReceivedListener(n => {
+      console.log('[Push] Bildirim alındı:', n.request.content.title);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      navigateFromNotification(response.notification);
+    });
+
+    // Uygulama kapalıyken tıklanan bildirim
+    Notifications.getLastNotificationResponseAsync().then(response => {
+      if (!response) return;
+      setTimeout(() => navigateFromNotification(response.notification), 800);
+    });
+
+    return () => {
+      notifListener.current?.remove();
+      responseListener.current?.remove();
+    };
+  }, [authStatus]);
+
+  return null;
+}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -64,6 +100,7 @@ export default function App() {
           <QueryClientProvider client={queryClient}>
             <StatusBar style="light" />
             <AppNavigator />
+            <NotificationBootstrap />
           </QueryClientProvider>
         </SafeAreaProvider>
       </LinearGradient>

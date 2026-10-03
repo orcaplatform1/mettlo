@@ -4,7 +4,6 @@ import {
   ScrollView, StyleSheet, TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -83,11 +82,6 @@ export function LoginScreen() {
           <View style={styles.logoRow}>
             <Image source={require('../../assets/icon.png')} style={styles.logoImg} resizeMode="contain" />
             <MettloText variant="displayXL" style={styles.logoText}>METTLO</MettloText>
-            <LinearGradient
-              colors={['#F97316', '#FB7185', '#EC4899']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={styles.logoBar}
-            />
           </View>
 
           {/* Kart */}
@@ -197,7 +191,6 @@ const styles = StyleSheet.create({
   logoRow: { alignItems: 'center', gap: Space.s8 },
   logoImg: { width: 64, height: 64 },
   logoText: { letterSpacing: 8, color: Colors.textPrimary },
-  logoBar: { width: 48, height: 3, borderRadius: Radius.pill },
   card: {
     backgroundColor: Colors.surface1,
     borderRadius: Radius.card,

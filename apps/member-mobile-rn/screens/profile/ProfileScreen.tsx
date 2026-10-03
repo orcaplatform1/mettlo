@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -27,10 +27,6 @@ const ROLE_LABEL: Record<string, string> = {
   SUPPORT: 'Destek',
 };
 
-function openWeb(path: string) {
-  Linking.openURL(`https://mettlo.tr${path}`);
-}
-
 export function ProfileScreen() {
   const nav = useNavigation<Nav>();
   const { user, logout } = useAuthStore();
@@ -51,10 +47,17 @@ export function ProfileScreen() {
       title: '🛡️ Admin Paneli',
       color: Colors.error,
       items: [
-        { icon: '📊', label: 'Genel Bakış', onPress: () => openWeb('/app/admin') },
-        { icon: '👥', label: 'Kullanıcı Yönetimi', onPress: () => openWeb('/app/admin/users') },
-        { icon: '✅', label: 'Koç Onayları', onPress: () => openWeb('/app/admin/coaches') },
-        { icon: '📢', label: 'İçerik Moderasyonu', onPress: () => openWeb('/app/admin/content') },
+        { icon: '📊', label: 'Genel Bakış', onPress: () => nav.navigate('AdminDashboard') },
+        { icon: '👥', label: 'Kullanıcılar', onPress: () => nav.navigate('AdminUsers') },
+        { icon: '✅', label: 'Koç Onayları', onPress: () => nav.navigate('AdminCoaches', { filter: 'PENDING' }) },
+        { icon: '🚩', label: 'Şikâyetler', onPress: () => nav.navigate('AdminReports') },
+        { icon: '🎫', label: 'Destek Biletleri', onPress: () => nav.navigate('AdminTickets', { filter: 'OPEN' }) },
+        { icon: '⭐', label: 'Değerlendirmeler', onPress: () => nav.navigate('AdminReviews') },
+        { icon: '💳', label: 'Ödemeler & Finans', onPress: () => nav.navigate('AdminPayments') },
+        { icon: '🛒', label: 'Mağaza', onPress: () => nav.navigate('AdminStore') },
+        { icon: '🏢', label: 'İşletmeler', onPress: () => nav.navigate('AdminBusinesses') },
+        { icon: '📢', label: 'Reklamlar', onPress: () => nav.navigate('AdminAds') },
+        { icon: '📋', label: 'Denetim Logları', onPress: () => nav.navigate('AdminAudit') },
       ],
     });
   }
@@ -64,11 +67,12 @@ export function ProfileScreen() {
       title: '🎯 Koç Paneli',
       color: Colors.verified,
       items: [
-        { icon: '📈', label: 'Dashboard', onPress: () => openWeb('/app/settings') },
-        { icon: '👤', label: 'Danışanlarım', onPress: () => openWeb('/app/clients') },
-        { icon: '💰', label: 'Kazançlarım', onPress: () => openWeb('/app/earnings') },
+        { icon: '📈', label: 'Dashboard', onPress: () => nav.navigate('CreatorDashboard') },
+        { icon: '👤', label: 'Danışanlarım', onPress: () => nav.navigate('CreatorClients') },
+        { icon: '💰', label: 'Kazançlarım', onPress: () => nav.navigate('CreatorEarnings') },
+        { icon: '📋', label: 'Programlarım', onPress: () => nav.navigate('CreatorPrograms') },
         { icon: '📡', label: 'Canlı Yayın Planla', onPress: () => nav.navigate('Live') },
-        { icon: '🗓️', label: 'Takvimim', onPress: () => openWeb('/app/calendar') },
+        { icon: '⚙️', label: 'Koç Profil Ayarları', onPress: () => nav.navigate('CreatorSettings') },
       ],
     });
   }
@@ -78,9 +82,9 @@ export function ProfileScreen() {
       title: '🏢 İşletme Paneli',
       color: Colors.accent,
       items: [
-        { icon: '📊', label: 'İşletme Dashboard', onPress: () => openWeb('/app/business') },
-        { icon: '📍', label: 'Şube Yönetimi', onPress: () => openWeb('/app/business/branches') },
-        { icon: '🎯', label: 'Kampanyalarım', onPress: () => openWeb('/app/business/campaigns') },
+        { icon: '📊', label: 'İşletme Dashboard', onPress: () => nav.navigate('BusinessList', {}) },
+        { icon: '📍', label: 'İşletmelerim', onPress: () => nav.navigate('BusinessList', {}) },
+        { icon: '🎯', label: 'Kampanyalarım', onPress: () => nav.navigate('BusinessList', {}) },
       ],
     });
   }
