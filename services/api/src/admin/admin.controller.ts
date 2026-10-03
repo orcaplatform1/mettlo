@@ -40,19 +40,19 @@ export class AdminController {
   // ---------- Kullanıcılar ----------
   @RequirePermission('users:read_masked')
   @Get('users')
-  async users(@CurrentUser() me: AuthUser, @Query('q') q?: string, @Query('role') role?: string, @Query('page') page = '1') {
-    const take = 30;
+  async users(@CurrentUser() me: AuthUser, @Query('q') q?: string, @Query('role') role?: string, @Query('page') page = '1', @Query('banned') banned?: string) {
+    const take = 20;
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
     const where: any = {
-      ...(role ? { role } : {}),
+      ...(banned === 'true' ? { status: 'BANNED' } : role ? { role } : {}),
       ...(q ? { OR: [{ username: { contains: q.toLowerCase() } }, { name: { contains: q, mode: 'insensitive' } }] } : {}),
     };
     const [rows, total] = await Promise.all([
-      this.prisma.user.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, select: { id: true, username: true, name: true, email: true, role: true, status: true, createdAt: true } }),
+      this.prisma.user.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, select: { id: true, username: true, name: true, email: true, role: true, status: true, avatarUrl: true, createdAt: true } }),
       this.prisma.user.count({ where }),
     ]);
     const full = can(me.role, 'personal_info:read');
-    return { total, items: rows.map((r) => ({ ...r, email: full ? r.email : maskEmail(r.email) })) };
+    return { total, items: rows.map((r) => ({ ...r, email: full ? r.email : maskEmail(r.email), isBanned: r.status === 'BANNED', isSuspended: r.status === 'SUSPENDED', isPremium: r.role === 'SUBSCRIBER' })) };
   }
 
   @RequirePermission('users:read_masked')

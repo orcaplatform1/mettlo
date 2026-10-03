@@ -63,11 +63,11 @@ export function AdminUsersScreen() {
   const fetchUsers = useCallback(async (p: number, q: string, f: string, replace = false) => {
     try {
       const params: any = { page: p, limit: 20 };
-      if (q) params.search = q;
+      if (q) params.q = q;
       if (f === 'Banlı') params.banned = true;
       else if (roleMap[f]) params.role = roleMap[f];
-      const res = await api.get<{ data: User[]; total: number }>('/admin/users', { params });
-      const list = res.data.data ?? [];
+      const res = await api.get<{ items: User[]; total: number }>('/admin/users', { params });
+      const list = res.data.items ?? [];
       setUsers(prev => replace ? list : [...prev, ...list]);
       setHasMore(list.length === 20);
       setPage(p);
