@@ -137,6 +137,7 @@ export function CoachDetailScreen() {
   // Admin data
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
   const [adminData, setAdminData] = useState<any>(null);
+  const [adminLoadError, setAdminLoadError] = useState<string | null>(null);
 
   // Admin inbox modal
   const [inboxVisible, setInboxVisible] = useState(false);
@@ -191,25 +192,21 @@ export function CoachDetailScreen() {
       .catch(() => null);
   }, [username, isSelf, me, data]);
 
-  // Admin verisi — önce /admin/profiles/:username ile userId al, sonra tam detay çek
+  // Admin verisi — /admin/profiles/:username hem id hem de tüm detayı döndürür
   useEffect(() => {
     if (!amStaff) return;
-    // p.id public profilden gelir (backend'e eklendi). Yoksa admin profiles endpoint'i dene.
-    const knownId = (data as any)?.id as string | undefined;
-    if (knownId) {
-      setAdminUserId(knownId);
-      api.get(`/admin/users/${knownId}`).then((r) => setAdminData(r.data)).catch(() => null);
-    } else {
-      api.get(`/admin/profiles/${username}`)
-        .then((r) => {
-          const uid = r.data?.id as string | undefined;
-          if (!uid) return;
-          setAdminUserId(uid);
-          return api.get(`/admin/users/${uid}`).then((r2) => setAdminData(r2.data));
-        })
-        .catch(() => null);
-    }
-  }, [amStaff, username, (data as any)?.id]); // eslint-disable-line
+    setAdminLoadError(null);
+    api.get(`/admin/profiles/${username}`)
+      .then((r) => {
+        if (r.data?.id) setAdminUserId(r.data.id);
+        setAdminData(r.data ?? null);
+      })
+      .catch((e: any) => {
+        const status = e?.response?.status ?? '?';
+        const msg = e?.response?.data?.message ?? e?.message ?? 'Bilinmeyen hata';
+        setAdminLoadError(`Hata ${status}: ${msg}`);
+      });
+  }, [amStaff, username]); // eslint-disable-line
 
   const applyFollowResult = (res: any, isFollowing: boolean) => {
     setFollowing(isFollowing);
@@ -348,8 +345,9 @@ export function CoachDetailScreen() {
               await api.patch(`/admin/creators/${adminUserId}/status`, { status: newStatus });
               Alert.alert('Başarılı', `Durum "${label}" olarak güncellendi.`);
               refetch();
-              const r = await api.get(`/admin/users/${adminUserId}`);
-              setAdminData(r.data);
+              const r = await api.get(`/admin/profiles/${username}`);
+              if (r.data?.id) setAdminUserId(r.data.id);
+              setAdminData(r.data ?? null);
             } catch (e: any) {
               Alert.alert('Hata', e.response?.data?.message ?? 'İşlem başarısız.');
             }
@@ -870,15 +868,21 @@ export function CoachDetailScreen() {
 
               {/* Kişisel Bilgiler */}
               <Accordion title="Kişisel Bilgiler">
-                {adUser && (
-                  <View style={{ gap: Space.s8 }}>
-                    <AdminRow label="E-posta" value={adUser.email ?? '—'} />
-                    <AdminRow label="Rol" value={adUser.role ?? '—'} />
-                    <AdminRow label="Durum" value={adUser.status ?? '—'} />
-                    <AdminRow label="Kayıt tarihi" value={adUser.createdAt ? new Date(adUser.createdAt).toLocaleDateString('tr-TR') : '—'} />
-                    <AdminRow label="Doğum tarihi" value={adUser.birthDate ? new Date(adUser.birthDate).toLocaleDateString('tr-TR') : '—'} />
-                  </View>
-                )}
+                {adminLoadError
+                  ? <MettloText variant="caption" color={Colors.error}>{adminLoadError}</MettloText>
+                  : adUser
+                    ? <View style={{ gap: Space.s8 }}>
+                        <AdminRow label="E-posta" value={adUser.email ?? '—'} />
+                        <AdminRow label="Rol" value={adUser.role ?? '—'} />
+                        <AdminRow label="Durum" value={adUser.status ?? '—'} />
+                        <AdminRow label="Kayıt tarihi" value={adUser.createdAt ? new Date(adUser.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                        <AdminRow label="Doğum tarihi" value={adUser.birthDate ? new Date(adUser.birthDate).toLocaleDateString('tr-TR') : '—'} />
+                        {adUser.personal?.fullName && <AdminRow label="Ad Soyad" value={adUser.personal.fullName} />}
+                        {adUser.personal?.phone && <AdminRow label="Telefon" value={adUser.personal.phone} />}
+                        {adUser.personal?.gender && <AdminRow label="Cinsiyet" value={adUser.personal.gender} />}
+                      </View>
+                    : <ActivityIndicator color={Colors.primary} size="small" />
+                }
               </Accordion>
 
               {/* Koç Profili */}
@@ -908,8 +912,13 @@ export function CoachDetailScreen() {
               {/* Hesap Verileri */}
               {!adUser && (
                 <View style={{ alignItems: 'center', paddingVertical: Space.s16 }}>
-                  <ActivityIndicator color={Colors.primary} size="small" />
-                  <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>Veriler yükleniyor…</MettloText>
+                  {adminLoadError
+                    ? <MettloText variant="caption" color={Colors.error} style={{ textAlign: 'center' }}>{adminLoadError}</MettloText>
+                    : <>
+                        <ActivityIndicator color={Colors.primary} size="small" />
+                        <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>Veriler yükleniyor…</MettloText>
+                      </>
+                  }
                 </View>
               )}
               {adUser && (
