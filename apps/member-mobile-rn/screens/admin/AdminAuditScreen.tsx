@@ -14,9 +14,11 @@ interface AuditLog {
   id: string;
   action: string;
   actorRole: string;
+  actorUsername?: string;
+  subjectUsername?: string;
+  turkishDescription?: string;
   targetType?: string;
   createdAt: string;
-  actor?: { name: string; username: string };
   metadata?: Record<string, any>;
   ip?: string;
 }
@@ -33,10 +35,10 @@ export function AdminAuditScreen() {
   const load = useCallback(async (p: number, replace = false, refresh = false) => {
     try {
       if (refresh) setRefreshing(true);
-      const res = await api.get<{ data: AuditLog[]; total: number }>('/admin/audit-logs', { params: { page: p, limit: 30 } });
-      const list = res.data.data ?? (res.data as any);
+      const res = await api.get<{ items: AuditLog[]; total: number }>('/admin/audit-logs', { params: { page: p, dateFilter: 'all' } });
+      const list = res.data.items ?? [];
       setLogs(prev => replace ? list : [...prev, ...list]);
-      setHasMore(list.length === 30);
+      setHasMore(list.length === 200);
       setPage(p);
     } catch {}
     finally { setLoading(false); setRefreshing(false); setLoadingMore(false); }
@@ -81,9 +83,9 @@ export function AdminAuditScreen() {
             <View style={styles.logRow}>
               <View style={[styles.roleDot, { backgroundColor: ROLE_COLOR[l.actorRole] ?? Colors.borderSubtle }]} />
               <View style={styles.logInfo}>
-                <MettloText style={styles.action}>{l.action}</MettloText>
+                <MettloText style={styles.action}>{l.turkishDescription ?? l.action}</MettloText>
                 <View style={styles.metaRow}>
-                  {l.actor && <MettloText style={styles.actor}>{l.actor.name}</MettloText>}
+                  {l.actorUsername && <MettloText style={styles.actor}>@{l.actorUsername}</MettloText>}
                   {l.targetType && <MettloText style={styles.meta}>· {l.targetType}</MettloText>}
                   <MettloText style={styles.meta}>· {new Date(l.createdAt).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</MettloText>
                 </View>
