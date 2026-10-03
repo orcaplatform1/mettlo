@@ -11,6 +11,7 @@ import { MettloButton } from '../../components/ui/MettloButton';
 import { MettloCopyright } from '../../components/ui/MettloCopyright';
 import { Colors, Radius, Space } from '../../constants/tokens';
 import { useAuthStore } from '../../store/authStore';
+import { absUrl } from '../../services/api';
 import type { RootStackParamList } from '../../navigation';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -54,9 +55,20 @@ export function ProfileScreen() {
         { icon: '🎫', label: 'Destek Biletleri', onPress: () => nav.navigate('AdminTickets', { filter: 'OPEN' }) },
         { icon: '⭐', label: 'Değerlendirmeler', onPress: () => nav.navigate('AdminReviews') },
         { icon: '💳', label: 'Ödemeler & Finans', onPress: () => nav.navigate('AdminPayments') },
+        { icon: '💸', label: 'Ödeme Talepleri', onPress: () => nav.navigate('AdminPayouts') },
         { icon: '🛒', label: 'Mağaza', onPress: () => nav.navigate('AdminStore') },
         { icon: '🏢', label: 'İşletmeler', onPress: () => nav.navigate('AdminBusinesses') },
         { icon: '📢', label: 'Reklamlar', onPress: () => nav.navigate('AdminAds') },
+        { icon: '🎪', label: 'Etkinlikler', onPress: () => nav.navigate('AdminEvents') },
+        { icon: '👔', label: 'İş İlanları', onPress: () => nav.navigate('AdminJobs') },
+        { icon: '💼', label: 'Kariyer Başvuruları', onPress: () => nav.navigate('AdminCareers') },
+        { icon: '📬', label: 'İletişim Mesajları', onPress: () => nav.navigate('AdminContact') },
+        { icon: '👮', label: 'Roller & Yetkiler', onPress: () => nav.navigate('AdminRoles') },
+        { icon: '📸', label: 'Hikâyeler', onPress: () => nav.navigate('AdminStories') },
+        { icon: '🌿', label: 'Spor Branşları', onPress: () => nav.navigate('AdminBranches') },
+        { icon: '🏷️', label: 'Alt Kategoriler', onPress: () => nav.navigate('AdminSubCategories') },
+        { icon: '💹', label: 'Komisyon Ayarları', onPress: () => nav.navigate('AdminCommission') },
+        { icon: '🔧', label: 'Platform Özellikleri', onPress: () => nav.navigate('AdminFeatures') },
         { icon: '📋', label: 'Denetim Logları', onPress: () => nav.navigate('AdminAudit') },
       ],
     });
@@ -92,12 +104,32 @@ export function ProfileScreen() {
   sections.push({
     title: 'Hesabım',
     items: [
+      { icon: '🔔', label: 'Bildirimler', onPress: () => nav.navigate('Notifications') },
+      { icon: '🎫', label: 'Destek', onPress: () => nav.navigate('Support') },
+      { icon: '💰', label: 'Kazançlarım', onPress: () => nav.navigate('Earnings') },
+      { icon: '🎟️', label: 'Etkinliklerim', onPress: () => nav.navigate('Events') },
+      { icon: '📢', label: 'Reklamlarım', onPress: () => nav.navigate('Advertising') },
       { icon: '📋', label: 'Programlarım', onPress: () => nav.navigate('Programs') },
       { icon: '📅', label: 'Rezervasyonlarım', onPress: () => nav.navigate('Reservations') },
       { icon: '🏆', label: 'Challenge\'larım', onPress: () => nav.navigate('Challenges') },
       { icon: '❤️', label: 'Favorilerim', onPress: () => nav.navigate('Favorites') },
       { icon: '🛒', label: 'Siparişlerim', onPress: () => nav.navigate('Store') },
+      { icon: '💼', label: 'İş Başvurularım', onPress: () => nav.navigate('JobApplications') },
+      { icon: '🚫', label: 'Engellenenler', onPress: () => nav.navigate('Blocks') },
       { icon: '💳', label: 'Aboneliğim & Fiyatlar', onPress: () => nav.navigate('Pricing') },
+    ],
+  });
+
+  sections.push({
+    title: 'Spor Aktiviteleri',
+    items: [
+      { icon: '🏃', label: 'Koşu Günlüğüm', onPress: () => nav.navigate('Sports', { branch: 'running' }) },
+      { icon: '🥊', label: 'Boks & Kickboks', onPress: () => nav.navigate('Sports', { branch: 'boxing' }) },
+      { icon: '🧘', label: 'Yoga', onPress: () => nav.navigate('Sports', { branch: 'yoga' }) },
+      { icon: '💪', label: 'Pilates', onPress: () => nav.navigate('Sports', { branch: 'pilates' }) },
+      { icon: '⚡', label: 'HIIT', onPress: () => nav.navigate('Sports', { branch: 'hiit' }) },
+      { icon: '🧠', label: 'Meditasyon', onPress: () => nav.navigate('Sports', { branch: 'meditation' }) },
+      { icon: '💃', label: 'Dans', onPress: () => nav.navigate('Sports', { branch: 'dance' }) },
     ],
   });
 
@@ -117,7 +149,7 @@ export function ProfileScreen() {
         {/* Header */}
         <LinearGradient colors={['#0D0B1F', '#110928', 'transparent']} style={styles.header}>
           <View style={styles.avatarRow}>
-            <MettloAvatar uri={user.avatarUrl} name={user.name} size={80} verified={user.isCoach} />
+            {/* Sol: bilgiler */}
             <View style={styles.userInfo}>
               <MettloText variant="h3">{user.name}</MettloText>
               <MettloText variant="bodySm" color={Colors.textMuted}>@{user.username}</MettloText>
@@ -127,18 +159,17 @@ export function ProfileScreen() {
                 {isCoachRole && !isAdmin && <MettloBadge label="Koç" variant="verified" />}
                 {isBusiness && <MettloBadge label="İşletme" variant="primary" />}
               </View>
+              <View style={styles.statsInline}>
+                <MettloText style={styles.statInlineText} color={Colors.highlight}>⚡ {user.xp ?? 0} XP</MettloText>
+                <MettloText style={styles.statInlineText} color={Colors.primary}>🔥 {user.streakDays ?? 0} Streak</MettloText>
+              </View>
             </View>
-          </View>
-
-          <View style={styles.stats}>
-            <View style={styles.stat}>
-              <MettloText variant="h4" color={Colors.highlight}>⚡ {user.xp ?? 0}</MettloText>
-              <MettloText variant="caption" color={Colors.textMuted}>XP</MettloText>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <MettloText variant="h4" color={Colors.primary}>🔥 {user.streakDays ?? 0}</MettloText>
-              <MettloText variant="caption" color={Colors.textMuted}>Streak</MettloText>
+            {/* Sağ: profil fotoğrafı + ayarlar */}
+            <View style={styles.avatarWrap}>
+              <TouchableOpacity onPress={() => nav.navigate('Settings')} style={styles.settingsBtn} hitSlop={8}>
+                <MettloText style={styles.settingsIcon}>⚙️</MettloText>
+              </TouchableOpacity>
+              <MettloAvatar uri={absUrl(user.avatarUrl)} name={user.name} size={84} verified={user.isCoach} />
             </View>
           </View>
         </LinearGradient>
@@ -179,13 +210,15 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'transparent' },
-  header: { paddingTop: Space.s20, paddingHorizontal: Space.s20, paddingBottom: Space.s24, gap: Space.s20 },
-  avatarRow: { flexDirection: 'row', gap: Space.s16, alignItems: 'flex-start' },
-  userInfo: { flex: 1, gap: Space.s6 },
-  badges: { flexDirection: 'row', gap: Space.s8, marginTop: Space.s4 },
-  stats: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
-  stat: { alignItems: 'center', gap: Space.s2 },
-  statDivider: { width: 1, height: 32, backgroundColor: Colors.borderSubtle },
+  header: { paddingTop: Space.s20, paddingHorizontal: Space.s20, paddingBottom: Space.s24 },
+  avatarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  userInfo: { flex: 1, gap: Space.s6, paddingRight: Space.s16 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.s8, marginTop: Space.s4 },
+  statsInline: { flexDirection: 'row', gap: Space.s14, marginTop: Space.s8 },
+  statInlineText: { fontSize: 13, fontWeight: '600' },
+  avatarWrap: { alignItems: 'center', gap: Space.s8 },
+  settingsBtn: { padding: Space.s4 },
+  settingsIcon: { fontSize: 22 },
   premiumBanner: { marginHorizontal: Space.s16, marginBottom: Space.s8, borderRadius: Radius.card, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(249,115,22,0.2)' },
   premiumBannerInner: { padding: Space.s14, gap: Space.s4 },
   section: { marginTop: Space.s16 },
