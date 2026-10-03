@@ -15,12 +15,12 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminUserDetail'>;
 
 const ROLE_LABELS: Record<string, string> = {
-  SUPER_ADMIN: 'Süper Admin', ADMIN: 'Admin', MODERATOR: 'Moderatör',
-  SUPPORT: 'Destek', CREATOR: 'Koç', SUBSCRIBER: 'Abone', MEMBER: 'Üye', BUSINESS: 'İşletme',
+  SUPER_ADMIN: 'Kurucu', ADMIN: 'Yönetici', MODERATOR: 'Topluluk Kontrolörü',
+  SUPPORT: 'Müşteri İlişkileri', CREATOR: 'Koç', SUBSCRIBER: 'Abone', MEMBER: 'Üye', BUSINESS: 'İşletme',
 };
 const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN: '#EF4444', ADMIN: '#F97316', MODERATOR: '#8B5CF6',
-  SUPPORT: '#3B82F6', CREATOR: '#10B981', SUBSCRIBER: '#F59E0B', MEMBER: Colors.textMuted, BUSINESS: '#6366F1',
+  SUPER_ADMIN: '#EF4444', ADMIN: '#10B981', MODERATOR: '#F59E0B',
+  SUPPORT: '#C084FC', CREATOR: '#10B981', SUBSCRIBER: '#F59E0B', MEMBER: Colors.textMuted, BUSINESS: '#6366F1',
 };
 const STATUS_LABELS: Record<string, string> = {
   ACTIVE: 'Aktif', PENDING: 'Beklemede', SUSPENDED: 'Askıda', BANNED: 'Banlı', REJECTED: 'Reddedildi',
@@ -88,7 +88,7 @@ export function AdminUserDetailScreen() {
   }
 
   async function handleSuspend() {
-    if (!isSuperAdmin) return Alert.alert('Yetki Yok', 'Bu işlem için Süper Admin yetkisi gerekir.');
+    if (!isSuperAdmin) return Alert.alert('Yetki Yok', 'Bu işlem için Kurucu yetkisi gerekir.');
     Alert.alert('Askıya Al', 'Süre seçin:', [
       { text: '1 Gün', onPress: () => suspend(1) },
       { text: '7 Gün', onPress: () => suspend(7) },
@@ -108,7 +108,7 @@ export function AdminUserDetailScreen() {
   }
 
   async function handleBan() {
-    if (!isSuperAdmin) return Alert.alert('Yetki Yok', 'Bu işlem için Süper Admin yetkisi gerekir.');
+    if (!isSuperAdmin) return Alert.alert('Yetki Yok', 'Bu işlem için Kurucu yetkisi gerekir.');
     Alert.alert('Hesabı Banla', 'Bu kullanıcıyı kalıcı olarak banlamak istediğinizden emin misiniz?', [
       {
         text: 'Banla', style: 'destructive', onPress: async () => {
@@ -126,7 +126,7 @@ export function AdminUserDetailScreen() {
   }
 
   async function handleLiftSanction() {
-    if (!isSuperAdmin) return Alert.alert('Yetki Yok', 'Bu işlem için Süper Admin yetkisi gerekir.');
+    if (!isSuperAdmin) return Alert.alert('Yetki Yok', 'Bu işlem için Kurucu yetkisi gerekir.');
     setActionLoading(true);
     try {
       const sanctions = user?.sanctions ?? [];
@@ -170,7 +170,7 @@ export function AdminUserDetailScreen() {
       >
         {/* Profil kartı */}
         <View style={styles.profileCard}>
-          <MettloAvatar uri={absUrl(user.avatarUrl)} name={user.name} size={72} />
+          <MettloAvatar uri={absUrl(user.avatarUrl)} name={user.name} size={72} role={user.role} verified={user.role === 'CREATOR' || user.role === 'BUSINESS'} tappable username={user.username} />
           <MettloText variant="h3" style={{ marginTop: Space.s8 }}>{user.name}</MettloText>
           <MettloText color={Colors.textMuted}>@{user.username}</MettloText>
           <View style={styles.tagRow}>
@@ -252,7 +252,7 @@ export function AdminUserDetailScreen() {
             <InfoRow label="Durum" value={creator.status} />
             <InfoRow label="Doğrulandı" value={creator.verified ? 'Evet' : 'Hayır'} />
             <InfoRow label="Abone Sayısı" value={creator.subscribersCount} />
-            <InfoRow label="Puan" value={creator.ratingAvg ? `${creator.ratingAvg.toFixed(1)} / 5` : '-'} />
+            <InfoRow label="Puan" value={creator.ratingAvg ? `${parseFloat(String(creator.ratingAvg)).toFixed(1)} / 5` : '-'} />
             <InfoRow label="Kariyer Başlangıcı" value={creator.careerStartYear} />
           </View>
         )}

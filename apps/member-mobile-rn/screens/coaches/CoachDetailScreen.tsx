@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -129,6 +128,12 @@ export function CoachDetailScreen() {
   const [reportDetails, setReportDetails] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
 
+  // Dark confirm modal
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string; message: string; confirmLabel: string;
+    danger?: boolean; onConfirm: () => void;
+  } | null>(null);
+
   // Rating form
   const [ratingStars, setRatingStars] = useState(0);
   const [ratingText, setRatingText] = useState('');
@@ -243,7 +248,7 @@ export function CoachDetailScreen() {
     if (!me) { (nav as any).navigate('Login'); return; }
     setMsgLoading(true);
     try {
-      const res = await api.post('/conversations', { toUsername: username });
+      const res = await api.post('/messages/conversations', { toUsername: username });
       (nav as any).navigate('Conversation', {
         conversationId: res.data.id,
         otherName: data?.displayName ?? data?.name,
@@ -251,44 +256,40 @@ export function CoachDetailScreen() {
         otherAvatarUrl: data?.avatarUrl,
       });
     } catch (e: any) {
-      Alert.alert('Hata', e.response?.data?.message ?? 'Mesaj başlatılamadı.');
+      setConfirmModal({ title: 'Hata', message: e.response?.data?.message ?? 'Mesaj başlatılamadı.', confirmLabel: 'Tamam', onConfirm: () => {} });
     }
     setMsgLoading(false);
   };
 
   const handleBlock = () => {
-    Alert.alert(
-      isBlocked ? 'Engeli Kaldır' : 'Engelle',
-      isBlocked
+    setConfirmModal({
+      title: isBlocked ? 'Engeli Kaldır' : 'Engelle',
+      message: isBlocked
         ? `@${username} engelini kaldırmak istiyor musun?`
         : `@${username} hesabını engellemek istiyor musun? Bu kişi seni bulamaz, mesaj gönderemez.`,
-      [
-        { text: 'İptal', style: 'cancel' },
-        {
-          text: isBlocked ? 'Engeli Kaldır' : 'Engelle',
-          style: 'destructive',
-          onPress: async () => {
-            setBlockLoading(true);
-            try {
-              if (isBlocked) {
-                await api.delete(`/blocks/${username}`);
-                setIsBlocked(false);
-              } else {
-                await api.post('/blocks', { username });
-                setIsBlocked(true);
-              }
-            } catch (e: any) {
-              Alert.alert('Hata', e.response?.data?.message ?? 'İşlem başarısız.');
-            }
-            setBlockLoading(false);
-          },
-        },
-      ],
-    );
+      confirmLabel: isBlocked ? 'Engeli Kaldır' : 'Engelle',
+      danger: true,
+      onConfirm: async () => {
+        setBlockLoading(true);
+        try {
+          if (isBlocked) {
+            await api.delete(`/blocks/${username}`);
+            setIsBlocked(false);
+          } else {
+            await api.post('/blocks', { username });
+            setIsBlocked(true);
+          }
+        } catch {}
+        setBlockLoading(false);
+      },
+    });
   };
 
   const handleReport = async () => {
-    if (!reportReason.trim()) { Alert.alert('Uyarı', 'Lütfen bir neden girin.'); return; }
+    if (!reportReason.trim()) {
+      setConfirmModal({ title: 'Uyarı', message: 'Lütfen bir neden girin.', confirmLabel: 'Tamam', onConfirm: () => {} });
+      return;
+    }
     setReportLoading(true);
     try {
       await api.post('/reports', {
@@ -300,90 +301,82 @@ export function CoachDetailScreen() {
       setReportVisible(false);
       setReportReason('');
       setReportDetails('');
-      Alert.alert('Şikayet Gönderildi', 'Şikayetiniz incelemeye alındı. Teşekkür ederiz.');
+      setConfirmModal({ title: 'Şikayet Gönderildi', message: 'Şikayetiniz incelemeye alındı. Teşekkür ederiz.', confirmLabel: 'Tamam', onConfirm: () => {} });
     } catch (e: any) {
-      Alert.alert('Hata', e.response?.data?.message ?? 'Şikayet gönderilemedi.');
+      setConfirmModal({ title: 'Hata', message: e.response?.data?.message ?? 'Şikayet gönderilemedi.', confirmLabel: 'Tamam', onConfirm: () => {} });
     }
     setReportLoading(false);
   };
 
   const handleRatingSubmit = async () => {
-    if (!ratingStars) { Alert.alert('Puan Gerekli', 'Lütfen bir puan seçin.'); return; }
+    if (!ratingStars) {
+      setConfirmModal({ title: 'Puan Gerekli', message: 'Lütfen bir puan seçin.', confirmLabel: 'Tamam', onConfirm: () => {} });
+      return;
+    }
     if (!me) { (nav as any).navigate('Login'); return; }
     setRatingLoading(true);
     try {
       await api.post(`/reviews/creators/${username}`, { rating: ratingStars, body: ratingText.trim() });
       setRatingStars(0);
       setRatingText('');
-      Alert.alert('Teşekkürler!', 'Değerlendirmeniz alındı ve incelemeye gönderildi.');
+      setConfirmModal({ title: 'Teşekkürler!', message: 'Değerlendirmeniz alındı ve incelemeye gönderildi.', confirmLabel: 'Tamam', onConfirm: () => {} });
       refetch();
     } catch (e: any) {
-      Alert.alert('Hata', e.response?.data?.message ?? 'Değerlendirme gönderilemedi.');
+      setConfirmModal({ title: 'Hata', message: e.response?.data?.message ?? 'Değerlendirme gönderilemedi.', confirmLabel: 'Tamam', onConfirm: () => {} });
     }
     setRatingLoading(false);
   };
 
   const openAdminInbox = async () => {
-    if (!adminUserId) { Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.'); return; }
+    if (!adminUserId) {
+      setConfirmModal({ title: 'Hata', message: 'Kullanıcı ID yüklenemedi.', confirmLabel: 'Tamam', onConfirm: () => {} });
+      return;
+    }
     setInboxVisible(true);
     setInboxLoading(true);
     try {
       const res = await api.get(`/admin/creators/${adminUserId}/inbox`);
       setInboxData(res.data?.conversations ?? []);
-    } catch (e: any) {
-      Alert.alert('Hata', e.response?.data?.message ?? 'Mesaj kutusu yüklenemedi.');
-    }
+    } catch {}
     setInboxLoading(false);
   };
 
   const handleAdminStatusChange = (newStatus: string, label: string) => {
-    if (!adminUserId) { Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.'); return; }
-    Alert.alert(
-      label,
-      `@${username} için durumu "${label}" olarak ayarlamak istiyor musun?`,
-      [
-        { text: 'İptal', style: 'cancel' },
-        {
-          text: 'Onayla',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.patch(`/admin/creators/${adminUserId}/status`, { status: newStatus });
-              Alert.alert('Başarılı', `Durum "${label}" olarak güncellendi.`);
-              refetch();
-              const r = await api.get(`/admin/profiles/${username}`);
-              if (r.data?.id) setAdminUserId(r.data.id);
-              setAdminData(r.data ?? null);
-            } catch (e: any) {
-              Alert.alert('Hata', e.response?.data?.message ?? 'İşlem başarısız.');
-            }
-          },
-        },
-      ],
-    );
+    if (!adminUserId) {
+      setConfirmModal({ title: 'Hata', message: 'Kullanıcı ID yüklenemedi.', confirmLabel: 'Tamam', onConfirm: () => {} });
+      return;
+    }
+    setConfirmModal({
+      title: label,
+      message: `@${username} için durumu "${label}" olarak ayarlamak istiyor musun?`,
+      confirmLabel: 'Onayla',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await api.patch(`/admin/creators/${adminUserId}/status`, { status: newStatus });
+          refetch();
+          const r = await api.get(`/admin/profiles/${username}`);
+          if (r.data?.id) setAdminUserId(r.data.id);
+          setAdminData(r.data ?? null);
+        } catch {}
+      },
+    });
   };
 
   const handleSubscribe = useCallback(() => {
     const plans = (data as any)?.plans ?? [];
     if (plans.length === 0) {
-      Alert.alert('Plan Yok', 'Bu koçun şu an aktif abonelik planı bulunmuyor.');
+      setConfirmModal({ title: 'Plan Yok', message: 'Bu koçun şu an aktif abonelik planı bulunmuyor.', confirmLabel: 'Tamam', onConfirm: () => {} });
       return;
     }
-    if (plans.length === 1) {
-      Alert.alert('Abone Ol', `${plans[0].name} — ₺${plans[0].priceWeb}/ay`, [
-        { text: 'İptal', style: 'cancel' },
-        { text: 'Devam Et', onPress: () => (nav as any).navigate('Pricing') },
-      ]);
-    } else {
-      const opts = plans.map((pl: any) => ({
-        text: `${pl.name} — ₺${pl.priceWeb}/ay`,
-        onPress: () => (nav as any).navigate('Pricing'),
-      }));
-      Alert.alert('Plan Seç', 'Abone olmak istediğin planı seç:', [
-        ...opts,
-        { text: 'İptal', style: 'cancel' },
-      ]);
-    }
+    setConfirmModal({
+      title: 'Abone Ol',
+      message: plans.length === 1
+        ? `${plans[0].name} — ₺${plans[0].priceWeb}/ay`
+        : plans.map((pl: any) => `• ${pl.name} — ₺${pl.priceWeb}/ay`).join('\n'),
+      confirmLabel: 'Devam Et',
+      onConfirm: () => (nav as any).navigate('Pricing'),
+    });
   }, [data, nav]);
 
   if (isLoading) return <MettloLoadingState />;
@@ -866,7 +859,9 @@ export function CoachDetailScreen() {
                 </Pressable>
                 <Pressable
                   style={styles.healthBtn}
-                  onPress={() => adminUserId ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId }) : Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.')}
+                  onPress={() => adminUserId
+                    ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId })
+                    : setConfirmModal({ title: 'Hata', message: 'Kullanıcı ID yüklenemedi.', confirmLabel: 'Tamam', onConfirm: () => {} })}
                 >
                   <MettloText style={{ fontSize: 14 }}>❤</MettloText>
                   <MettloText style={styles.healthBtnTxt}>Sağlık Verileri</MettloText>
@@ -890,6 +885,15 @@ export function CoachDetailScreen() {
                               {adUser.personal?.fullName && <AdminRow label="Ad Soyad" value={adUser.personal.fullName} />}
                               {adUser.personal?.phone && <AdminRow label="Telefon" value={adUser.personal.phone} />}
                               {adUser.personal?.gender && <AdminRow label="Cinsiyet" value={adUser.personal.gender} />}
+                              {adUser.personal?.address && <AdminRow label="Adres" value={adUser.personal.address} />}
+                              {adUser.personal?.city && <AdminRow label="Şehir" value={adUser.personal.city} />}
+                              {adUser.personal?.district && <AdminRow label="İlçe" value={adUser.personal.district} />}
+                              {adUser.personal?.postalCode && <AdminRow label="Posta Kodu" value={adUser.personal.postalCode} />}
+                              {adUser.personal?.emergencyContact && (
+                                <AdminRow label="Acil İletişim"
+                                  value={[adUser.personal.emergencyContact.name, adUser.personal.emergencyContact.phone].filter(Boolean).join(' · ') || '—'} />
+                              )}
+                              {adUser.registrationIp && <AdminRow label="Kayıt IP" value={adUser.registrationIp} />}
                             </>
                           : <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s4 }}>
                               Tam bilgiler yükleniyor…
@@ -1119,7 +1123,9 @@ export function CoachDetailScreen() {
               <AdminAccordionAction title="Profili düzenle">
                 <Pressable
                   style={styles.adminActionBtn}
-                  onPress={() => adminUserId ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId }) : Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.')}
+                  onPress={() => adminUserId
+                    ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId })
+                    : setConfirmModal({ title: 'Hata', message: 'Kullanıcı ID yüklenemedi.', confirmLabel: 'Tamam', onConfirm: () => {} })}
                 >
                   <MettloText style={styles.adminActionBtnTxt}>Admin Panelinde Düzenle →</MettloText>
                 </Pressable>
@@ -1143,7 +1149,9 @@ export function CoachDetailScreen() {
                 </MettloText>
                 <Pressable
                   style={[styles.adminActionBtn, { borderColor: Colors.warning }]}
-                  onPress={() => adminUserId ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId }) : Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.')}
+                  onPress={() => adminUserId
+                    ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId })
+                    : setConfirmModal({ title: 'Hata', message: 'Kullanıcı ID yüklenemedi.', confirmLabel: 'Tamam', onConfirm: () => {} })}
                 >
                   <MettloText style={[styles.adminActionBtnTxt, { color: Colors.warning }]}>Uyarı Gönder</MettloText>
                 </Pressable>
@@ -1170,18 +1178,18 @@ export function CoachDetailScreen() {
                     <Pressable
                       style={[styles.adminActionBtn, { borderColor: Colors.error }]}
                       onPress={() =>
-                        Alert.alert(
-                          'Hesabı Sil',
-                          'Bu işlem geri alınamaz. Emin misin?',
-                          [
-                            { text: 'İptal', style: 'cancel' },
-                            {
-                              text: 'Sil',
-                              style: 'destructive',
-                              onPress: () => Alert.alert('İşlem Gerekli', 'Hesap silme için masaüstü admin panelini kullanın.'),
-                            },
-                          ],
-                        )
+                        setConfirmModal({
+                          title: 'Hesabı Sil',
+                          message: 'Bu işlem geri alınamaz. Emin misin?',
+                          confirmLabel: 'Sil',
+                          danger: true,
+                          onConfirm: () => setConfirmModal({
+                            title: 'İşlem Gerekli',
+                            message: 'Hesap silme için masaüstü admin panelini kullanın.',
+                            confirmLabel: 'Tamam',
+                            onConfirm: () => {},
+                          }),
+                        })
                       }
                     >
                       <MettloText style={[styles.adminActionBtnTxt, { color: Colors.error }]}>Hesabı Sil</MettloText>
@@ -1228,6 +1236,32 @@ export function CoachDetailScreen() {
         onClose={() => setFollowModal(null)}
         onNavigate={(u) => (nav as any).navigate('CoachDetail', { username: u })}
       />
+
+      {/* ── Dark Confirm / Alert Modal ── */}
+      <Modal visible={!!confirmModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setConfirmModal(null)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: Space.s24 }}>
+          <View style={{ backgroundColor: Colors.surface2, borderRadius: Radius.lg, padding: Space.s24, width: '100%', maxWidth: 360, gap: Space.s12 }}>
+            <MettloText variant="h5" style={{ textAlign: 'center' }}>{confirmModal?.title ?? ''}</MettloText>
+            <MettloText variant="body" color={Colors.textSecondary} style={{ textAlign: 'center', lineHeight: 22 }}>{confirmModal?.message ?? ''}</MettloText>
+            <View style={{ flexDirection: 'row', gap: Space.s12, marginTop: Space.s4 }}>
+              {confirmModal && (confirmModal.danger || confirmModal.confirmLabel !== 'Tamam') && (
+                <Pressable
+                  style={{ flex: 1, paddingVertical: 12, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.borderSubtle, alignItems: 'center' }}
+                  onPress={() => setConfirmModal(null)}
+                >
+                  <MettloText variant="bodySm" color={Colors.textSecondary}>İptal</MettloText>
+                </Pressable>
+              )}
+              <Pressable
+                style={{ flex: 1, paddingVertical: 12, borderRadius: Radius.md, backgroundColor: confirmModal?.danger ? Colors.error : Colors.primary, alignItems: 'center' }}
+                onPress={() => { confirmModal?.onConfirm(); setConfirmModal(null); }}
+              >
+                <MettloText variant="bodySm" style={{ color: '#fff', fontWeight: '700' }}>{confirmModal?.confirmLabel ?? 'Tamam'}</MettloText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Şikayet Et Modal ── */}
       <Modal visible={reportVisible} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setReportVisible(false)}>
@@ -1295,16 +1329,7 @@ export function CoachDetailScreen() {
                 data={inboxData}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <Pressable
-                    style={inbox.row}
-                    onPress={() =>
-                      (nav as any).navigate('Conversation', {
-                        conversationId: item.id,
-                        otherName: item.with?.[0]?.name ?? item.with?.[0]?.username ?? 'Kullanıcı',
-                        otherUsername: item.with?.[0]?.username,
-                      })
-                    }
-                  >
+                  <View style={inbox.row}>
                     <View style={{ flex: 1, gap: Space.s4 }}>
                       <MettloText variant="bodySm" style={{ fontWeight: '700' }}>
                         {item.with?.map((u: any) => `@${u.username}`).join(' ↔ ') ?? `Konuşma ${item.id.slice(0, 8)}`}
@@ -1318,7 +1343,7 @@ export function CoachDetailScreen() {
                     <MettloText variant="caption" color={Colors.textMuted}>
                       {item.messageCount ?? 0} mesaj
                     </MettloText>
-                  </Pressable>
+                  </View>
                 )}
                 ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: Colors.borderSubtle }} />}
                 contentContainerStyle={{ paddingBottom: Space.s32 }}
