@@ -146,7 +146,7 @@ export class PublicController {
       const TIERS = [{ tier: '24m', months: 24, label: '2 Yıllık Mettlo Koçu' }, { tier: '12m', months: 12, label: '1 Yıllık Mettlo Koçu' }, { tier: '6m', months: 6, label: '6 Aylık Mettlo Koçu' }];
       const earnedBadges = TIERS.filter((t) => monthsOnMettlo >= t.months).reverse();
       return {
-        type: 'coach', username: u.username, avatarUrl: u.avatarUrl, ...rest, branches: branches.map((b: any) => b.branch), subCategories: subCategories.map((x: any) => x.subCategory),
+        type: 'coach', id: u.id, username: u.username, avatarUrl: u.avatarUrl, ...rest, branches: branches.map((b: any) => b.branch), subCategories: subCategories.map((x: any) => x.subCategory),
         credentials: credentials.map((c: any) => c.credential),
         workplaces: (p.coachWorkplaces ?? []).map((w: any) => w.business).filter(Boolean),
         community: community && { slug: community.slug, name: community.name, subscribersOnly: community.subscribersOnly, members: community._count.members },

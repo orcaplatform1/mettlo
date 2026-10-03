@@ -135,6 +135,7 @@ export function CoachDetailScreen() {
   const [ratingLoading, setRatingLoading] = useState(false);
 
   // Admin data
+  const [adminUserId, setAdminUserId] = useState<string | null>(null);
   const [adminData, setAdminData] = useState<any>(null);
 
   // Admin inbox modal
@@ -190,14 +191,25 @@ export function CoachDetailScreen() {
       .catch(() => null);
   }, [username, isSelf, me, data]);
 
-  // Admin verisi
+  // Admin verisi — önce /admin/profiles/:username ile userId al, sonra tam detay çek
   useEffect(() => {
-    if (!amStaff || !data?.id) return;
-    api
-      .get(`/admin/users/${data.id}`)
-      .then((r) => setAdminData(r.data))
-      .catch(() => null);
-  }, [amStaff, data?.id]);
+    if (!amStaff) return;
+    // p.id public profilden gelir (backend'e eklendi). Yoksa admin profiles endpoint'i dene.
+    const knownId = (data as any)?.id as string | undefined;
+    if (knownId) {
+      setAdminUserId(knownId);
+      api.get(`/admin/users/${knownId}`).then((r) => setAdminData(r.data)).catch(() => null);
+    } else {
+      api.get(`/admin/profiles/${username}`)
+        .then((r) => {
+          const uid = r.data?.id as string | undefined;
+          if (!uid) return;
+          setAdminUserId(uid);
+          return api.get(`/admin/users/${uid}`).then((r2) => setAdminData(r2.data));
+        })
+        .catch(() => null);
+    }
+  }, [amStaff, username, (data as any)?.id]); // eslint-disable-line
 
   const applyFollowResult = (res: any, isFollowing: boolean) => {
     setFollowing(isFollowing);
@@ -309,16 +321,20 @@ export function CoachDetailScreen() {
   };
 
   const openAdminInbox = async () => {
+    if (!adminUserId) { Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.'); return; }
     setInboxVisible(true);
     setInboxLoading(true);
     try {
-      const res = await api.get(`/admin/creators/${data?.id}/inbox`);
+      const res = await api.get(`/admin/creators/${adminUserId}/inbox`);
       setInboxData(res.data?.conversations ?? []);
-    } catch {}
+    } catch (e: any) {
+      Alert.alert('Hata', e.response?.data?.message ?? 'Mesaj kutusu yüklenemedi.');
+    }
     setInboxLoading(false);
   };
 
   const handleAdminStatusChange = (newStatus: string, label: string) => {
+    if (!adminUserId) { Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.'); return; }
     Alert.alert(
       label,
       `@${username} için durumu "${label}" olarak ayarlamak istiyor musun?`,
@@ -329,13 +345,11 @@ export function CoachDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await api.patch(`/admin/creators/${data?.id}/status`, { status: newStatus });
+              await api.patch(`/admin/creators/${adminUserId}/status`, { status: newStatus });
               Alert.alert('Başarılı', `Durum "${label}" olarak güncellendi.`);
               refetch();
-              if (amStaff && data?.id) {
-                const r = await api.get(`/admin/users/${data.id}`);
-                setAdminData(r.data);
-              }
+              const r = await api.get(`/admin/users/${adminUserId}`);
+              setAdminData(r.data);
             } catch (e: any) {
               Alert.alert('Hata', e.response?.data?.message ?? 'İşlem başarısız.');
             }
@@ -847,7 +861,7 @@ export function CoachDetailScreen() {
                 </Pressable>
                 <Pressable
                   style={styles.healthBtn}
-                  onPress={() => (nav as any).navigate('AdminUserDetail', { userId: p.id })}
+                  onPress={() => adminUserId ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId }) : Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.')}
                 >
                   <MettloText style={{ fontSize: 14 }}>❤</MettloText>
                   <MettloText style={styles.healthBtnTxt}>Sağlık Verileri</MettloText>
@@ -892,33 +906,134 @@ export function CoachDetailScreen() {
               )}
 
               {/* Hesap Verileri */}
-              <MettloText variant="h5" style={{ marginBottom: Space.s8, marginTop: Space.s8 }}>Hesap Verileri</MettloText>
-              {adUser && [
-                { title: 'Abonelikler', count: adUser.subscriptions?.length },
-                { title: 'Erişim hakları (entitlement)', count: adUser.entitlements?.length ?? 0 },
-                { title: 'Ödemeler', count: adUser.payments?.length ?? 0 },
-                { title: 'Siparişler', count: adUser.orders?.length ?? 0 },
-                { title: 'Faturalar', count: adUser.invoices?.length ?? 0 },
-                { title: 'Antrenman kayıtları', count: adUser.workouts?.length ?? 0 },
-                { title: 'Programlar', count: 0 },
-                { title: 'Challenge katılımı', count: 0 },
-                { title: 'Rezervasyonlar', count: 0 },
-                { title: 'Canlı ders katılımı', count: adUser.counts?.bookings ?? 0 },
-                { title: 'Koçluk ilişkileri', count: (adUser.coachingAsMember?.length ?? 0) + (adUser.coachingAsCoach?.length ?? 0) },
-                { title: "Check-in'ler", count: adUser.checkins?.length ?? 0 },
-                { title: 'Yorumlar', count: adUser.reviews?.length ?? 0 },
-                { title: 'Konuşmalar (üst veri)', count: adUser.conversations?.length ?? 0 },
-                { title: 'Sağlık paylaşım rızaları', count: adUser.healthConsents?.length ?? 0 },
-                { title: 'KVKK / iletişim rızaları', count: 0 },
-                { title: 'Yaptırımlar', count: adUser.sanctions?.length ?? 0 },
-                { title: 'Cihazlar ve oturumlar', count: adUser.devices?.length ?? 0 },
-                { title: 'Engellenen Kullanıcılar', count: adUser.blocks?.length ?? 0 },
-                { title: 'Sosyal etkinlik' },
-              ].map((item) => (
-                <Accordion key={item.title} title={item.title} count={item.count ?? null}>
-                  <MettloText variant="caption" color={Colors.textMuted}>Detaylar için masaüstü admin panelini kullanın.</MettloText>
-                </Accordion>
-              ))}
+              {!adUser && (
+                <View style={{ alignItems: 'center', paddingVertical: Space.s16 }}>
+                  <ActivityIndicator color={Colors.primary} size="small" />
+                  <MettloText variant="caption" color={Colors.textMuted} style={{ marginTop: Space.s8 }}>Veriler yükleniyor…</MettloText>
+                </View>
+              )}
+              {adUser && (
+                <>
+                  <MettloText variant="h5" style={{ marginBottom: Space.s8, marginTop: Space.s8 }}>Hesap Verileri</MettloText>
+                  <Accordion title="Abonelikler" count={adUser.subscriptions?.length ?? 0}>
+                    {(adUser.subscriptions?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Abonelik yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.subscriptions.map((s: any) => (
+                          <AdminRow key={s.id ?? s.planId} label={s.plan?.name ?? s.planId ?? 'Plan'} value={`${s.status ?? '—'} · ${s.renewsAt ? new Date(s.renewsAt).toLocaleDateString('tr-TR') : s.createdAt ? new Date(s.createdAt).toLocaleDateString('tr-TR') : '—'}`} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Erişim hakları (entitlement)" count={adUser.entitlements?.length ?? 0}>
+                    {(adUser.entitlements?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Erişim hakkı yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.entitlements.map((e: any) => (
+                          <AdminRow key={e.id ?? e.feature} label={e.feature ?? e.type ?? 'Özellik'} value={`${e.status ?? 'aktif'}`} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Ödemeler" count={adUser.payments?.length ?? 0}>
+                    {(adUser.payments?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Ödeme yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.payments.slice(0, 10).map((pay: any) => (
+                          <AdminRow key={pay.id} label={`₺${(pay.amount ?? 0) / 100} · ${pay.status ?? '—'}`} value={pay.createdAt ? new Date(pay.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Siparişler" count={adUser.orders?.length ?? 0}>
+                    {(adUser.orders?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Sipariş yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.orders.slice(0, 10).map((o: any) => (
+                          <AdminRow key={o.id} label={o.productName ?? o.type ?? 'Sipariş'} value={`${o.status ?? '—'} · ${o.createdAt ? new Date(o.createdAt).toLocaleDateString('tr-TR') : '—'}`} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Faturalar" count={adUser.invoices?.length ?? 0}>
+                    {(adUser.invoices?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Fatura yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.invoices.slice(0, 10).map((inv: any) => (
+                          <AdminRow key={inv.id} label={`₺${(inv.total ?? inv.amount ?? 0) / 100}`} value={`${inv.status ?? '—'} · ${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('tr-TR') : '—'}`} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Antrenman kayıtları" count={adUser.workouts?.length ?? 0}>
+                    {(adUser.workouts?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Antrenman kaydı yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.workouts.slice(0, 10).map((w: any) => (
+                          <AdminRow key={w.id} label={w.title ?? w.workoutTitle ?? 'Antrenman'} value={w.completedAt ? new Date(w.completedAt).toLocaleDateString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Koçluk ilişkileri" count={(adUser.coachingAsMember?.length ?? 0) + (adUser.coachingAsCoach?.length ?? 0)}>
+                    <View style={{ gap: Space.s8 }}>
+                      {(adUser.coachingAsMember?.length ?? 0) > 0 && adUser.coachingAsMember.map((r: any) => (
+                        <AdminRow key={r.id} label={`Üye olarak — @${r.coach?.username ?? '?'}`} value={r.status ?? '—'} />
+                      ))}
+                      {(adUser.coachingAsCoach?.length ?? 0) > 0 && adUser.coachingAsCoach.map((r: any) => (
+                        <AdminRow key={r.id} label={`Koç olarak — @${r.member?.username ?? '?'}`} value={r.status ?? '—'} />
+                      ))}
+                      {(adUser.coachingAsMember?.length ?? 0) === 0 && (adUser.coachingAsCoach?.length ?? 0) === 0 && (
+                        <MettloText variant="caption" color={Colors.textMuted}>Koçluk ilişkisi yok.</MettloText>
+                      )}
+                    </View>
+                  </Accordion>
+                  <Accordion title="Check-in'ler" count={adUser.checkins?.length ?? 0}>
+                    {(adUser.checkins?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Check-in yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.checkins.slice(0, 10).map((c: any) => (
+                          <AdminRow key={c.id} label={c.business?.name ?? c.businessId ?? 'İşletme'} value={c.checkedAt ? new Date(c.checkedAt).toLocaleString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Yorumlar" count={adUser.reviews?.length ?? 0}>
+                    {(adUser.reviews?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Yorum yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.reviews.slice(0, 10).map((rv: any) => (
+                          <AdminRow key={rv.id} label={`${'★'.repeat(rv.rating ?? 0)} @${rv.target?.username ?? '?'}`} value={rv.createdAt ? new Date(rv.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Konuşmalar (üst veri)" count={adUser.conversations?.length ?? 0}>
+                    {(adUser.conversations?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Konuşma yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.conversations.slice(0, 10).map((cv: any) => (
+                          <AdminRow key={cv.id} label={cv.with?.map((u: any) => `@${u.username}`).join(', ') ?? cv.id.slice(0, 8)} value={`${cv.messageCount ?? 0} mesaj · ${cv.updatedAt ? new Date(cv.updatedAt).toLocaleDateString('tr-TR') : '—'}`} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Sağlık paylaşım rızaları" count={adUser.healthConsents?.length ?? 0}>
+                    {(adUser.healthConsents?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Sağlık rızası yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.healthConsents.map((h: any) => (
+                          <AdminRow key={h.id} label={h.coach?.username ? `@${h.coach.username}` : 'Koç'} value={`${h.status ?? 'verilmiş'} · ${h.grantedAt ? new Date(h.grantedAt).toLocaleDateString('tr-TR') : '—'}`} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Yaptırımlar" count={adUser.sanctions?.length ?? 0}>
+                    {(adUser.sanctions?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Yaptırım yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.sanctions.map((s: any) => (
+                          <AdminRow key={s.id} label={`${s.type ?? '—'} · ${s.reason ?? '—'}`} value={s.createdAt ? new Date(s.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Cihazlar ve oturumlar" count={adUser.devices?.length ?? 0}>
+                    {(adUser.devices?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Cihaz kaydı yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.devices.map((d: any) => (
+                          <AdminRow key={d.id} label={d.deviceName ?? d.model ?? d.platform ?? 'Cihaz'} value={d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleDateString('tr-TR') : d.createdAt ? new Date(d.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                  <Accordion title="Engellenen Kullanıcılar" count={adUser.blocks?.length ?? 0}>
+                    {(adUser.blocks?.length ?? 0) === 0
+                      ? <MettloText variant="caption" color={Colors.textMuted}>Engellenen yok.</MettloText>
+                      : <View style={{ gap: Space.s8 }}>{adUser.blocks.map((b: any) => (
+                          <AdminRow key={b.id} label={`@${b.blocked?.username ?? b.blockedId ?? '?'}`} value={b.createdAt ? new Date(b.createdAt).toLocaleDateString('tr-TR') : '—'} />
+                        ))}</View>
+                    }
+                  </Accordion>
+                </>
+              )}
             </View>
           </View>
         )}
@@ -972,7 +1087,7 @@ export function CoachDetailScreen() {
               <AdminAccordionAction title="Profili düzenle">
                 <Pressable
                   style={styles.adminActionBtn}
-                  onPress={() => (nav as any).navigate('AdminUserDetail', { userId: p.id })}
+                  onPress={() => adminUserId ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId }) : Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.')}
                 >
                   <MettloText style={styles.adminActionBtnTxt}>Admin Panelinde Düzenle →</MettloText>
                 </Pressable>
@@ -996,7 +1111,7 @@ export function CoachDetailScreen() {
                 </MettloText>
                 <Pressable
                   style={[styles.adminActionBtn, { borderColor: Colors.warning }]}
-                  onPress={() => (nav as any).navigate('AdminUserDetail', { userId: p.id })}
+                  onPress={() => adminUserId ? (nav as any).navigate('AdminUserDetail', { userId: adminUserId }) : Alert.alert('Hata', 'Kullanıcı ID yüklenemedi.')}
                 >
                   <MettloText style={[styles.adminActionBtnTxt, { color: Colors.warning }]}>Uyarı Gönder</MettloText>
                 </Pressable>
