@@ -42,7 +42,9 @@
           "defaultChannel": "default",
           "sounds": []
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {
