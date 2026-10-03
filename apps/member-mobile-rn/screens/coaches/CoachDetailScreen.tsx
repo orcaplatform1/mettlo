@@ -12,6 +12,7 @@ import { MettloLoadingState } from '../../components/ui/MettloLoadingState';
 import { MettloErrorState } from '../../components/ui/MettloErrorState';
 import { MettloCopyright } from '../../components/ui/MettloCopyright';
 import { ProfileStories } from '../../components/ui/ProfileStories';
+import { FollowListModal } from '../../components/ui/FollowListModal';
 import { Colors, Radius, Space } from '../../constants/tokens';
 import { coachService } from '../../services/coachService';
 import { userService } from '../../services/userService';
@@ -32,6 +33,7 @@ export function CoachDetailScreen() {
   const [following, setFollowing] = useState<boolean | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
   const [localFollowers, setLocalFollowers] = useState<number | null>(null);
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
 
   useEffect(() => {
     if (isSelf) return;
@@ -149,14 +151,14 @@ export function CoachDetailScreen() {
 
           {/* Takipçi / Takip */}
           <View style={styles.socialRow}>
-            <MettloText variant="body">
+            <Pressable onPress={() => setFollowModal('followers')} style={styles.socialBtn}>
               <MettloText variant="h5">{localFollowers !== null ? localFollowers : (p.followersCount ?? 0)}</MettloText>
-              <MettloText variant="body" color={Colors.textMuted}> Takipçi</MettloText>
-            </MettloText>
-            <MettloText variant="body" style={{ marginLeft: 20 }}>
+              <MettloText variant="bodySm" color={Colors.textMuted}> Takipçi</MettloText>
+            </Pressable>
+            <Pressable onPress={() => setFollowModal('following')} style={[styles.socialBtn, { marginLeft: 20 }]}>
               <MettloText variant="h5">{p.followingCount ?? 0}</MettloText>
-              <MettloText variant="body" color={Colors.textMuted}> Takip</MettloText>
-            </MettloText>
+              <MettloText variant="bodySm" color={Colors.textMuted}> Takip</MettloText>
+            </Pressable>
           </View>
 
           {/* Takip Et butonu */}
@@ -269,6 +271,14 @@ export function CoachDetailScreen() {
         </View>
         <MettloButton label="Abone Ol" size="md" onPress={handleSubscribe} style={styles.stickyBtn} />
       </View>
+
+      <FollowListModal
+        visible={followModal !== null}
+        mode={followModal ?? 'followers'}
+        username={p.username}
+        onClose={() => setFollowModal(null)}
+        onNavigate={(u) => (nav as any).navigate('CoachDetail', { username: u })}
+      />
     </SafeAreaView>
   );
 }
@@ -300,6 +310,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.borderSubtle,
   },
   socialRow: { flexDirection: 'row', marginTop: Space.s8 },
+  socialBtn: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
   followBtn: {
     marginTop: Space.s12,
     backgroundColor: Colors.primary,

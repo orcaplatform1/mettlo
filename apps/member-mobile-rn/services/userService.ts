@@ -9,12 +9,12 @@ export const userService = {
     const res = await api.patch('/me', data);
     return res.data;
   },
-  async getFollowers(username: string, page = 1) {
-    const res = await api.get(`/profile/${username}/followers`, { params: { page } });
+  async getFollowers(username: string) {
+    const res = await api.get(`/social/followers/${username}`);
     return res.data;
   },
-  async getFollowing(username: string, page = 1) {
-    const res = await api.get(`/profile/${username}/following`, { params: { page } });
+  async getFollowing(username: string) {
+    const res = await api.get(`/social/following/${username}`);
     return res.data;
   },
   async follow(username: string) {
