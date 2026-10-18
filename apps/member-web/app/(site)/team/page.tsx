@@ -25,7 +25,6 @@ const ROLE_COLOR: Record<string, string> = {
 
 const BIOS: Record<string, string> = {
   mertdagdeviren: 'Merhaba ben Mert, Traders.TR başta olmak üzere farklı dijital hizmetler geliştiren, markalar yaratan ve bunları işleten bir girişimciyim. Mettlo\'yu, fitness ve wellness dünyasında koçlar ile üyeler arasındaki deneyimi daha profesyonel, kişisel ve sürdürülebilir bir yapıya taşımak amacıyla hayata geçirdim.\n\nMettlo ile hedefim; Türkiye\'de boşluk olan bu alanda, uzman koçların kendi sistemlerini özgürce tek bir alandan yönetebildiği, üyelerin ise ihtiyaçlarına uygun koçluk ve gelişim deneyimine tek bir platform üzerinden ulaşabildiği, yeni nesil bir ekosistem oluşturmaktır.',
-  ozgurferik: 'Merhaba ben Özgür, Mettlo\'nun operasyonel ve stratejik süreçlerinde aktif rol alan bir yöneticiyim. Koçluk ekosisteminin ihtiyaçlarını yakından takip ediyor, Mettlo\'nun gelişim sürecinde işleyişin, kullanıcı deneyiminin ve büyüme süreçlerinin koordinasyonuna katkı sağlıyorum.\n\nMettlo\'nun operasyonlarından iş süreçlerine kadar farklı alanlarda ekibin koordinasyonunu destekleyerek, platformun büyüme sürecinde ölçeklenebilir ve güçlü bir organizasyon yapısının oluşturulmasına odaklanıyorum.',
 };
 
 function StarDot({ role }: { role: string }) {
