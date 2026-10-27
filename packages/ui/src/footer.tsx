@@ -21,11 +21,11 @@ function Copyright() {
   return (
     <p className="footer-copy">
       © {year} Mettlo. Tüm hakları saklıdır. Mettlo bir{' '}
-      <span className="nowrap">
+      <a href="https://traders.tr" target="_blank" rel="noopener noreferrer" className="nowrap" style={{ textDecoration: 'none' }}>
         <span className="brand-white">Traders</span><span className="brand-blue">.TR</span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/footerflag.webp" alt="" aria-hidden className="footer-flag" />
-      </span>{' '}
+      </a>{' '}
       ticari markasıdır. Bu platformda yer alan tüm içerikler, tasarımlar, marka unsurları ve fikrî mülkiyet hakları ilgili yasal mevzuat kapsamında korunmaktadır.
     </p>
   );
