@@ -47,7 +47,7 @@ function DsaGate({ onAccepted }: { onAccepted: () => void }) {
               <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={20} aria-hidden /></button>
             </div>
             <div ref={scroller} onScroll={check} style={{ overflowY: 'auto', padding: '24px', flex: 1, fontSize: '13px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-              <p>Bu mesafeli satış sözleşmesi ("Sözleşme"), <strong>Mettlo Dijital Hizmetler A.Ş.</strong> ile etkinlik biletini satın alan tüketici ("Alıcı") arasında akdedilmiştir. Bilet satışı Mettlo platformu üzerinden gerçekleştirilmekte olup, Mettlo doğrudan satıcı sıfatıyla işlem yapmaktadır.</p>
+              <p>Bu mesafeli satış sözleşmesi ("Sözleşme"), <strong>Ahenk Zesta Art Design</strong> ile etkinlik biletini satın alan tüketici ("Alıcı") arasında akdedilmiştir. Bilet satışı Mettlo platformu üzerinden gerçekleştirilmekte olup, Mettlo doğrudan satıcı sıfatıyla işlem yapmaktadır.</p>
               <p style={{ marginTop: '12px' }}><strong>1. Konu:</strong> Sözleşme konusu, Alıcı'nın Mettlo platformu üzerinden satın aldığı etkinlik biletine ilişkin hak ve yükümlülükleri düzenlemektedir.</p>
               <p style={{ marginTop: '12px' }}><strong>2. Cayma Hakkı:</strong> 6502 sayılı Kanun uyarınca elektronik ortamda sunulan etkinlik biletleri için, etkinlik tarihinden en az 48 saat önce iptal talebinde bulunulması halinde ücretin tamamı iade edilir. Etkinlik tarihine 48 saatten az süre kalmışsa iade yapılmaz.</p>
               <p style={{ marginTop: '12px' }}><strong>3. Teslimat:</strong> Bilet, ödeme onayı ardından kayıtlı e-posta adresinize ve Mettlo hesabınıza dijital olarak iletilir.</p>
