@@ -37,7 +37,7 @@ export function DsaContent() {
       <p>Ödeme bilgileri yalnızca iyzico güvenli altyapısı üzerinden işlenir; kart numarası ve güvenlik kodu Mettlo sunucularına iletilmez ve saklanmaz. Kişisel verilerin işlenmesine ilişkin ayrıntılar için bkz. <a href="/privacy" target="_blank" rel="noopener noreferrer">Gizlilik Politikası</a> ve <a href="/data-protection" target="_blank" rel="noopener noreferrer">KVKK Aydınlatma Metni</a>.</p>
 
       <h4 style={{ marginTop: 16 }}>9. Uyuşmazlık Çözümü</h4>
-      <p>İşbu sözleşmeden doğan uyuşmazlıklarda T.C. mahkemeleri ve Tüketici Hakem Heyetleri yetkilidir. Kanuni sınır altındaki tüketici uyuşmazlıkları için ilgili Tüketici Hakem Heyeti&#39;ne başvurulabilir.</p>
+      <p>Uyuşmazlıklarda Ankara Hukuk Mahkemeleri ve Ankara İcra Müdürlükleri yetkilidir. Tüketici, 6502 sayılı Kanun kapsamında kendi yerleşim yerindeki Tüketici Hakem Heyeti veya Tüketici Mahkemesi&#39;ne de başvurabilir. Kanuni sınır altındaki tüketici uyuşmazlıkları için ilgili Tüketici Hakem Heyeti&#39;ne başvurulabilir.</p>
 
       <p style={{ marginTop: 20, fontSize: 12, color: '#718096' }}>Sözleşme tarihi, ödemenin gerçekleştiği andır. Mettlo, ödeme onayı ile birlikte bu sözleşmenin bir özetini kayıtlı e-posta adresinize gönderecektir.</p>
     </>

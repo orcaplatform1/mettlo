@@ -58,7 +58,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: 'Uygulanacak Hukuk',
-    body: 'Bu Koşullar Türkiye Cumhuriyeti hukukuna tabidir. Tüketici işlemlerinde Tüketici Hakem Heyetleri veya Tüketici Mahkemeleri yetkilidir. Diğer uyuşmazlıklarda Mettlo\'nun bulunduğu yerdeki mahkemeler yetkilidir.',
+    body: 'Bu Koşullar Türkiye Cumhuriyeti hukukuna tabidir. Tüketici işlemlerinde Tüketici Hakem Heyetleri veya Tüketici Mahkemeleri yetkilidir. Uyuşmazlıklarda Ankara Hukuk Mahkemeleri ve Ankara İcra Müdürlükleri yetkilidir.',
   },
   {
     title: 'İletişim',
