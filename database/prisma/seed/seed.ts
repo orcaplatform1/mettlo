@@ -4,11 +4,12 @@ import { writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { slugify } from '../../../packages/utils/dist';
 import { PrismaClient } from '../../../packages/database/generated/client';
+import { PrismaPg } from '../../../packages/database/node_modules/@prisma/adapter-pg';
 import { hashPassword } from '../../../packages/auth/dist';
 import { ROLES, ALL_PERMISSIONS, permissionsOf, requiresTwoFactor } from '../../../packages/types/dist';
 import { TURKEY_CITIES, slugify as locSlugify } from './turkey-locations';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
 const ROLE_NAMES: Record<string, string> = {
   MEMBER: 'Üye', CREATOR: 'Koç / Creator', ADMIN: 'Admin', MODERATOR: 'Moderatör', SUPPORT: 'Destek', SUPER_ADMIN: 'Süper Admin',

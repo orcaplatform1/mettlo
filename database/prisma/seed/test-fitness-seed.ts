@@ -4,9 +4,10 @@
  */
 
 import { PrismaClient } from '../../../packages/database/generated/client';
+import { PrismaPg } from '../../../packages/database/node_modules/@prisma/adapter-pg';
 import * as argon2 from 'argon2';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
 const ARGON_OPTS: argon2.HashOptions = {
   type: argon2.argon2id,
